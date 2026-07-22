@@ -1,4 +1,4 @@
-﻿namespace DentalClinic.Application.Services
+namespace Application.Services
 {
     public class Class1
     {

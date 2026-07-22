@@ -1,4 +1,4 @@
-namespace DentalClinic.Domain.Model
+namespace Domain.Model
 {
   public abstract class Persona
   {

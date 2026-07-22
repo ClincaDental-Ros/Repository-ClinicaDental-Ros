@@ -1,4 +1,4 @@
-namespace DentalClinic.Domain.Model
+namespace Domain.Model
 {
     public class HorarioOdont
     {
@@ -19,20 +19,20 @@ namespace DentalClinic.Domain.Model
         public void SetHoraD(string horadesde)
         {
             if (string.IsNullOrWhiteSpace(horadesde))
-                throw new ArgumentException("El horario desde no puede ser nulo o vacío.", nameof(horadesde));
+                throw new ArgumentException("El horario desde no puede ser nulo o vacÃ­o.", nameof(horadesde));
             HoraDesde = horadesde;
         }
 
         public void SetHoraH(string horahasta)
         {
             if (string.IsNullOrWhiteSpace(horahasta))
-                throw new ArgumentException("El horario hasta no puede ser nulo o vacío.", nameof(horahasta));
+                throw new ArgumentException("El horario hasta no puede ser nulo o vacÃ­o.", nameof(horahasta));
             HoraHasta = horahasta;
         }
         public void SetDiaS(string diasemana)
         {
             if (string.IsNullOrWhiteSpace(diasemana))
-                throw new ArgumentException("El dia de la semana no puede ser nulo o vacío.", nameof(diasemana));
+                throw new ArgumentException("El dia de la semana no puede ser nulo o vacÃ­o.", nameof(diasemana));
             DiaSemana = diasemana;
         }
     }

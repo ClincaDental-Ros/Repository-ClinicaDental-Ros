@@ -1,44 +1,56 @@
-namespace DentalClinic.Domain.Model
+namespace Domain.Model
 {
-    public class TurnoOdontologico
+  public class TurnoOdontologico
+  {
+    public int Id { get; set; }
+    public string Fecha { get; private set; }
+    public string HorarioTurno { get; private set; }
+    public string EstadoTurno { get; private set; }
+    public string MotivoCancelacion { get; private set; }
+
+
+    public TurnoOdontologico(string fecha, string horarioTurno, string estadoTurno, string motivoCancelacion, int id)
     {
-        public string Fecha { get; private set; }
-        public string HorarioTurno { get; private set; }
-        public bool EstadoTurno { get; private set; }
-        public string MotivoCancelacion { get; private set; }
+      SetFechaT(fecha);
+      SetHoraT(horarioTurno);
+      SetEstado(estadoTurno);
+      SetMotivo(motivoCancelacion);
+      SetID(id);
+
+    }
 
 
-        public HorarioOdont(string fecha, string horarioTurno, bool estadoTurno, string motivoCancelacion)
-        {
-            SetFechaT(fecha);
-            SetHoraT(horarioTurno);
-            SetEstado(estadoTurno);
-            SetMotivo(motivoCancelacion);
+    public void SetFechaT(string fecha)
+    {
+      if (string.IsNullOrWhiteSpace(fecha))
+        throw new ArgumentException("La fecha del turno no puede ser nulo o vac√≠o.", nameof(fecha));
+      Fecha = fecha;
+    }
 
-        }
+    public void SetHoraT(string horarioTurno)
+    {
+      if (string.IsNullOrWhiteSpace(horarioTurno))
+        throw new ArgumentException("El horario del turno no puede ser nulo o vac√≠o.", nameof(horarioTurno));
+      HorarioTurno = horarioTurno;
+    }
+    public void SetEstado(string estadoTurno)
+    {
+      if (string.IsNullOrWhiteSpace(estadoTurno))
+        throw new ArgumentException("El estado del turno no puede ser nulo o vac√≠o.", nameof(estadoTurno));
+      EstadoTurno = estadoTurno;
+    }
+    public void SetMotivo(string motivoCancelacion)
+    {
+      MotivoCancelacion = motivoCancelacion;
 
+    }
 
-        public void SetFechaT(string fecha)
-        {
-            if (string.IsNullOrWhiteSpace(fecha))
-                throw new ArgumentException("La fecha del turno no puede ser nulo o vacÌo.", nameof(fecha));
-            Fecha = fecha;
-        }
+    public void SetID(int id)
+    {
+      if (id <= 0)
+        throw new ArgumentException("El ID del turno debe ser un n√∫mero positivo.", nameof(id));
+      Id = id;
+    }
 
-        public void SetHoraT(string horarioTurno)
-        {
-            if (string.IsNullOrWhiteSpace(horarioTurno))
-                throw new ArgumentException("El horario del turno no puede ser nulo o vacÌo.", nameof(horarioTurno));
-            HorarioTurno = horarioTurno;
-        }
-        public void SetEstado(bool estadoTurno)
-        {
-            if (string.IsNullOrWhiteSpace(estadoTurno))
-                throw new ArgumentException("El dia de la semana no puede ser nulo o vacÌo.", nameof(estadoTurno));
-            EstadoTurno = estadoTurno;
-        }
-        public void SetMotivo(string motivoCancelacion)
-        {
-            MotivoCancelacion = motivoCancelacion;
-
-        }
+  }
+}

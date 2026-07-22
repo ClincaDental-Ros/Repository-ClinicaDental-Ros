@@ -1,4 +1,4 @@
-namespace DentalClinic.Domain.Model
+namespace Domain.Model
 {
 	public class Especialidad
 	{
@@ -20,14 +20,14 @@ namespace DentalClinic.Domain.Model
 		public void SetNom(string nombre)
 		{
 			if (string.IsNullOrWhiteSpace(nombre))
-				throw new ArgumentException("El nombre no puede ser nulo o vacío.", nameof(nombre));
+				throw new ArgumentException("El nombre no puede ser nulo o vacÃ­o.", nameof(nombre));
 			Nombre = nombre;
 		}
 
 		public void SetDesc(string descripcion)
 		{
 			if (string.IsNullOrWhiteSpace(descripcion))
-				throw new ArgumentException("El descripción no puede ser nulo o vacío.", nameof(descripcion));
+				throw new ArgumentException("El descripciÃ³n no puede ser nulo o vacÃ­o.", nameof(descripcion));
 			Descripcion = descripcion;
 		}
 	}

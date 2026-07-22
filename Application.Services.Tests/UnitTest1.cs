@@ -1,4 +1,4 @@
-namespace DentalClinic.Application.Services.Tests
+namespace Application.Services.Tests
 {
     public class UnitTest1
     {

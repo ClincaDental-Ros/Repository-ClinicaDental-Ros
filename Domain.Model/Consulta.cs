@@ -1,4 +1,4 @@
-namespace DentalClinic.Domain.Model
+namespace Domain.Model
 {
     public class Consulta
     {
@@ -27,14 +27,14 @@ namespace DentalClinic.Domain.Model
         public void SetObservac(string observaciones)
         {
             if (string.IsNullOrWhiteSpace(observaciones))
-                throw new ArgumentException("Las observaciones no pueden ser nulas o vacías.", nameof(observaciones));
+                throw new ArgumentException("Las observaciones no pueden ser nulas o vacÃ­as.", nameof(observaciones));
             Observaciones = observaciones;
         }
 
         public void SetDiag(string diagnostico)
         {
             if (string.IsNullOrWhiteSpace(diagnostico))
-                throw new ArgumentException("El diagnóstico no puede ser nulo o vacío.", nameof(diagnostico));
+                throw new ArgumentException("El diagnÃ³stico no puede ser nulo o vacÃ­o.", nameof(diagnostico));
             Diagnostico = diagnostico;
         }
 
