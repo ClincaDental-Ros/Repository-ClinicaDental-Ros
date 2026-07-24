@@ -1,4 +1,4 @@
-using DentalClinic.Blazor.WebAssembly;
+using Blazor.WebAssembly;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
