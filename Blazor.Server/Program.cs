@@ -1,4 +1,4 @@
-using DentalClinic.Blazor.Server.Components;
+using Blazor.Server.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 

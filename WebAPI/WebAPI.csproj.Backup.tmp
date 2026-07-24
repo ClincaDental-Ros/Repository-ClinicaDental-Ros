@@ -13,6 +13,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application.Services\Application.Services.csproj" />
+    <ProjectReference Include="..\Blazor.Server\Blazor.Server.csproj" />
+    <ProjectReference Include="..\Data\Data.csproj" />
+    <ProjectReference Include="..\Domain.Model\Domain.Model.csproj" />
     <ProjectReference Include="..\DTOs\DTOs.csproj" />
   </ItemGroup>
 
