@@ -12,8 +12,8 @@ namespace Domain.Model
 		{
 			SetNom(nombre);
 			SetDesc(descripcion);
-			_nextId++;
-			Id = _nextId;
+            SetIncrementalID();
+           
 		}
 
 
@@ -23,8 +23,13 @@ namespace Domain.Model
 				throw new ArgumentException("El nombre no puede ser nulo o vacío.", nameof(nombre));
 			Nombre = nombre;
 		}
-
-		public void SetDesc(string descripcion)
+		
+		public void SetIncrementalID()
+		{
+			_nextId++;
+			Id = _nextId;
+        }
+        public void SetDesc(string descripcion)
 		{
 			if (string.IsNullOrWhiteSpace(descripcion))
 				throw new ArgumentException("El descripción no puede ser nulo o vacío.", nameof(descripcion));
