@@ -5,15 +5,13 @@ namespace Domain.Model
     public string Nombre { get; private set; }
     public string Descripcion { get; private set; }
     public int Id { get; private set; }
-    private static int _nextId = 0;
 
 
-    public Especialidad(string nombre, string descripcion)
+    public Especialidad(string nombre, string descripcion, int id)
     {
       SetNom(nombre);
       SetDesc(descripcion);
-      SetIncrementalID();
-
+      Id = id;
     }
 
 
@@ -24,11 +22,6 @@ namespace Domain.Model
       Nombre = nombre;
     }
 
-    public void SetIncrementalID()
-    {
-      _nextId++;
-      Id = _nextId;
-    }
     public void SetDesc(string descripcion)
     {
       if (string.IsNullOrWhiteSpace(descripcion))

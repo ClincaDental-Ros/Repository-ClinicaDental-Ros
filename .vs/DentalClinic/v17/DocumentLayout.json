@@ -3,28 +3,12 @@
   "WorkspaceRootPath": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7676A075-B85F-4544-8785-11E83D0B2EA5}|Application.Services\\Application.Services.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\application.services\\pacientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7676A075-B85F-4544-8785-11E83D0B2EA5}|Application.Services\\Application.Services.csproj|solutionrelative:application.services\\pacientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\webapi\\pacienteendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\pacienteendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{45B908A4-5D48-4B4A-BF93-AB2082CEC8B4}|DTOs\\DTOs.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\dtos\\pacientedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{45B908A4-5D48-4B4A-BF93-AB2082CEC8B4}|DTOs\\DTOs.csproj|solutionrelative:dtos\\pacientedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{45B908A4-5D48-4B4A-BF93-AB2082CEC8B4}|DTOs\\DTOs.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\dtos\\pacientecriteriadto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{45B908A4-5D48-4B4A-BF93-AB2082CEC8B4}|DTOs\\DTOs.csproj|solutionrelative:dtos\\pacientecriteriadto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{45B908A4-5D48-4B4A-BF93-AB2082CEC8B4}|DTOs\\DTOs.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\dtos\\pacientecriteria.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{45B908A4-5D48-4B4A-BF93-AB2082CEC8B4}|DTOs\\DTOs.csproj|solutionrelative:dtos\\pacientecriteria.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\domain.model\\paciente.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|solutionrelative:domain.model\\paciente.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2C9DFC1E-AE22-4E55-BAB5-678B6615DAF7}|Data\\Data.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\data\\ipacienterepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2C9DFC1E-AE22-4E55-BAB5-678B6615DAF7}|Data\\Data.csproj|solutionrelative:data\\ipacienterepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|c:\\clinicadental\\develop\\proyectoend\\repository-clinicadental-ros\\webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,47 +18,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 3,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "PacientService.cs",
-              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\Application.Services\\PacientService.cs",
-              "RelativeDocumentMoniker": "Application.Services\\PacientService.cs",
-              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\Application.Services\\PacientService.cs",
-              "RelativeToolTip": "Application.Services\\PacientService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAABFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-23T16:09:22.328Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "IPacienteRepository.cs",
-              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\Data\\IPacienteRepository.cs",
-              "RelativeDocumentMoniker": "Data\\IPacienteRepository.cs",
-              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\Data\\IPacienteRepository.cs",
-              "RelativeToolTip": "Data\\IPacienteRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAhAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-23T16:09:04.073Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Paciente.cs",
-              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\Domain.Model\\Paciente.cs",
-              "RelativeDocumentMoniker": "Domain.Model\\Paciente.cs",
-              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\Domain.Model\\Paciente.cs",
-              "RelativeToolTip": "Domain.Model\\Paciente.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAhAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-23T16:08:58.225Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
@@ -89,41 +34,28 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "PacienteCriteria.cs",
-              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\DTOs\\PacienteCriteria.cs",
-              "RelativeDocumentMoniker": "DTOs\\PacienteCriteria.cs",
-              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\DTOs\\PacienteCriteria.cs",
-              "RelativeToolTip": "DTOs\\PacienteCriteria.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAJAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "PacienteEndpoints.cs",
+              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\WebAPI\\PacienteEndpoints.cs",
+              "RelativeDocumentMoniker": "WebAPI\\PacienteEndpoints.cs",
+              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\WebAPI\\PacienteEndpoints.cs",
+              "RelativeToolTip": "WebAPI\\PacienteEndpoints.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-23T16:08:48.889Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "PacienteCriteriaDTO.cs",
-              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\DTOs\\PacienteCriteriaDTO.cs",
-              "RelativeDocumentMoniker": "DTOs\\PacienteCriteriaDTO.cs",
-              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\DTOs\\PacienteCriteriaDTO.cs",
-              "RelativeToolTip": "DTOs\\PacienteCriteriaDTO.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAxAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-23T16:08:46.611Z",
+              "WhenOpened": "2026-07-25T19:48:16.019Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "PacienteDTO.cs",
-              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\DTOs\\PacienteDTO.cs",
-              "RelativeDocumentMoniker": "DTOs\\PacienteDTO.cs",
-              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\DTOs\\PacienteDTO.cs",
-              "RelativeToolTip": "DTOs\\PacienteDTO.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAcAAAAAAAAAA==",
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\WebAPI\\Program.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Program.cs",
+              "ToolTip": "C:\\ClinicaDental\\Develop\\ProyectoEnd\\Repository-ClinicaDental-Ros\\WebAPI\\Program.cs",
+              "RelativeToolTip": "WebAPI\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-23T15:02:25.788Z",
+              "WhenOpened": "2026-07-25T14:37:22.812Z",
               "EditorCaption": ""
             }
           ]

@@ -5,22 +5,25 @@ namespace Domain.Model
         public int Id { get; set; }
         public string Fecha { get; private set; }
         public string HorarioTurno { get; private set; }
-        public string EstadoTurno { get; private set; }
+        public Estadoturno EstadoTurno { get; private set; }
         public string MotivoCancelacion { get; private set; }
 
-        private static int _nextId = 0;
-
-
-        public TurnoOdontologico(string fecha, string horarioTurno, string estadoTurno, string motivoCancelacion, int id)
+        public enum Estadoturno
         {
+            Confirmado,
+            Realizado,
+            Cancelado,
+            Reprogramado
+        }
+
+        public TurnoOdontologico(int id, string fecha, string horarioTurno, Estadoturno estadoTurno, string motivoCancelacion)
+        {
+            Id = id;
             SetFechaT(fecha);
             SetHoraT(horarioTurno);
             SetEstado(estadoTurno);
             SetMotivo(motivoCancelacion);
-            SetIncrementalID();
-
         }
-
 
         public void SetFechaT(string fecha)
         {
@@ -35,25 +38,15 @@ namespace Domain.Model
                 throw new ArgumentException("El horario del turno no puede ser nulo o vacío.", nameof(horarioTurno));
             HorarioTurno = horarioTurno;
         }
-        public void SetEstado(string estadoTurno)
+
+        public void SetEstado(Estadoturno estadoTurno)
         {
-            if (string.IsNullOrWhiteSpace(estadoTurno))
-                throw new ArgumentException("El estado del turno no puede ser nulo o vacío.", nameof(estadoTurno));
             EstadoTurno = estadoTurno;
         }
+
         public void SetMotivo(string motivoCancelacion)
         {
             MotivoCancelacion = motivoCancelacion;
-
         }
-
-        public void SetIncrementalID()
-        {
-            _nextId++;
-            Id = _nextId;
-
-        }
-
-
     }
 }

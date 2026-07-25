@@ -7,14 +7,15 @@ namespace Data
     private static readonly List<TurnoOdontologico> turnos = new List<TurnoOdontologico>();
     private static int nextId = 1;
 
-    public Task<TurnoOdontologico> AddAsync(TurnoOdontologico turno)
-    {
-      // Asignar ID autoincremental si es necesario
-      turnos.Add(turno);
-      return Task.FromResult(turno);
-    }
-        
-    public Task<bool> DeleteAsync(int id)
+    
+
+        public Task<TurnoOdontologico> AddAsync(TurnoOdontologico turno)
+        {
+            turno.Id = nextId++;
+            turnos.Add(turno);
+            return Task.FromResult(turno);
+        }
+        public Task<bool> DeleteAsync(int id)
     {
       var turno = turnos.FirstOrDefault(t => t.Id == id);
       if (turno != null)
