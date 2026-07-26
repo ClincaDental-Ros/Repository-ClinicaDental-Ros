@@ -1,17 +1,14 @@
 # Visual Studio
 .vs/
-.vscode/
-bin/
-obj/
+*.sln
 *.user
-*.suo
-*.sln.docstates
-.DS_Store
+obj/
+bin/
 
-# NuGet
-*.nupkg
-*.snupkg
+# Database
+*.db
+*.db-shm
+*.db-wal
 
-# Rider
-.idea/
-*.sln.iml
+# Backup files
+*.backup.json
