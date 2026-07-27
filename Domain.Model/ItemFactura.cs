@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Domain.Model
 {
-    public class IdemFactura
+    public class ItemFactura
     {
         public int CantidadInsumo { get; private set; }
 
-        public IdemFactura(int cantidadInsumo)
+        public ItemFactura(int cantidadInsumo)
         {
             SetCantidadInsumo(cantidadInsumo);
         }
