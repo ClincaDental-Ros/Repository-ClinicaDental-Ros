@@ -84,7 +84,7 @@ namespace WebAPI
             .Produces(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
-            app.MapGet("/turnos/criteria", async (string? fecha, string? estadoTurno, ITurnoOdontologicoService turnoService) =>
+            app.MapGet("/turnos/criteria", async (DateTime? fecha, string? estadoTurno, ITurnoOdontologicoService turnoService) =>
             {
                 try
                 {

@@ -11,7 +11,8 @@ namespace Data
 
         public Task<TurnoOdontologico> AddAsync(TurnoOdontologico turno)
         {
-            turno.Id = nextId++;
+            turno.SetId(nextId);
+            nextId++;
             turnos.Add(turno);
             return Task.FromResult(turno);
         }
@@ -50,8 +51,8 @@ namespace Data
       }
       return Task.FromResult(false);
     }
-
-    public Task<bool> TurnoExistsAsync(string fecha, string horarioTurno, int? excludeId = null)
+        
+    public Task<bool> TurnoExistsAsync(DateTime fecha, TimeOnly horarioTurno, int? excludeId = null)
     {
       var query = turnos.Where(t => t.Fecha == fecha && t.HorarioTurno == horarioTurno);
       if (excludeId.HasValue)
@@ -61,13 +62,14 @@ namespace Data
       return Task.FromResult(query.Any());
     }
 
-    public Task<IEnumerable<TurnoOdontologico>> GetByFechaAsync(string fecha)
+    public Task<IEnumerable<TurnoOdontologico>> GetByFechaAsync(DateTime fecha)
     {
       IEnumerable<TurnoOdontologico> result = turnos
-          .Where(t => t.Fecha.Equals(fecha, StringComparison.OrdinalIgnoreCase))
-          .ToList();
+      .Where(t => t.Fecha.Date == fecha.Date)
+      .ToList();
 
       return Task.FromResult(result);
+
     }
   }
 }

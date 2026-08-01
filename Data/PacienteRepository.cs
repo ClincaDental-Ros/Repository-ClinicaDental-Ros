@@ -1,5 +1,4 @@
 ﻿using Domain.Model;
-using DTOs;
 
 namespace Data
 {
@@ -12,7 +11,7 @@ namespace Data
 
         public Task<Paciente> AddAsync(Paciente paciente)
         {
-            paciente.Id = nextId;
+            paciente.SetId(nextId);
             nextId++;
             pacientes.Add(paciente);
             return Task.FromResult(paciente);

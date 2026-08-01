@@ -5,12 +5,12 @@ namespace Domain.Model
         public string Nombre { get; private set; }
         public string Apellido { get; private set; }
         public int Dni { get; private set; }
-        public int Telefono { get; private set; }
+        public string Telefono { get; private set; }
         public string Mail { get; private set; }
         public string Domicilio { get; private set; }
 
 
-        public Persona(string nombre, string apellido, int dni, int telefono, string mail, string domicilio)
+        public Persona(string nombre, string apellido, int dni, string telefono, string mail, string domicilio)
         {
             SetNom(nombre);
             SetApe(apellido);
@@ -42,9 +42,9 @@ namespace Domain.Model
             Dni = dni;
         }
 
-        public void SetTel(int telefono)
+        public void SetTel(string telefono)
         {
-            if (telefono < 0)
+            if (string.IsNullOrWhiteSpace(telefono))
                 throw new ArgumentException("El telefono debe ser mayor que 0.", nameof(telefono));
             Telefono = telefono;
         }

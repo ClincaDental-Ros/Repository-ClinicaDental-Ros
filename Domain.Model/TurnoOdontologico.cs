@@ -2,9 +2,9 @@ namespace Domain.Model
 {
     public class TurnoOdontologico
     {
-        public int Id { get; set; }
-        public string Fecha { get; private set; }
-        public string HorarioTurno { get; private set; }
+        public int Id { get; private set; }
+        public DateTime Fecha { get; private set; }
+        public TimeOnly HorarioTurno { get; private set; }
         public Estadoturno EstadoTurno { get; private set; }
         public string MotivoCancelacion { get; private set; }
 
@@ -16,7 +16,7 @@ namespace Domain.Model
             Reprogramado
         }
 
-        public TurnoOdontologico(int id, string fecha, string horarioTurno, Estadoturno estadoTurno, string motivoCancelacion)
+        public TurnoOdontologico(int id, DateTime fecha, TimeOnly horarioTurno, Estadoturno estadoTurno, string motivoCancelacion)
         {
             Id = id;
             SetFechaT(fecha);
@@ -25,20 +25,20 @@ namespace Domain.Model
             SetMotivo(motivoCancelacion);
         }
 
-        public void SetFechaT(string fecha)
+        public void SetFechaT(DateTime fecha)
         {
-            if (string.IsNullOrWhiteSpace(fecha))
-                throw new ArgumentException("La fecha del turno no puede ser nulo o vacío.", nameof(fecha));
             Fecha = fecha;
         }
 
-        public void SetHoraT(string horarioTurno)
+        public void SetHoraT(TimeOnly horarioTurno)
         {
-            if (string.IsNullOrWhiteSpace(horarioTurno))
-                throw new ArgumentException("El horario del turno no puede ser nulo o vacío.", nameof(horarioTurno));
+
             HorarioTurno = horarioTurno;
         }
-
+        public void SetId(int id)
+        {
+            Id = id;
+        }
         public void SetEstado(Estadoturno estadoTurno)
         {
             EstadoTurno = estadoTurno;

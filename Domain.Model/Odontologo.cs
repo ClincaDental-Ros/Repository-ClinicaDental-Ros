@@ -10,7 +10,7 @@ namespace Domain.Model
     {
         public int NumMatricula { get; set; } 
       
-        public Odontologo(int numMatricula, string nombre, string apellido, int dni, int telefono, string mail, string domicilio)
+        public Odontologo(int numMatricula, string nombre, string apellido, int dni, string telefono, string mail, string domicilio)
             : base(nombre, apellido, dni, telefono, mail, domicilio)
         {
             NumMatricula = numMatricula;

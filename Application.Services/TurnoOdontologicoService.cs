@@ -15,6 +15,15 @@ namespace Application.Services
             this.turnoRepository = turnoRepository;
         }
 
+        private static Estadoturno ParseEstado(string estado)
+        {
+            if (!Enum.TryParse<Estadoturno>(estado, ignoreCase: true, out var resultado))
+            {
+                throw new ArgumentException($"El estado '{estado}' no es válido. Valores permitidos: {string.Join(", ", Enum.GetNames<Estadoturno>())}.");
+            }
+            return resultado;
+        }
+
         public async Task<TurnoOdontologicoDTO> AddAsync(TurnoOdontologicoDTO dto)
         {
             if (await turnoRepository.TurnoExistsAsync(dto.Fecha, dto.HorarioTurno))
@@ -26,7 +35,7 @@ namespace Application.Services
                 0,
                 dto.Fecha,
                 dto.HorarioTurno,
-                Enum.Parse<Estadoturno>(dto.EstadoTurno),
+                ParseEstado(dto.EstadoTurno),
                 dto.MotivoCancelacion
             );
 
@@ -62,7 +71,7 @@ namespace Application.Services
                 dto.Id,
                 dto.Fecha,
                 dto.HorarioTurno,
-                Enum.Parse<Estadoturno>(dto.EstadoTurno),
+                ParseEstado(dto.EstadoTurno),
                 dto.MotivoCancelacion
             );
 
@@ -71,13 +80,13 @@ namespace Application.Services
 
         public async Task<IEnumerable<TurnoOdontologicoDTO>> GetByCriteriaAsync(TurnoCriteriaDTO criteriaDTO)
         {
-            IEnumerable<TurnoOdontologico> turnos = !string.IsNullOrWhiteSpace(criteriaDTO.Fecha)
-                ? await turnoRepository.GetByFechaAsync(criteriaDTO.Fecha)
+            IEnumerable<TurnoOdontologico> turnos = criteriaDTO.Fecha.HasValue
+                ? await turnoRepository.GetByFechaAsync(criteriaDTO.Fecha.Value)
                 : await turnoRepository.GetAllAsync();
 
             if (!string.IsNullOrWhiteSpace(criteriaDTO.EstadoTurno))
             {
-                var estadoBuscado = Enum.Parse<Estadoturno>(criteriaDTO.EstadoTurno);
+                var estadoBuscado = ParseEstado(criteriaDTO.EstadoTurno);
                 turnos = turnos.Where(t => t.EstadoTurno == estadoBuscado);
             }
 

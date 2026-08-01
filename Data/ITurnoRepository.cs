@@ -9,7 +9,7 @@ namespace Data
     Task<TurnoOdontologico> AddAsync(TurnoOdontologico turno);
     Task<bool> UpdateAsync(TurnoOdontologico turno);
     Task<bool> DeleteAsync(int id);
-    Task<bool> TurnoExistsAsync(string fecha, string horarioTurno, int? idExcluir = null);
-    Task<IEnumerable<TurnoOdontologico>> GetByFechaAsync(string fecha);
+    Task<bool> TurnoExistsAsync(DateTime fecha, TimeOnly horarioTurno, int? idExcluir = null);
+    Task<IEnumerable<TurnoOdontologico>> GetByFechaAsync(DateTime fecha);
   }
 }
