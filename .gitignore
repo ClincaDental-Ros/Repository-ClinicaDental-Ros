@@ -24,3 +24,14 @@ bin/
 /.vs/DentalClinic/CopilotIndices/17.14.1661.41761/SemanticSymbols.db
 /.vs/DentalClinic/CopilotIndices/17.14.1661.41761/SemanticSymbols.db-shm
 /.vs/DentalClinic/CopilotIndices/17.14.1661.41761/SemanticSymbols.db-wal
+
+# Backup / temporales
+*.backup.json
+*.tmp
+
+# Resultados de tests
+TestResults/
+
+# Otros IDEs
+.idea/
+.vscode/
