@@ -1,75 +1,157 @@
 using Domain.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Data
 {
-  public class TurnoRepository : ITurnoRepository
-  {
-    private static readonly List<TurnoOdontologico> turnos = new List<TurnoOdontologico>();
-    private static int nextId = 1;
+    public class TurnoRepository : ITurnoRepository
+    {
+        private readonly TurnoMolarDbContext _context;
 
-    
-
-        public Task<TurnoOdontologico> AddAsync(TurnoOdontologico turno)
+        public TurnoRepository(TurnoMolarDbContext context)
         {
-            turno.SetId(nextId);
-            nextId++;
-            turnos.Add(turno);
-            return Task.FromResult(turno);
+            _context = context;
         }
-        public Task<bool> DeleteAsync(int id)
-    {
-      var turno = turnos.FirstOrDefault(t => t.Id == id);
-      if (turno != null)
-      {
-        turnos.Remove(turno);
-        return Task.FromResult(true);
-      }
-      return Task.FromResult(false);
+
+        public async Task<TurnoOdontologico?> GetAsync(int id)
+        {
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Odontologo)
+                .Include(t => t.Especialidad)
+                .FirstOrDefaultAsync(t => t.Id == id);
+        }
+
+        public async Task<IEnumerable<TurnoOdontologico>> GetAllAsync()
+        {
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Odontologo)
+                .Include(t => t.Especialidad)
+                .OrderBy(t => t.Fecha)
+                .ThenBy(t => t.HorarioTurno)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<TurnoOdontologico>> GetByCriteriaAsync(TurnoCriteria criteria)
+        {
+            var query = _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Odontologo)
+                .Include(t => t.Especialidad)
+                .AsQueryable();
+
+            if (criteria.Fecha.HasValue)
+            {
+                var d = criteria.Fecha.Value.Date;
+                query = query.Where(t => t.Fecha.Date == d);
+            }
+
+            if (criteria.FechaDesde.HasValue)
+            {
+                var d = criteria.FechaDesde.Value.Date;
+                query = query.Where(t => t.Fecha.Date >= d);
+            }
+
+            if (criteria.FechaHasta.HasValue)
+            {
+                var d = criteria.FechaHasta.Value.Date;
+                query = query.Where(t => t.Fecha.Date <= d);
+            }
+
+            if (criteria.OdontologoId.HasValue && criteria.OdontologoId.Value > 0)
+            {
+                query = query.Where(t => t.OdontologoId == criteria.OdontologoId.Value);
+            }
+
+            if (criteria.PacienteId.HasValue && criteria.PacienteId.Value > 0)
+            {
+                query = query.Where(t => t.PacienteId == criteria.PacienteId.Value);
+            }
+
+            if (criteria.EspecialidadId.HasValue && criteria.EspecialidadId.Value > 0)
+            {
+                query = query.Where(t => t.EspecialidadId == criteria.EspecialidadId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(criteria.EstadoTurno))
+            {
+                if (Enum.TryParse<TurnoOdontologico.EstadoTurnoEnum>(criteria.EstadoTurno, true, out var estadoEnum))
+                {
+                    query = query.Where(t => t.EstadoTurno == estadoEnum);
+                }
+            }
+
+            return await query.OrderBy(t => t.Fecha).ThenBy(t => t.HorarioTurno).ToListAsync();
+        }
+
+        public async Task<IEnumerable<TurnoOdontologico>> GetByFechaAsync(DateTime fecha)
+        {
+            var d = fecha.Date;
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Odontologo)
+                .Include(t => t.Especialidad)
+                .Where(t => t.Fecha.Date == d)
+                .OrderBy(t => t.HorarioTurno)
+                .ToListAsync();
+        }
+
+        public async Task<TurnoOdontologico> AddAsync(TurnoOdontologico turno)
+        {
+            _context.Turnos.Add(turno);
+            await _context.SaveChangesAsync();
+            return turno;
+        }
+
+        public async Task<bool> UpdateAsync(TurnoOdontologico turno)
+        {
+            var existing = await _context.Turnos.FindAsync(turno.Id);
+            if (existing == null)
+                return false;
+
+            existing.Fecha = turno.Fecha;
+            existing.HorarioTurno = turno.HorarioTurno;
+            existing.EstadoTurno = turno.EstadoTurno;
+            existing.MotivoCancelacion = turno.MotivoCancelacion;
+            existing.PacienteId = turno.PacienteId;
+            existing.OdontologoId = turno.OdontologoId;
+            existing.EspecialidadId = turno.EspecialidadId;
+            existing.MontoEstimado = turno.MontoEstimado;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var turno = await _context.Turnos.FindAsync(id);
+            if (turno == null)
+                return false;
+
+            _context.Turnos.Remove(turno);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> TurnoExistsAsync(DateTime fecha, TimeOnly horarioTurno, int? odontologoId = null, int? excludeId = null)
+        {
+            var d = fecha.Date;
+            return await _context.Turnos.AnyAsync(t =>
+                t.Fecha.Date == d &&
+                t.HorarioTurno == horarioTurno &&
+                t.EstadoTurno != TurnoOdontologico.EstadoTurnoEnum.Cancelado &&
+                (!odontologoId.HasValue || t.OdontologoId == odontologoId.Value) &&
+                (!excludeId.HasValue || t.Id != excludeId.Value));
+        }
+
+        public async Task<bool> PacienteTieneTurnoEnFechaAsync(int pacienteId, DateTime fecha, int? excludeId = null)
+        {
+            var d = fecha.Date;
+            return await _context.Turnos.AnyAsync(t =>
+                t.PacienteId == pacienteId &&
+                t.Fecha.Date == d &&
+                t.EstadoTurno != TurnoOdontologico.EstadoTurnoEnum.Cancelado &&
+                (!excludeId.HasValue || t.Id != excludeId.Value));
+        }
     }
-
-    public Task<TurnoOdontologico?> GetAsync(int id)
-    {
-      return Task.FromResult(turnos.FirstOrDefault(t => t.Id == id));
-    }
-
-    public Task<IEnumerable<TurnoOdontologico>> GetAllAsync()
-    {
-      return Task.FromResult<IEnumerable<TurnoOdontologico>>(turnos.ToList());
-    }
-
-    public Task<bool> UpdateAsync(TurnoOdontologico turno)
-    {
-      var existing = turnos.FirstOrDefault(t => t.Id == turno.Id);
-      if (existing != null)
-      {
-        existing.SetFechaT(turno.Fecha);
-        existing.SetHoraT(turno.HorarioTurno);
-        existing.SetEstado(turno.EstadoTurno);
-        existing.SetMotivo(turno.MotivoCancelacion);
-
-        return Task.FromResult(true);
-      }
-      return Task.FromResult(false);
-    }
-        
-    public Task<bool> TurnoExistsAsync(DateTime fecha, TimeOnly horarioTurno, int? excludeId = null)
-    {
-      var query = turnos.Where(t => t.Fecha == fecha && t.HorarioTurno == horarioTurno);
-      if (excludeId.HasValue)
-      {
-        query = query.Where(t => t.Id != excludeId.Value);
-      }
-      return Task.FromResult(query.Any());
-    }
-
-    public Task<IEnumerable<TurnoOdontologico>> GetByFechaAsync(DateTime fecha)
-    {
-      IEnumerable<TurnoOdontologico> result = turnos
-      .Where(t => t.Fecha.Date == fecha.Date)
-      .ToList();
-
-      return Task.FromResult(result);
-
-    }
-  }
 }

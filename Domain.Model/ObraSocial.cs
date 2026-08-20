@@ -1,36 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domain.Model
 {
     public class ObraSocial
     {
-        public int Id { get; private set; }
-        public string Nombre { get; private set; }
-        public string Plan { get; private set; }
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Plan { get; set; } = string.Empty;
+        public decimal PorcentajeCobertura { get; set; } = 0.50m; // Ejemplo: 50% de cobertura por defecto
 
-        public ObraSocial(int id, string nombre, string plan)
+        public ObraSocial() { }
+
+        public ObraSocial(int id, string nombre, string plan, decimal porcentajeCobertura = 0.50m)
         {
             Id = id;
-            SetNombre(nombre);
-            SetPlan(plan);
-        }
-
-        public void SetNombre(string nombre)
-        {
-            if (string.IsNullOrWhiteSpace(nombre))
-                throw new ArgumentException("El nombre no puede ser nulo o vacío.", nameof(nombre));
             Nombre = nombre;
+            Plan = plan;
+            PorcentajeCobertura = porcentajeCobertura;
         }
 
-        public void SetPlan(string plan)
-        {
-            if (string.IsNullOrWhiteSpace(plan))
-                throw new ArgumentException("El plan no puede ser nulo o vacío.", nameof(plan));
-            Plan = plan;
-        }
+        public void SetNombre(string nombre) => Nombre = nombre;
+        public void SetPlan(string plan) => Plan = plan;
     }
 }

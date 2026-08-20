@@ -1,36 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domain.Model
 {
     public class HistoriaClinica
     {
-        public int NumeroHistoriaClinica { get; private set; }
-        public DateTime FechaAlta { get; private set; }
+        public int Id { get; set; }
+        public int NumeroHistoriaClinica { get; set; }
+        public int PacienteId { get; set; }
+        public Paciente? Paciente { get; set; }
+        public DateTime FechaAlta { get; set; } = DateTime.Now;
+        public string AntecedentesMedicos { get; set; } = string.Empty;
+        public string Alergias { get; set; } = string.Empty;
+        public string ObservacionesGenerales { get; set; } = string.Empty;
 
-        public HistoriaClinica(int numeroHistoriaClinica, DateTime fechaAlta)
-        {
-            SetNumeroHistoriaClinica(numeroHistoriaClinica);
-            SetFechaAlta(fechaAlta);
-        }
+        public HistoriaClinica() { }
 
-        public void SetNumeroHistoriaClinica(int numeroHistoriaClinica)
+        public HistoriaClinica(int id, int numeroHistoriaClinica, int pacienteId, DateTime fechaAlta, string antecedentesMedicos = "", string alergias = "", string observacionesGenerales = "")
         {
-            if (numeroHistoriaClinica <= 0)
-                throw new ArgumentException("El número de historia clínica debe ser mayor que 0.", nameof(numeroHistoriaClinica));
+            Id = id;
             NumeroHistoriaClinica = numeroHistoriaClinica;
-        }
-
-        public void SetFechaAlta(DateTime fechaAlta)
-        {
-            if (fechaAlta == DateTime.MinValue)
-                throw new ArgumentException("La fecha de alta es requerida.", nameof(fechaAlta));
-            if (fechaAlta > DateTime.Now)
-                throw new ArgumentException("La fecha de alta no puede ser en el futuro.", nameof(fechaAlta));
+            PacienteId = pacienteId;
             FechaAlta = fechaAlta;
+            AntecedentesMedicos = antecedentesMedicos;
+            Alergias = alergias;
+            ObservacionesGenerales = observacionesGenerales;
         }
     }
 }

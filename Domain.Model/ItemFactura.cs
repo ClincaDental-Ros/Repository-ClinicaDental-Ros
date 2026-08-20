@@ -1,25 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domain.Model
 {
     public class ItemFactura
     {
-        public int CantidadInsumo { get; private set; }
-
-        public ItemFactura(int cantidadInsumo)
+        public int Id { get; set; }
+        public int FacturaId { get; set; }
+        public Factura? Factura { get; set; }
+        public int InsumoId { get; set; }
+        public Insumo? Insumo { get; set; }
+        public int CantidadInsumo { get; set; }
+        public decimal PrecioUnitario { get; set; }
+        public decimal Subtotal
         {
-            SetCantidadInsumo(cantidadInsumo);
+            get => CantidadInsumo * PrecioUnitario;
+            set { }
         }
 
-        public void SetCantidadInsumo(int cantidadInsumo)
+        public ItemFactura() { }
+
+        public ItemFactura(int id, int facturaId, int insumoId, int cantidadInsumo, decimal precioUnitario)
         {
-            if (cantidadInsumo <= 0)
-                throw new ArgumentException("La cantidad de insumo debe ser mayor que 0.", nameof(cantidadInsumo));
+            Id = id;
+            FacturaId = facturaId;
+            InsumoId = insumoId;
             CantidadInsumo = cantidadInsumo;
+            PrecioUnitario = precioUnitario;
         }
     }
 }

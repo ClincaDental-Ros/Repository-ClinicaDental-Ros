@@ -1,78 +1,107 @@
-﻿using Domain.Model;
+using Domain.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Data
 {
     public class PacienteRepository : IPacienteRepository
     {
+        private readonly TurnoMolarDbContext _context;
 
-        private static readonly List<Paciente> pacientes = new();
-
-        private static int nextId = 1;
-
-        public Task<Paciente> AddAsync(Paciente paciente)
+        public PacienteRepository(TurnoMolarDbContext context)
         {
-            paciente.SetId(nextId);
-            nextId++;
-            pacientes.Add(paciente);
-            return Task.FromResult(paciente);
+            _context = context;
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<Paciente?> GetAsync(int id)
         {
-            var paciente = pacientes.FirstOrDefault(p => p.Id == id);
-            if (paciente != null)
+            return await _context.Pacientes
+                .Include(p => p.ObraSocial)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<IEnumerable<Paciente>> GetAllAsync()
+        {
+            return await _context.Pacientes
+                .Include(p => p.ObraSocial)
+                .OrderBy(p => p.Apellido)
+                .ThenBy(p => p.Nombre)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Paciente>> GetByCriteriaAsync(PacienteCriteria criteria)
+        {
+            var query = _context.Pacientes
+                .Include(p => p.ObraSocial)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(criteria.Texto))
             {
-                pacientes.Remove(paciente);
-                return Task.FromResult(true);
+                var text = criteria.Texto.Trim().ToLower();
+                query = query.Where(p =>
+                    p.Nombre.ToLower().Contains(text) ||
+                    p.Apellido.ToLower().Contains(text) ||
+                    p.Dni.ToString().Contains(text) ||
+                    p.Mail.ToLower().Contains(text));
             }
-            return Task.FromResult(false);
+
+            if (criteria.SoloHabilitados.HasValue && criteria.SoloHabilitados.Value)
+            {
+                query = query.Where(p => p.EstadoHabilitado);
+            }
+
+            return await query.OrderBy(p => p.Apellido).ThenBy(p => p.Nombre).ToListAsync();
         }
 
-        public Task<Paciente?> GetAsync(int id)
+        public async Task<Paciente> AddAsync(Paciente paciente)
         {
-            var paciente = pacientes.FirstOrDefault(p => p.Id == id);
-            return Task.FromResult(paciente);
+            _context.Pacientes.Add(paciente);
+            await _context.SaveChangesAsync();
+            return paciente;
         }
 
-        public Task<IEnumerable<Paciente>> GetAllAsync()
+        public async Task<bool> UpdateAsync(Paciente paciente)
         {
-            return Task.FromResult<IEnumerable<Paciente>>(pacientes);
+            var existing = await _context.Pacientes.FindAsync(paciente.Id);
+            if (existing == null)
+                return false;
+
+            existing.Nombre = paciente.Nombre;
+            existing.Apellido = paciente.Apellido;
+            existing.Dni = paciente.Dni;
+            existing.Telefono = paciente.Telefono;
+            existing.Mail = paciente.Mail;
+            existing.Domicilio = paciente.Domicilio;
+            existing.EstadoHabilitado = paciente.EstadoHabilitado;
+            existing.ObraSocialId = paciente.ObraSocialId;
+            existing.NumeroAfiliado = paciente.NumeroAfiliado;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
-        public Task<bool> UpdateAsync(Paciente paciente)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var existingPaciente = pacientes.FirstOrDefault(p => p.Id == paciente.Id);
-            if (existingPaciente == null)
-                return Task.FromResult(false);
+            var paciente = await _context.Pacientes.FindAsync(id);
+            if (paciente == null)
+                return false;
 
-            existingPaciente.SetNom(paciente.Nombre);
-            existingPaciente.SetApe(paciente.Apellido);
-            existingPaciente.SetDni(paciente.Dni);
-            existingPaciente.SetTel(paciente.Telefono);
-            existingPaciente.SetMail(paciente.Mail);
-            existingPaciente.SetDom(paciente.Domicilio);
-            existingPaciente.SetEstadoHabilitado(paciente.EstadoHabilitado);
-
-            return Task.FromResult(true);
+            _context.Pacientes.Remove(paciente);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
-        public Task<bool> EmailExistsAsync(string email, int? excludeId = null)
+        public async Task<bool> EmailExistsAsync(string email, int? excludeId = null)
         {
-            var exists = pacientes.Any(p =>
+            return await _context.Pacientes.AnyAsync(p =>
                 p.Mail.ToLower() == email.ToLower() &&
                 (!excludeId.HasValue || p.Id != excludeId.Value));
-            return Task.FromResult(exists);
         }
 
-        public Task<IEnumerable<Paciente>> GetByCriteriaAsync(PacienteCriteria criteria)
+        public async Task<bool> DniExistsAsync(int dni, int? excludeId = null)
         {
-            var texto = criteria.Texto?.ToLower() ?? string.Empty;
-            var result = pacientes.Where(p =>
-                p.Nombre.ToLower().Contains(texto) ||
-                p.Apellido.ToLower().Contains(texto) ||
-                p.Mail.ToLower().Contains(texto));
-            return Task.FromResult<IEnumerable<Paciente>>(result);
+            return await _context.Pacientes.AnyAsync(p =>
+                p.Dni == dni &&
+                (!excludeId.HasValue || p.Id != excludeId.Value));
         }
     }
-
 }

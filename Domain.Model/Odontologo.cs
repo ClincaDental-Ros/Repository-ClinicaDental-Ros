@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domain.Model
 {
     public class Odontologo : Persona
     {
-        public int NumMatricula { get; set; } 
-      
-        public Odontologo(int numMatricula, string nombre, string apellido, int dni, string telefono, string mail, string domicilio)
+        public int Id { get; set; }
+        public int NumMatricula { get; set; }
+        public int EspecialidadId { get; set; }
+        public Especialidad? Especialidad { get; set; }
+
+        public Odontologo() { }
+
+        public Odontologo(int id, int numMatricula, string nombre, string apellido, int dni, string telefono, string mail, string domicilio, int especialidadId = 1)
             : base(nombre, apellido, dni, telefono, mail, domicilio)
         {
+            Id = id;
             NumMatricula = numMatricula;
+            EspecialidadId = especialidadId;
         }
     }
 }

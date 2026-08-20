@@ -2,57 +2,38 @@ namespace Domain.Model
 {
     public class Consulta
     {
-        public string Observaciones { get; private set; }
-        public string Diagnostico { get; private set; }
-        public bool Estado { get; private set; }
+        public int Id { get; set; }
+        public int TurnoId { get; set; }
+        public TurnoOdontologico? Turno { get; set; }
+        public string Observaciones { get; set; } = string.Empty;
+        public string Diagnostico { get; set; } = string.Empty; // CIE-10 u observaciones diagnósticas
+        public bool Estado { get; set; } = true;
+        public string Tratamiento { get; set; } = string.Empty;
+        public bool AnestesiaLocal { get; set; } = false;
+        public bool Radiografias { get; set; } = false;
+        public string? Valoracion { get; set; }
+        public int? CalificacionEstrellas { get; set; } // 1 a 5 estrellas
+        public DateTime Fecha { get; set; } = DateTime.Now;
 
-        public enum TipoTratamiento
+        public Consulta() { }
+
+        public Consulta(int id, int turnoId, string diagnostico, string tratamiento, string observaciones, bool anestesiaLocal = false, bool radiografias = false, string? valoracion = null, int? calificacionEstrellas = null)
         {
-            Consulta, Limpieza, Restauracion, Endodoncia, Extraccion,
-            Ortodoncia, Implante, Protesis, Blanqueamiento, Control, Otro
-        }
-
-        public TipoTratamiento Tratamiento { get; private set; }
-        public string Valoracion { get; private set; }
-
-        public Consulta(string observaciones, string diagnostico, bool estado, TipoTratamiento tratamiento, string valoracion)
-        {
-            SetObservac(observaciones);
-            SetDiag(diagnostico);
-            SetEstado(estado);
-            SetTratamiento(tratamiento);
-            SetValoracion(valoracion);
-        }
-
-        public void SetObservac(string observaciones)
-        {
-            if (string.IsNullOrWhiteSpace(observaciones))
-                throw new ArgumentException("Las observaciones no pueden ser nulas o vacías.", nameof(observaciones));
-            Observaciones = observaciones;
-        }
-
-        public void SetDiag(string diagnostico)
-        {
-            if (string.IsNullOrWhiteSpace(diagnostico))
-                throw new ArgumentException("El diagnóstico no puede ser nulo o vacío.", nameof(diagnostico));
+            Id = id;
+            TurnoId = turnoId;
             Diagnostico = diagnostico;
-        }
-
-        public void SetEstado(bool estado)
-        {
-            
-            Estado = estado;
-        }
-
-        public void SetTratamiento(TipoTratamiento tratamiento)
-        {
-            
             Tratamiento = tratamiento;
+            Observaciones = observaciones;
+            AnestesiaLocal = anestesiaLocal;
+            Radiografias = radiografias;
+            Valoracion = valoracion;
+            CalificacionEstrellas = calificacionEstrellas;
+            Fecha = DateTime.Now;
         }
 
-        public void SetValoracion(string valoracion)
-        {
-            Valoracion = valoracion;
-        }
+        public void SetObservac(string observaciones) => Observaciones = observaciones;
+        public void SetDiag(string diagnostico) => Diagnostico = diagnostico;
+        public void SetEstado(bool estado) => Estado = estado;
+        public void SetValoracion(string? valoracion) => Valoracion = valoracion;
     }
 }

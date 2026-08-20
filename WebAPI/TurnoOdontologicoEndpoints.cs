@@ -1,106 +1,120 @@
-﻿using DentalClinic.Application.Services;
+using Application.Services;
 using DTOs;
-using Microsoft.AspNetCore.OpenApi;
 
 namespace WebAPI
 {
     public static class TurnoOdontologicoEndpoints
     {
-        public static void MapTurnoOdontologicoEndpoints(this WebApplication app)
+        public static void MapTurnoOdontologicoEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/turnos/{id}", async (int id, ITurnoOdontologicoService turnoService) =>
-            {
-                var dto = await turnoService.GetAsync(id);
-                if (dto == null)
-                {
-                    return Results.NotFound();
-                }
-                return Results.Ok(dto);
-            })
-            .WithName("GetTurno")
-            .Produces<TurnoOdontologicoDTO>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+            var group = app.MapGroup("/api/turnos").WithTags("Turnos");
 
-            app.MapGet("/turnos", async (ITurnoOdontologicoService turnoService) =>
+            group.MapGet("/", async (
+                DateTime? fecha,
+                DateTime? fechaDesde,
+                DateTime? fechaHasta,
+                int? odontologoId,
+                int? pacienteId,
+                int? especialidadId,
+                string? estadoTurno,
+                ITurnoOdontologicoService service) =>
             {
-                var dtos = await turnoService.GetAllAsync();
-                return Results.Ok(dtos);
-            })
-            .WithName("GetAllTurnos")
-            .Produces<List<TurnoOdontologicoDTO>>(StatusCodes.Status200OK)
-            .WithOpenApi();
-
-            app.MapPost("/turnos", async (TurnoOdontologicoDTO dto, ITurnoOdontologicoService turnoService) =>
-            {
-                try
+                if (fecha.HasValue || fechaDesde.HasValue || fechaHasta.HasValue || odontologoId.HasValue || pacienteId.HasValue || especialidadId.HasValue || !string.IsNullOrWhiteSpace(estadoTurno))
                 {
-                    var turnoDTO = await turnoService.AddAsync(dto);
-                    return Results.Created($"/turnos/{turnoDTO.Id}", turnoDTO);
-                }
-                catch (ArgumentException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
-            })
-            .WithName("AddTurno")
-            .Produces<TurnoOdontologicoDTO>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
-
-            app.MapPut("/turnos", async (TurnoOdontologicoDTO dto, ITurnoOdontologicoService turnoService) =>
-            {
-                try
-                {
-                    var found = await turnoService.UpdateAsync(dto);
-                    if (!found)
+                    var criteria = new TurnoCriteriaDTO
                     {
-                        return Results.NotFound();
-                    }
-                    return Results.NoContent();
+                        Fecha = fecha,
+                        FechaDesde = fechaDesde,
+                        FechaHasta = fechaHasta,
+                        OdontologoId = odontologoId,
+                        PacienteId = pacienteId,
+                        EspecialidadId = especialidadId,
+                        EstadoTurno = estadoTurno
+                    };
+                    var filtered = await service.GetByCriteriaAsync(criteria);
+                    return Results.Ok(filtered);
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
-            })
-            .WithName("UpdateTurno")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status400BadRequest)
-            .WithOpenApi();
 
-            app.MapDelete("/turnos/{id}", async (int id, ITurnoOdontologicoService turnoService) =>
+                var list = await service.GetAllAsync();
+                return Results.Ok(list);
+            });
+
+            group.MapGet("/hoy", async (DateTime? fecha, ITurnoOdontologicoService service) =>
             {
-                var deleted = await turnoService.DeleteAsync(id);
-                if (!deleted)
-                {
-                    return Results.NotFound();
-                }
-                return Results.NoContent();
-            })
-            .WithName("DeleteTurno")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound)
-            .WithOpenApi();
+                var list = await service.GetTurnosDelDiaAsync(fecha);
+                return Results.Ok(list);
+            });
 
-            app.MapGet("/turnos/criteria", async (DateTime? fecha, string? estadoTurno, ITurnoOdontologicoService turnoService) =>
+            group.MapGet("/{id:int}", async (int id, ITurnoOdontologicoService service) =>
+            {
+                var turno = await service.GetAsync(id);
+                return turno == null ? Results.NotFound() : Results.Ok(turno);
+            });
+
+            group.MapPost("/reservar", async (TurnoOdontologicoDTO dto, ITurnoOdontologicoService service) =>
             {
                 try
                 {
-                    var criteria = new TurnoCriteriaDTO { Fecha = fecha, EstadoTurno = estadoTurno };
-                    var turnos = await turnoService.GetByCriteriaAsync(criteria);
-                    return Results.Ok(turnos);
+                    var created = await service.ReservarTurnoAsync(dto);
+                    return Results.Created($"/api/turnos/{created.Id}", created);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Results.BadRequest(new { message = ex.Message });
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(new { error = ex.Message });
+                    return Results.Problem(detail: ex.Message, statusCode: 500);
                 }
-            })
-                 .WithName("GetTurnosByCriteria")
-                 .Produces<List<TurnoOdontologicoDTO>>(StatusCodes.Status200OK)
-                 .Produces(StatusCodes.Status400BadRequest)
-                 .WithOpenApi();
+            });
+
+            group.MapPut("/{id:int}", async (int id, TurnoOdontologicoDTO dto, ITurnoOdontologicoService service) =>
+            {
+                dto.Id = id;
+                try
+                {
+                    var updated = await service.UpdateAsync(dto);
+                    return updated ? Results.Ok(dto) : Results.NotFound();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Results.BadRequest(new { message = ex.Message });
+                }
+            });
+
+            group.MapDelete("/{id:int}", async (int id, ITurnoOdontologicoService service) =>
+            {
+                var deleted = await service.DeleteAsync(id);
+                return deleted ? Results.NoContent() : Results.NotFound();
+            });
+
+            // Acciones de Admisión y Estado
+            group.MapPost("/{id:int}/confirmar-presencia", async (int id, ITurnoOdontologicoService service) =>
+            {
+                var ok = await service.ConfirmarPresenciaAsync(id);
+                return ok ? Results.Ok(new { message = "Presencia confirmada con éxito." }) : Results.NotFound();
+            });
+
+            group.MapPost("/{id:int}/registrar-ausencia", async (int id, RegistrarAusenciaRequest request, ITurnoOdontologicoService service) =>
+            {
+                var ok = await service.RegistrarAusenciaAsync(id, request.Motivo, request.MontoMulta);
+                return ok ? Results.Ok(new { message = "Ausencia registrada y multa generada con inhabilitación del paciente." }) : Results.NotFound();
+            });
+
+            group.MapPost("/{id:int}/cancelar", async (int id, CancelarTurnoRequest request, ITurnoOdontologicoService service) =>
+            {
+                var ok = await service.CancelarTurnoAsync(id, request.Motivo);
+                return ok ? Results.Ok(new { message = "Turno cancelado." }) : Results.NotFound();
+            });
+
+            group.MapPost("/{id:int}/atender", async (int id, ITurnoOdontologicoService service) =>
+            {
+                var ok = await service.AtenderTurnoAsync(id);
+                return ok ? Results.Ok(new { message = "Turno marcado como atendido." }) : Results.NotFound();
+            });
         }
     }
+
+    public record RegistrarAusenciaRequest(string Motivo, decimal MontoMulta = 3500m);
+    public record CancelarTurnoRequest(string Motivo);
 }

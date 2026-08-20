@@ -1,45 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domain.Model
 {
     public class Factura
     {
-        public int Id { get; private set; }
-        public string Descripcion { get; private set; }
-        public float Subtotal { get; private set; }
-        public float Total { get; private set; }
+        public int Id { get; set; }
+        public int? TurnoId { get; set; }
+        public TurnoOdontologico? Turno { get; set; }
+        public int PacienteId { get; set; }
+        public Paciente? Paciente { get; set; }
+        public string Descripcion { get; set; } = string.Empty;
+        public decimal Subtotal { get; set; }
+        public decimal DescuentoObraSocial { get; set; }
+        public decimal Total { get; set; }
+        public decimal MontoAPagarPaciente { get; set; }
+        public bool EstadoPago { get; set; } = false;
+        public string MetodoPago { get; set; } = "Efectivo"; // Efectivo, Tarjeta, Transferencia
+        public DateTime FechaEmision { get; set; } = DateTime.Now;
+        public List<ItemFactura> Items { get; set; } = new();
 
-        public Factura(int id, string descripcion, float subtotal, float total)
+        public Factura() { }
+
+        public Factura(int id, int? turnoId, int pacienteId, string descripcion, decimal subtotal, decimal descuentoObraSocial, decimal total, decimal montoAPagarPaciente, bool estadoPago = false, string metodoPago = "Efectivo")
         {
             Id = id;
-            SetDescripcion(descripcion);
-            SetSubtotal(subtotal);
-            SetTotal(total);
-        }
-
-        public void SetDescripcion(string descripcion)
-        {
-            if (string.IsNullOrWhiteSpace(descripcion))
-                throw new ArgumentException("La descripción no puede ser nula o vacía.", nameof(descripcion));
+            TurnoId = turnoId;
+            PacienteId = pacienteId;
             Descripcion = descripcion;
-        }
-
-        public void SetSubtotal(float subtotal)
-        {
-            if (subtotal < 0)
-                throw new ArgumentException("El subtotal debe ser mayor o igual a 0.", nameof(subtotal));
             Subtotal = subtotal;
-        }
-
-        public void SetTotal(float total)
-        {
-            if (total < 0)
-                throw new ArgumentException("El total debe ser mayor o igual a 0.", nameof(total));
+            DescuentoObraSocial = descuentoObraSocial;
             Total = total;
+            MontoAPagarPaciente = montoAPagarPaciente;
+            EstadoPago = estadoPago;
+            MetodoPago = metodoPago;
+            FechaEmision = DateTime.Now;
         }
     }
 }
