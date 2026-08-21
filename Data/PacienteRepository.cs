@@ -36,12 +36,12 @@ namespace Data
 
             if (!string.IsNullOrWhiteSpace(criteria.Texto))
             {
-                var text = criteria.Texto.Trim().ToLower();
+                var text = criteria.Texto.Trim();
                 query = query.Where(p =>
-                    p.Nombre.ToLower().Contains(text) ||
-                    p.Apellido.ToLower().Contains(text) ||
-                    p.Dni.ToString().Contains(text) ||
-                    p.Mail.ToLower().Contains(text));
+                    (p.Nombre != null && EF.Functions.Like(p.Nombre, $"%{text}%")) ||
+                    (p.Apellido != null && EF.Functions.Like(p.Apellido, $"%{text}%")) ||
+                    (p.Mail != null && EF.Functions.Like(p.Mail, $"%{text}%")) ||
+                    EF.Functions.Like(p.Dni.ToString(), $"%{text}%"));
             }
 
             if (criteria.SoloHabilitados.HasValue && criteria.SoloHabilitados.Value)
