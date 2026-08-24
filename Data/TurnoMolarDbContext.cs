@@ -111,6 +111,7 @@ namespace Data
 
             modelBuilder.Entity<ObraSocial>(entity =>
             {
+                entity.Property(e => e.Plan).HasColumnName("Descripcion");
                 entity.Property(e => e.PorcentajeCobertura).HasPrecision(5, 2);
             });
 

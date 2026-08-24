@@ -93,30 +93,30 @@ namespace WindowsForms
                 BackColor = UITheme.CardBackground
             };
 
-            var lblSearch = new Label { Text = "Buscar:", Location = new Point(25, 20), AutoSize = true, Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
-            txtBuscar = new TextBox { Location = new Point(85, 17), Width = 280, PlaceholderText = "Nombre, Apellido, DNI o Email..." };
+            var lblSearch = new Label { Text = "Buscar:", Location = new Point(15, 20), AutoSize = true, Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
+            txtBuscar = new TextBox { Location = new Point(75, 17), Width = 220, PlaceholderText = "Nombre, Apellido, DNI o Email..." };
             txtBuscar.KeyDown += TxtBuscar_KeyDown;
 
-            chkSoloHabilitados = new CheckBox { Text = "Solo Habilitados", Location = new Point(380, 19), AutoSize = true, Font = UITheme.RegularFont };
+            chkSoloHabilitados = new CheckBox { Text = "Solo Habilitados", Location = new Point(305, 19), AutoSize = true, Font = UITheme.RegularFont };
             chkSoloHabilitados.CheckedChanged += ChkSoloHabilitados_CheckedChanged;
 
-            btnBuscar = new Button { Text = "🔍 Buscar", Location = new Point(515, 13), Size = new Size(110, 36) };
+            btnBuscar = new Button { Text = "🔍 Buscar", Location = new Point(440, 13), Size = new Size(100, 36) };
             UITheme.StylePrimaryButton(btnBuscar);
             btnBuscar.Click += BtnBuscar_Click;
 
-            btnNuevo = new Button { Text = "+ Nuevo Paciente", Location = new Point(640, 13), Size = new Size(160, 36) };
+            btnNuevo = new Button { Text = "+ Nuevo Paciente", Location = new Point(550, 13), Size = new Size(140, 36) };
             UITheme.StyleSuccessButton(btnNuevo);
             btnNuevo.Click += (s, e) => AbrirDetalle(null);
 
-            btnEditar = new Button { Text = "✏️ Modificar", Location = new Point(810, 13), Size = new Size(120, 36) };
+            btnEditar = new Button { Text = "✏️ Modificar", Location = new Point(700, 13), Size = new Size(110, 36) };
             UITheme.StyleSecondaryButton(btnEditar);
             btnEditar.Click += (s, e) => ModificarSeleccionado();
 
-            btnToggleEstado = new Button { Text = "🔒 Cambiar Estado", Location = new Point(940, 13), Size = new Size(140, 36) };
+            btnToggleEstado = new Button { Text = "🔒 Cambiar Estado", Location = new Point(820, 13), Size = new Size(130, 36) };
             UITheme.StyleSecondaryButton(btnToggleEstado);
             btnToggleEstado.Click += BtnToggleEstado_Click;
 
-            btnEliminar = new Button { Text = "🗑️ Eliminar", Location = new Point(1090, 13), Size = new Size(110, 36) };
+            btnEliminar = new Button { Text = "🗑️ Eliminar", Location = new Point(960, 13), Size = new Size(100, 36) };
             UITheme.StyleDangerButton(btnEliminar);
             btnEliminar.Click += BtnEliminar_Click;
 
@@ -177,14 +177,16 @@ namespace WindowsForms
 
             gridPacientes.CellFormatting += (s, e) =>
             {
-                if (gridPacientes.Columns[e.ColumnIndex].Name == "Estado" && e.RowIndex >= 0 && e.RowIndex < _pacientes.Count)
+                if (gridPacientes.Columns[e.ColumnIndex].Name == "Estado" && e.RowIndex >= 0 && e.RowIndex < gridPacientes.Rows.Count)
                 {
-                    var p = _pacientes[e.RowIndex];
-                    e.Value = p.EstadoHabilitado ? "✅ Habilitado" : "❌ Inhabilitado";
-                    if (e.CellStyle != null)
+                    if (gridPacientes.Rows[e.RowIndex].DataBoundItem is PacienteDTO p)
                     {
-                        e.CellStyle.ForeColor = p.EstadoHabilitado ? UITheme.Success : UITheme.Danger;
-                        e.CellStyle.Font = UITheme.RegularBold;
+                        e.Value = p.EstadoHabilitado ? "✅ Habilitado" : "❌ Inhabilitado";
+                        if (e.CellStyle != null)
+                        {
+                            e.CellStyle.ForeColor = p.EstadoHabilitado ? UITheme.Success : UITheme.Danger;
+                            e.CellStyle.Font = UITheme.RegularBold;
+                        }
                     }
                 }
             };
@@ -197,7 +199,11 @@ namespace WindowsForms
 
         private async void TxtBuscar_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter) await CargarPacientes();
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                await CargarPacientes();
+            }
         }
 
         private async void ChkSoloHabilitados_CheckedChanged(object? sender, EventArgs e)
