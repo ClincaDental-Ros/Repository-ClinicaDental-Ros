@@ -22,6 +22,8 @@ namespace WindowsForms
         private TextBox txtOtraObraSocial = null!;
         private Label lblOtraOS = null!;
         private TextBox txtAfiliado = null!;
+        private TextBox txtUsuario = null!;
+        private TextBox txtPassword = null!;
         private CheckBox chkHabilitado = null!;
         private Button btnGuardar = null!;
         private Button btnCancelar = null!;
@@ -41,7 +43,7 @@ namespace WindowsForms
         private void InitializeComponent()
         {
             this.SuspendLayout();
-            this.ClientSize = new Size(580, 680);
+            this.ClientSize = new Size(580, 750);
             this.Name = "PacienteDetalleForm";
             this.ResumeLayout(false);
         }
@@ -49,7 +51,7 @@ namespace WindowsForms
         private void BuildUI()
         {
             this.Text = _pacienteExistente == null ? "Alta de Paciente - Clínica Odontológica" : "Editar Paciente";
-            this.Size = new Size(580, 680);
+            this.Size = new Size(580, 750);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -151,6 +153,34 @@ namespace WindowsForms
             txtAfiliado = new TextBox();
             AddRow("N° de Afiliado / Cred:", txtAfiliado);
 
+            // Sección de Credenciales de Acceso al Portal
+            var lblCredHeader = new Label
+            {
+                Text = "🔑 Credenciales de Acceso (Portal del Paciente)",
+                Font = UITheme.RegularBold,
+                ForeColor = UITheme.Primary,
+                Location = new Point(x, y + 5),
+                AutoSize = true
+            };
+            pnlCard.Controls.Add(lblCredHeader);
+            y += 28;
+
+            txtUsuario = new TextBox
+            {
+                ReadOnly = true,
+                BackColor = Color.FromArgb(240, 243, 246),
+                Text = _pacienteExistente == null ? "(Se generará automáticamente al guardar)" : (_pacienteExistente.Username ?? "N/A")
+            };
+            AddRow("Usuario Portal:", txtUsuario);
+
+            txtPassword = new TextBox
+            {
+                ReadOnly = true,
+                BackColor = Color.FromArgb(240, 243, 246),
+                Text = _pacienteExistente == null ? "paciente123" : (_pacienteExistente.PasswordDefault ?? "paciente123")
+            };
+            AddRow("Clave Inicial:", txtPassword);
+
             chkHabilitado = new CheckBox
             {
                 Text = "Paciente Habilitado para Turnos (Sin Deudas)",
@@ -208,6 +238,8 @@ namespace WindowsForms
             txtDomicilio.Text = _pacienteExistente.Domicilio;
             chkHabilitado.Checked = _pacienteExistente.EstadoHabilitado;
             txtAfiliado.Text = _pacienteExistente.NumeroAfiliado ?? "";
+            txtUsuario.Text = _pacienteExistente.Username ?? "N/A";
+            txtPassword.Text = _pacienteExistente.PasswordDefault ?? "paciente123";
 
             if (_pacienteExistente.ObraSocialId.HasValue)
             {
@@ -265,8 +297,18 @@ namespace WindowsForms
 
                 if (_pacienteExistente == null)
                 {
-                    await _apiClient.CreateAsync(dto);
-                    MessageBox.Show("¡Paciente registrado correctamente en la base de datos!", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    var creado = await _apiClient.CreateAsync(dto);
+                    string usr = creado?.Username ?? (string.IsNullOrWhiteSpace(dto.Mail) ? $"{dto.Nombre.ToLower()}{dni}" : dto.Mail.Split('@')[0]);
+                    string pwd = creado?.PasswordDefault ?? "paciente123";
+
+                    MessageBox.Show(
+                        $"¡Paciente registrado!\n\n" +
+                        $"🔑 Credenciales para el Portal del Paciente:\n" +
+                        $"• Usuario: {usr}\n" +
+                        $"• Contraseña: {pwd}",
+                        "Alta de Paciente Exitosa",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
                 else
                 {
