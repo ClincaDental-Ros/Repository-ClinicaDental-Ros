@@ -1,4 +1,5 @@
 using DTOs;
+using System.Net.Http.Json;
 
 namespace API.Clients
 {
@@ -6,7 +7,22 @@ namespace API.Clients
     {
         public async Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO request)
         {
-            return await PostAsync<LoginRequestDTO, LoginResponseDTO>("/api/auth/login", request);
+            var client = await GetConfiguredClientAsync();
+            var response = await client.PostAsJsonAsync("/api/auth/login", request);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                // Credenciales inválidas: No disparar evento de sesión expirada
+                return null;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Error de conexión con el servidor ({response.StatusCode})");
+            }
+
+            return await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
         }
 
         public async Task<UsuarioDTO?> GetMeAsync()

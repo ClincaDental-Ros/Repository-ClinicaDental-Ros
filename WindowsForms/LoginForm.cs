@@ -1,55 +1,49 @@
 using API.Auth.WindowsForms;
 using API.Clients;
 using DTOs;
-using System.ComponentModel;
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WindowsForms
 {
     public class LoginForm : Form
     {
-        private readonly AuthApiClient _authClient = new();
         private readonly WindowsFormsAuthService _authService;
+        private readonly AuthApiClient _authClient;
 
         private TextBox txtUsername = null!;
         private TextBox txtPassword = null!;
+        private Button btnTogglePassword = null!;
         private Button btnLogin = null!;
         private Label lblError = null!;
-        private ComboBox cbPerfilesPrueba = null!;
 
         public LoginForm(WindowsFormsAuthService authService)
         {
             _authService = authService;
-            InitializeComponent();
-            BuildUI();
+            _authClient = new AuthApiClient();
+
+            InitializeCustomComponents();
         }
 
-        private void InitializeComponent()
-        {
-            SuspendLayout();
-            ClientSize = new Size(460, 580);
-            Name = "LoginForm";
-            ResumeLayout(false);
-        }
-
-        private void BuildUI()
+        private void InitializeCustomComponents()
         {
             this.Text = "Clínica Odontológica - Acceso al Sistema";
-            this.Size = new Size(470, 600);
+            this.Size = new Size(465, 460);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.BackColor = UITheme.Background;
-            this.Font = UITheme.RegularFont;
+            this.MinimizeBox = false;
+            this.BackColor = Color.FromArgb(240, 244, 248);
 
             var pnlCard = new Panel
             {
-                Location = new Point(20, 20),
-                Size = new Size(415, 520),
-                BackColor = UITheme.CardBackground,
-                Padding = new Padding(30, 25, 30, 25)
+                Size = new Size(415, 390),
+                Location = new Point(20, 15),
+                BackColor = Color.White
             };
 
             pnlCard.Paint += (s, e) =>
@@ -58,9 +52,9 @@ namespace WindowsForms
                 e.Graphics.DrawRectangle(pen, 0, 0, pnlCard.Width - 1, pnlCard.Height - 1);
             };
 
-            int y = 15;
+            int y = 20;
 
-            // Logo y Encabezado Limpio (Estilo Frontend.MVC Login.cshtml)
+            // Logo y Encabezado
             var lblLogo = new Label
             {
                 Text = "🦷",
@@ -96,7 +90,7 @@ namespace WindowsForms
             pnlCard.Controls.Add(lblSub);
             y += 35;
 
-            // Inputs
+            // Campo: Usuario
             var lblUser = new Label
             {
                 Text = "Usuario / Número de Documento:",
@@ -113,11 +107,12 @@ namespace WindowsForms
                 Location = new Point(30, y),
                 Width = 355,
                 Font = UITheme.RegularFont,
-                Text = "admin"
+                Text = ""
             };
             pnlCard.Controls.Add(txtUsername);
             y += 35;
 
+            // Campo: Contraseña con Botón de Ojito Toggle
             var lblPass = new Label
             {
                 Text = "Contraseña:",
@@ -132,58 +127,33 @@ namespace WindowsForms
             txtPassword = new TextBox
             {
                 Location = new Point(30, y),
-                Width = 355,
+                Width = 315,
                 Font = UITheme.RegularFont,
                 UseSystemPasswordChar = true,
-                Text = "admin123"
+                Text = ""
             };
+
+            btnTogglePassword = new Button
+            {
+                Text = "👁",
+                Location = new Point(350, y - 1),
+                Size = new Size(35, 27),
+                Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                BackColor = Color.FromArgb(241, 245, 249),
+                ForeColor = UITheme.Primary
+            };
+            btnTogglePassword.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
+            btnTogglePassword.Click += (s, e) =>
+            {
+                txtPassword.UseSystemPasswordChar = !txtPassword.UseSystemPasswordChar;
+                btnTogglePassword.Text = txtPassword.UseSystemPasswordChar ? "👁" : "🙈";
+            };
+
             pnlCard.Controls.Add(txtPassword);
-            y += 35;
-
-            // Selector de Modo Prueba Rápida
-            var pnlPilot = new Panel
-            {
-                Location = new Point(30, y),
-                Size = new Size(355, 65),
-                BackColor = Color.FromArgb(248, 250, 252)
-            };
-
-            pnlPilot.Paint += (s, e) =>
-            {
-                using var pen = new Pen(Color.FromArgb(203, 213, 225), 1) { DashStyle = DashStyle.Dash };
-                e.Graphics.DrawRectangle(pen, 0, 0, pnlPilot.Width - 1, pnlPilot.Height - 1);
-            };
-
-            var lblPilotTitle = new Label
-            {
-                Text = "MODO PRUEBA RÁPIDA / PERFIL:",
-                Font = UITheme.SmallBold,
-                ForeColor = UITheme.Primary,
-                Location = new Point(10, 6),
-                AutoSize = true
-            };
-
-            cbPerfilesPrueba = new ComboBox
-            {
-                Location = new Point(10, 28),
-                Width = 335,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = UITheme.SmallFont
-            };
-            cbPerfilesPrueba.Items.AddRange(new object[] {
-                "1. Administrador (admin / admin123)",
-                "2. Recepcionista (recepcion / recepcion123)",
-                "3. Odontólogo - Dr. Gómez (doctor1 / doc123)",
-                "4. Odontólogo - Dra. Rossi (doctor2 / doc123)",
-                "5. Paciente - Juan Pérez (paciente1 / paciente123)"
-            });
-            cbPerfilesPrueba.SelectedIndex = 0;
-            cbPerfilesPrueba.SelectedIndexChanged += CbPerfilesPrueba_SelectedIndexChanged;
-
-            pnlPilot.Controls.Add(lblPilotTitle);
-            pnlPilot.Controls.Add(cbPerfilesPrueba);
-            pnlCard.Controls.Add(pnlPilot);
-            y += 75;
+            pnlCard.Controls.Add(btnTogglePassword);
+            y += 40;
 
             lblError = new Label
             {
@@ -223,18 +193,6 @@ namespace WindowsForms
             this.Controls.Add(pnlCard);
         }
 
-        private void CbPerfilesPrueba_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            switch (cbPerfilesPrueba.SelectedIndex)
-            {
-                case 0: txtUsername.Text = "admin"; txtPassword.Text = "admin123"; break;
-                case 1: txtUsername.Text = "recepcion"; txtPassword.Text = "recepcion123"; break;
-                case 2: txtUsername.Text = "doctor1"; txtPassword.Text = "doc123"; break;
-                case 3: txtUsername.Text = "doctor2"; txtPassword.Text = "doc123"; break;
-                case 4: txtUsername.Text = "paciente1"; txtPassword.Text = "paciente123"; break;
-            }
-        }
-
         private async void BtnLogin_Click(object? sender, EventArgs e)
         {
             await RealizarLogin();
@@ -242,6 +200,12 @@ namespace WindowsForms
 
         private async Task RealizarLogin()
         {
+            if (string.IsNullOrWhiteSpace(txtUsername.Text) || string.IsNullOrWhiteSpace(txtPassword.Text))
+            {
+                lblError.Text = "Ingresá tu usuario y contraseña.";
+                return;
+            }
+
             lblError.Text = "";
             btnLogin.Enabled = false;
             btnLogin.Text = "Autenticando...";
@@ -263,8 +227,12 @@ namespace WindowsForms
                 }
                 else
                 {
-                    lblError.Text = "Usuario o contraseña inválidos.";
+                    lblError.Text = "Usuario no existente o contraseña incorrecta.";
                 }
+            }
+            catch (HttpRequestException)
+            {
+                lblError.Text = "Error de conexión con el servidor o la base de datos.";
             }
             catch (Exception ex)
             {

@@ -20,7 +20,7 @@ namespace WebAPI
 
             // Configuración de DbContext (SQL Server 2022 con ConnectionString de appsettings.json)
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                ?? "Server=localhost;Database=ClinicaOdontologicaDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;";
+                ?? "Server=db65098.public.databaseasp.net;Database=db65098;User Id=db65098;Password=t+5Y!9Ts3Cq#;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;";
 
             builder.Services.AddDbContext<TurnoMolarDbContext>(options =>
             {

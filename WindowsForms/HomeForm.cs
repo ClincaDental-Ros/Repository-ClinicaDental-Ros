@@ -296,9 +296,19 @@ namespace WindowsForms
             btnLogout.FlatAppearance.BorderSize = 0;
             btnLogout.Click += (s, e) =>
             {
-                _authService.ClearSession();
-                this.DialogResult = DialogResult.Retry;
-                this.Close();
+                var result = MessageBox.Show(
+                    "¿Está seguro de que desea cerrar sesión?",
+                    "Confirmar Cierre de Sesión",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
+
+                if (result == DialogResult.Yes)
+                {
+                    _authService.ClearSession();
+                    this.DialogResult = DialogResult.Retry;
+                    this.Close();
+                }
             };
             pnlLogout.Controls.Add(btnLogout);
 
