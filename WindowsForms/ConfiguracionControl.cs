@@ -41,6 +41,8 @@ namespace WindowsForms
         private Button btnGuardar = null!;
         private Label lblFeedback = null!;
 
+        private bool _fotoModificada = false;
+        private bool _fotoEliminada = false;
         private PacienteDTO? _pacienteActual;
         private Action? _onPerfilActualizado;
 
@@ -145,9 +147,12 @@ namespace WindowsForms
             UITheme.StyleSecondaryButton(btnQuitarFoto);
             btnQuitarFoto.Click += (s, e) =>
             {
+                picAvatar.Image?.Dispose();
                 picAvatar.Image = null;
                 picAvatar.Visible = false;
                 lblAvatarIniciales.Visible = true;
+                _fotoModificada = true;
+                _fotoEliminada = true;
             };
 
             var lblFotoInfo = new Label { Text = "Formatos soportados: JPG, PNG. Tamaño máximo recomendado 2MB.", Font = UITheme.SmallFont, ForeColor = UITheme.TextSecondary, Location = new Point(122, 68), AutoSize = true };
@@ -362,6 +367,23 @@ namespace WindowsForms
             try
             {
                 var username = _authService.GetUsername() ?? "paciente1";
+
+                var avatarImg = UserAvatarService.LoadAvatar(username);
+                if (avatarImg != null)
+                {
+                    picAvatar.Image?.Dispose();
+                    picAvatar.Image = avatarImg;
+                    picAvatar.Visible = true;
+                    lblAvatarIniciales.Visible = false;
+                }
+                else
+                {
+                    picAvatar.Image?.Dispose();
+                    picAvatar.Image = null;
+                    picAvatar.Visible = false;
+                    lblAvatarIniciales.Visible = true;
+                }
+
                 var pacientes = await _pacienteClient.GetAllAsync();
                 _pacienteActual = pacientes.FirstOrDefault(p => p.Mail.Contains(username, StringComparison.OrdinalIgnoreCase) || p.Nombre.Contains("Juan", StringComparison.OrdinalIgnoreCase)) ?? pacientes.FirstOrDefault();
 
@@ -405,9 +427,15 @@ namespace WindowsForms
             {
                 try
                 {
-                    picAvatar.Image = Image.FromFile(ofd.FileName);
+                    using (var ms = new MemoryStream(File.ReadAllBytes(ofd.FileName)))
+                    {
+                        picAvatar.Image?.Dispose();
+                        picAvatar.Image = new Bitmap(ms);
+                    }
                     picAvatar.Visible = true;
                     lblAvatarIniciales.Visible = false;
+                    _fotoModificada = true;
+                    _fotoEliminada = false;
                 }
                 catch (Exception ex)
                 {
@@ -423,6 +451,21 @@ namespace WindowsForms
 
             try
             {
+                var username = _authService.GetUsername() ?? "paciente1";
+
+                if (_fotoModificada)
+                {
+                    if (_fotoEliminada || picAvatar.Image == null)
+                    {
+                        UserAvatarService.DeleteAvatar(username);
+                    }
+                    else if (picAvatar.Image != null)
+                    {
+                        UserAvatarService.SaveAvatar(username, picAvatar.Image);
+                    }
+                    _fotoModificada = false;
+                    _fotoEliminada = false;
+                }
                 if (string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtApellido.Text) || string.IsNullOrWhiteSpace(txtMail.Text))
                 {
                     lblFeedback.ForeColor = UITheme.Danger;

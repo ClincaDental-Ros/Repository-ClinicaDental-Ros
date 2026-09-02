@@ -14,6 +14,7 @@ namespace WindowsForms
         private Panel pnlContent = null!;
         private Button? _activeNavButton;
         private Label lblAvatar = null!;
+        private PictureBox picAvatarSidebar = null!;
         private Label lblUserName = null!;
 
         // Controles de módulos
@@ -118,6 +119,25 @@ namespace WindowsForms
                 Size = new Size(42, 42),
                 Location = new Point(15, 16)
             };
+            using (var pathLbl = new System.Drawing.Drawing2D.GraphicsPath())
+            {
+                pathLbl.AddEllipse(0, 0, 42, 42);
+                lblAvatar.Region = new Region(pathLbl);
+            }
+
+            picAvatarSidebar = new PictureBox
+            {
+                Location = new Point(15, 16),
+                Size = new Size(42, 42),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Color.FromArgb(30, 41, 59),
+                Visible = false
+            };
+            using (var pathPic = new System.Drawing.Drawing2D.GraphicsPath())
+            {
+                pathPic.AddEllipse(0, 0, 42, 42);
+                picAvatarSidebar.Region = new Region(pathPic);
+            }
 
             lblUserName = new Label
             {
@@ -147,6 +167,7 @@ namespace WindowsForms
                 AutoSize = true
             };
 
+            pnlUser.Controls.Add(picAvatarSidebar);
             pnlUser.Controls.Add(lblAvatar);
             pnlUser.Controls.Add(lblUserName);
             pnlUser.Controls.Add(lblUserRol);
@@ -325,6 +346,8 @@ namespace WindowsForms
 
             this.Controls.Add(pnlContent);
             this.Controls.Add(pnlSidebar);
+
+            ActualizarPerfilEnSidebar();
         }
 
         private void ActualizarPerfilEnSidebar()
@@ -332,6 +355,23 @@ namespace WindowsForms
             var nombre = _authService.GetNombreCompleto() ?? _authService.GetUsername() ?? "Usuario";
             lblUserName.Text = nombre;
             lblAvatar.Text = nombre.Length > 0 ? nombre[0].ToString().ToUpper() : "U";
+
+            var username = _authService.GetUsername() ?? "";
+            var img = UserAvatarService.LoadAvatar(username);
+            if (img != null)
+            {
+                picAvatarSidebar.Image?.Dispose();
+                picAvatarSidebar.Image = img;
+                picAvatarSidebar.Visible = true;
+                lblAvatar.Visible = false;
+            }
+            else
+            {
+                picAvatarSidebar.Image?.Dispose();
+                picAvatarSidebar.Image = null;
+                picAvatarSidebar.Visible = false;
+                lblAvatar.Visible = true;
+            }
         }
 
         private void OnFormShown(object? sender, EventArgs e)
