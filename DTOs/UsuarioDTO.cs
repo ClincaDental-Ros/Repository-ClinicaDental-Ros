@@ -27,4 +27,11 @@ namespace DTOs
         public int? EntidadId { get; set; }
         public DateTime Expiration { get; set; }
     }
+
+    public class CambiarPasswordRequestDTO
+    {
+        public int UserId { get; set; }
+        public string PasswordActual { get; set; } = string.Empty;
+        public string PasswordNueva { get; set; } = string.Empty;
+    }
 }

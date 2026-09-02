@@ -13,6 +13,7 @@ namespace Application.Services
         Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO request);
         Task<UsuarioDTO?> GetUsuarioActualAsync(int userId);
         Task<UsuarioDTO> RegistrarUsuarioAsync(UsuarioDTO dto, string password);
+        Task<bool> CambiarPasswordAsync(int userId, string passwordActual, string passwordNueva);
     }
 
     public class AuthService : IAuthService
@@ -108,6 +109,19 @@ namespace Application.Services
             await _usuarioRepository.AddAsync(user);
             dto.Id = user.Id;
             return dto;
+        }
+
+        public async Task<bool> CambiarPasswordAsync(int userId, string passwordActual, string passwordNueva)
+        {
+            var user = await _usuarioRepository.GetByIdAsync(userId);
+            if (user == null || !user.Activo)
+                return false;
+
+            if (user.PasswordHash != passwordActual)
+                return false;
+
+            user.PasswordHash = passwordNueva;
+            return await _usuarioRepository.UpdateAsync(user);
         }
     }
 }

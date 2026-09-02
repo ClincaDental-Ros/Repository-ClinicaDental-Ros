@@ -13,6 +13,7 @@ namespace WindowsForms
     {
         private readonly WindowsFormsAuthService _authService;
         private readonly PacienteApiClient _pacienteClient = new();
+        private readonly AuthApiClient _authClient = new();
 
         private PictureBox picAvatar = null!;
         private Label lblAvatarIniciales = null!;
@@ -32,6 +33,7 @@ namespace WindowsForms
         private TextBox txtPassActual = null!;
         private TextBox txtPassNueva = null!;
         private TextBox txtPassConfirmar = null!;
+        private Label lblPassMatch = null!;
 
         private CheckBox chkNotifEmail = null!;
         private CheckBox chkNotifWhatsapp = null!;
@@ -232,10 +234,10 @@ namespace WindowsForms
             pnlBody.Controls.Add(pnlOSCard);
             y += 140;
 
-            // ==========================================
+                        // ==========================================
             // SECCIÓN 4: SEGURIDAD Y NOTIFICACIONES
             // ==========================================
-            var pnlSegCard = new Panel { Location = new Point(25, y), Size = new Size(740, 185), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
+            var pnlSegCard = new Panel { Location = new Point(25, y), Size = new Size(740, 215), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
             pnlSegCard.Paint += (s, e) =>
             {
                 using var pen = new Pen(UITheme.BorderColor, 1);
@@ -246,21 +248,93 @@ namespace WindowsForms
             pnlSegCard.Controls.Add(lblSegTitle);
 
             dy = 45;
-            AddField(pnlSegCard, "Contraseña Actual:", ref txtPassActual, 20, 215, "");
-            txtPassActual.UseSystemPasswordChar = true;
-            AddField(pnlSegCard, "Nueva Contraseña:", ref txtPassNueva, 250, 215, "");
-            txtPassNueva.UseSystemPasswordChar = true;
-            AddField(pnlSegCard, "Confirmar Nueva:", ref txtPassConfirmar, 480, 215, "");
-            txtPassConfirmar.UseSystemPasswordChar = true;
+            void AddPasswordField(Panel parent, string label, ref TextBox tb, int x, int width)
+            {
+                var l = new Label { Text = label, Location = new Point(x, dy), AutoSize = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
+                int tbWidth = width - 36;
+                tb = new TextBox { Location = new Point(x, dy + 20), Width = tbWidth, Font = UITheme.RegularFont, UseSystemPasswordChar = true };
 
-            chkNotifEmail = new CheckBox { Text = "Recibir recordatorios y comprobantes de turnos por Email", Location = new Point(20, 120), AutoSize = true, Checked = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-            chkNotifWhatsapp = new CheckBox { Text = "Recibir avisos de estado de sala y alertas por SMS / WhatsApp", Location = new Point(20, 145), AutoSize = true, Checked = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
+                var capturedTb = tb;
+                var btnEye = new Button
+                {
+                    Text = "👁",
+                    Location = new Point(x + tbWidth + 4, dy + 19),
+                    Size = new Size(32, 27),
+                    Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand,
+                    BackColor = Color.FromArgb(241, 245, 249),
+                    ForeColor = UITheme.Primary
+                };
+                btnEye.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
+                btnEye.Click += (s, e) =>
+                {
+                    capturedTb.UseSystemPasswordChar = !capturedTb.UseSystemPasswordChar;
+                    btnEye.Text = capturedTb.UseSystemPasswordChar ? "👁" : "🙈";
+                };
+
+                parent.Controls.Add(l);
+                parent.Controls.Add(tb);
+                parent.Controls.Add(btnEye);
+            }
+
+            AddPasswordField(pnlSegCard, "Contraseña Actual:", ref txtPassActual, 20, 215);
+            AddPasswordField(pnlSegCard, "Nueva Contraseña:", ref txtPassNueva, 250, 215);
+            AddPasswordField(pnlSegCard, "Confirmar Nueva:", ref txtPassConfirmar, 480, 215);
+
+            lblPassMatch = new Label
+            {
+                Location = new Point(250, 97),
+                Size = new Size(450, 20),
+                Font = UITheme.SmallBold,
+                Text = "",
+                ForeColor = UITheme.Danger
+            };
+            pnlSegCard.Controls.Add(lblPassMatch);
+
+            void VerificarCoincidencia()
+            {
+                var n = txtPassNueva.Text;
+                var c = txtPassConfirmar.Text;
+                if (string.IsNullOrEmpty(n) && string.IsNullOrEmpty(c))
+                {
+                    lblPassMatch.Text = "";
+                }
+                else if (!string.IsNullOrEmpty(n) && n.Length < 4)
+                {
+                    lblPassMatch.ForeColor = Color.FromArgb(217, 119, 6);
+                    lblPassMatch.Text = "⚠ La nueva contraseña debe tener al menos 4 caracteres.";
+                }
+                else if (!string.IsNullOrEmpty(c))
+                {
+                    if (n == c)
+                    {
+                        lblPassMatch.ForeColor = Color.FromArgb(16, 185, 129);
+                        lblPassMatch.Text = "✓ Las contraseñas coinciden correctamente.";
+                    }
+                    else
+                    {
+                        lblPassMatch.ForeColor = UITheme.Danger;
+                        lblPassMatch.Text = "✗ Las contraseñas no coinciden.";
+                    }
+                }
+                else
+                {
+                    lblPassMatch.Text = "";
+                }
+            }
+
+            txtPassNueva.TextChanged += (s, e) => VerificarCoincidencia();
+            txtPassConfirmar.TextChanged += (s, e) => VerificarCoincidencia();
+
+            chkNotifEmail = new CheckBox { Text = "Recibir recordatorios y comprobantes de turnos por Email", Location = new Point(20, 130), AutoSize = true, Checked = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
+            chkNotifWhatsapp = new CheckBox { Text = "Recibir avisos de estado de sala y alertas por SMS / WhatsApp", Location = new Point(20, 155), AutoSize = true, Checked = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
 
             pnlSegCard.Controls.Add(chkNotifEmail);
             pnlSegCard.Controls.Add(chkNotifWhatsapp);
 
             pnlBody.Controls.Add(pnlSegCard);
-            y += 200;
+            y += 230;
 
             // ==========================================
             // BOTÓN GUARDAR Y FEEDBACK
@@ -375,8 +449,54 @@ namespace WindowsForms
 
                     await _pacienteClient.UpdateAsync(_pacienteActual);
 
+                    // Cambio de contraseña si se completó el campo Nueva Contraseña
+                    bool passCambiado = false;
+                    if (!string.IsNullOrWhiteSpace(txtPassNueva.Text))
+                    {
+                        if (string.IsNullOrWhiteSpace(txtPassActual.Text))
+                        {
+                            lblFeedback.ForeColor = UITheme.Danger;
+                            lblFeedback.Text = "Por favor, ingrese su contraseña actual para confirmar el cambio.";
+                            return;
+                        }
+
+                        if (txtPassNueva.Text.Trim() != txtPassConfirmar.Text.Trim())
+                        {
+                            lblFeedback.ForeColor = UITheme.Danger;
+                            lblFeedback.Text = "La nueva contraseña y su confirmación no coinciden.";
+                            return;
+                        }
+
+                        if (txtPassNueva.Text.Trim().Length < 4)
+                        {
+                            lblFeedback.ForeColor = UITheme.Danger;
+                            lblFeedback.Text = "La nueva contraseña debe tener al menos 4 caracteres.";
+                            return;
+                        }
+
+                        var userId = _authService.GetUserId();
+                        if (userId.HasValue)
+                        {
+                            var (passOk, passMsg) = await _authClient.CambiarPasswordAsync(userId.Value, txtPassActual.Text.Trim(), txtPassNueva.Text.Trim());
+                            if (!passOk)
+                            {
+                                lblFeedback.ForeColor = UITheme.Danger;
+                                lblFeedback.Text = passMsg;
+                                return;
+                            }
+                            passCambiado = true;
+                        }
+
+                        txtPassActual.Text = "";
+                        txtPassNueva.Text = "";
+                        txtPassConfirmar.Text = "";
+                        lblPassMatch.Text = "";
+                    }
+
                     lblFeedback.ForeColor = UITheme.Success;
-                    lblFeedback.Text = "✅ ¡Datos del perfil actualizados con éxito!";
+                    lblFeedback.Text = passCambiado
+                        ? "✓ ¡Datos del perfil y contraseña actualizados con éxito!"
+                        : "✓ ¡Datos del perfil actualizados con éxito!";
 
                     _onPerfilActualizado?.Invoke();
                 }

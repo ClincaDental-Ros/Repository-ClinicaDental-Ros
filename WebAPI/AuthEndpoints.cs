@@ -28,6 +28,15 @@ namespace WebAPI
                 var usuario = await authService.GetUsuarioActualAsync(userId);
                 return usuario == null ? Results.NotFound() : Results.Ok(usuario);
             }).RequireAuthorization();
+
+            group.MapPost("/change-password", async (CambiarPasswordRequestDTO req, IAuthService authService) =>
+            {
+                var ok = await authService.CambiarPasswordAsync(req.UserId, req.PasswordActual, req.PasswordNueva);
+                if (!ok)
+                    return Results.BadRequest(new { mensaje = "La contraseña actual es incorrecta o no se pudo actualizar." });
+
+                return Results.Ok(new { mensaje = "Contraseña actualizada exitosamente." });
+            }).AllowAnonymous();
         }
     }
 }
