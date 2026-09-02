@@ -28,7 +28,7 @@ namespace Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuraciones de entidades
+            
             modelBuilder.Entity<Usuario>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -115,7 +115,6 @@ namespace Data
                 entity.Property(e => e.PorcentajeCobertura).HasPrecision(5, 2);
             });
 
-            // Seed Data Inicial
             SeedDatabase(modelBuilder);
         }
 

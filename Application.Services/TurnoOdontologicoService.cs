@@ -73,14 +73,14 @@ namespace Application.Services
 
         public async Task<TurnoOdontologicoDTO> ReservarTurnoAsync(TurnoOdontologicoDTO dto)
         {
-            // 1. Validar existencia del paciente
+          
             var paciente = await _pacienteRepository.GetAsync(dto.PacienteId);
             if (paciente == null)
             {
                 throw new InvalidOperationException("El paciente especificado no existe.");
             }
 
-            // 2. Validar inhabilitación por deuda / multas impagas
+          
             if (!paciente.EstadoHabilitado)
             {
                 throw new InvalidOperationException($"El paciente {paciente.Apellido}, {paciente.Nombre} se encuentra INHABILITADO para solicitar turnos debido a deudas o multas pendientes.");
@@ -92,13 +92,13 @@ namespace Application.Services
                 throw new InvalidOperationException($"El paciente tiene {multasImpagas.Count()} multa(s) impaga(s). Debe regularizar su situación antes de reservar.");
             }
 
-            // 3. Validar que el paciente no tenga ya un turno reservado el mismo día
+           
             if (await _turnoRepository.PacienteTieneTurnoEnFechaAsync(dto.PacienteId, dto.Fecha))
             {
                 throw new InvalidOperationException($"El paciente ya posee un turno registrado para la fecha {dto.Fecha:dd/MM/yyyy}.");
             }
 
-            // 4. Validar disponibilidad del odontólogo
+         
             if (await _turnoRepository.TurnoExistsAsync(dto.Fecha, dto.HorarioTurno, dto.OdontologoId))
             {
                 throw new InvalidOperationException($"El odontólogo seleccionado ya tiene un turno agendado para el {dto.Fecha:dd/MM/yyyy} a las {dto.HorarioTurno}.");
@@ -175,11 +175,10 @@ namespace Application.Services
             turno.MotivoCancelacion = string.IsNullOrWhiteSpace(motivo) ? "Ausencia registrada en recepción" : motivo;
             await _turnoRepository.UpdateAsync(turno);
 
-            // Generar multa automática
+         
             var multa = new Multa(0, turno.PacienteId, montoMulta, false, null, $"Inasistencia a turno del {turno.Fecha:dd/MM/yyyy}: {motivo}");
             await _multaRepository.AddAsync(multa);
 
-            // Inhabilitar al paciente de inmediato
             var paciente = await _pacienteRepository.GetAsync(turno.PacienteId);
             if (paciente != null)
             {

@@ -6,13 +6,13 @@ namespace Domain.Model
         public int TurnoId { get; set; }
         public TurnoOdontologico? Turno { get; set; }
         public string Observaciones { get; set; } = string.Empty;
-        public string Diagnostico { get; set; } = string.Empty; // CIE-10 u observaciones diagnósticas
+        public string Diagnostico { get; set; } = string.Empty; 
         public bool Estado { get; set; } = true;
         public string Tratamiento { get; set; } = string.Empty;
         public bool AnestesiaLocal { get; set; } = false;
         public bool Radiografias { get; set; } = false;
         public string? Valoracion { get; set; }
-        public int? CalificacionEstrellas { get; set; } // 1 a 5 estrellas
+        public int? CalificacionEstrellas { get; set; } 
         public DateTime Fecha { get; set; } = DateTime.Now;
 
         public Consulta() { }

@@ -65,7 +65,7 @@ namespace Application.Services
             }
             catch
             {
-                // Manejo defensivo para no interrumpir el listado si hay inconsistencias en dbo.Usuarios
+                
             }
 
             return dtos;
@@ -96,7 +96,7 @@ namespace Application.Services
             }
             catch
             {
-                // Manejo defensivo para no interrumpir el listado si hay inconsistencias en dbo.Usuarios
+
             }
 
             return dtos;
@@ -132,7 +132,6 @@ namespace Application.Services
             string createdUsername = "";
             string defaultPassword = "paciente123";
 
-            // Crear automáticamente la cuenta de usuario para el nuevo paciente en dbo.Usuarios
             try
             {
                 string baseUsername = !string.IsNullOrWhiteSpace(dto.Mail) && dto.Mail.Contains("@")
@@ -151,7 +150,7 @@ namespace Application.Services
                 var usuario = new Usuario(
                     0,
                     username,
-                    defaultPassword, // Contraseña por defecto para login de paciente
+                    defaultPassword, 
                     "Paciente",
                     $"{dto.Nombre} {dto.Apellido}",
                     dto.Mail ?? $"{username}@turnomolar.com",
@@ -163,7 +162,7 @@ namespace Application.Services
             }
             catch
             {
-                // El paciente ya fue guardado en dbo.Pacientes exitosamente
+                
             }
 
             var resultDto = MapToDTO(paciente);
@@ -199,7 +198,7 @@ namespace Application.Services
 
             var updated = await _pacienteRepository.UpdateAsync(paciente);
 
-            // Actualizar usuario vinculado en dbo.Usuarios si existe
+           
             try
             {
                 var usuario = await _usuarioRepository.GetByEntidadIdAsync(dto.Id, "Paciente");

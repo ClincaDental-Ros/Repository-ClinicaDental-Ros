@@ -5,11 +5,11 @@ namespace Domain.Model
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        public string Rol { get; set; } = string.Empty; // "Admin", "Recepcionista", "Odontologo", "Paciente"
+        public string Rol { get; set; } = string.Empty; 
         public string NombreCompleto { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public bool Activo { get; set; } = true;
-        public int? EntidadId { get; set; } // Id del Paciente u Odontólogo vinculado, si aplica
+        public int? EntidadId { get; set; } 
 
         public Usuario() { }
 
