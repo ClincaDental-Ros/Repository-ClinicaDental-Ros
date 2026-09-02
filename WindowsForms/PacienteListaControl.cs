@@ -170,6 +170,7 @@ namespace WindowsForms
             gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Dni", HeaderText = "DNI / Doc.", Width = 110, DataPropertyName = "Dni" });
             gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Apellido", HeaderText = "Apellido", Width = 150, DataPropertyName = "Apellido" });
             gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nombre", HeaderText = "Nombre", Width = 150, DataPropertyName = "Nombre" });
+            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Username", HeaderText = "Usuario Portal", Width = 140, DataPropertyName = "Username" });
             gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Telefono", HeaderText = "Teléfono", Width = 130, DataPropertyName = "Telefono" });
             gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Mail", HeaderText = "Correo Electrónico", Width = 220, DataPropertyName = "Mail" });
             gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "ObraSocial", HeaderText = "Obra Social / Cobertura", Width = 180, DataPropertyName = "ObraSocialNombre" });

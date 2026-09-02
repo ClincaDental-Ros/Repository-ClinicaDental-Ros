@@ -13,6 +13,8 @@ namespace DTOs
         public int? ObraSocialId { get; set; }
         public string? ObraSocialNombre { get; set; }
         public string? NumeroAfiliado { get; set; }
+        public string? Username { get; set; }
+        public string? PasswordDefault { get; set; }
 
         public string NombreCompleto => $"{Apellido}, {Nombre}";
     }

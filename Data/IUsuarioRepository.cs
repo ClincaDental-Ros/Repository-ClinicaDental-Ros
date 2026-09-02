@@ -7,9 +7,11 @@ namespace Data
     {
         Task<Usuario?> GetByIdAsync(int id);
         Task<Usuario?> GetByUsernameAsync(string username);
+        Task<Usuario?> GetByEntidadIdAsync(int entidadId, string rol);
         Task<IEnumerable<Usuario>> GetAllAsync();
         Task<Usuario> AddAsync(Usuario usuario);
         Task<bool> UpdateAsync(Usuario usuario);
+        Task<bool> DeleteAsync(int id);
     }
 
     public class UsuarioRepository : IUsuarioRepository
@@ -29,6 +31,11 @@ namespace Data
         public async Task<Usuario?> GetByUsernameAsync(string username)
         {
             return await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.Trim().ToLower());
+        }
+
+        public async Task<Usuario?> GetByEntidadIdAsync(int entidadId, string rol)
+        {
+            return await _context.Usuarios.FirstOrDefaultAsync(u => u.EntidadId == entidadId && u.Rol.ToLower() == rol.Trim().ToLower());
         }
 
         public async Task<IEnumerable<Usuario>> GetAllAsync()
@@ -55,6 +62,16 @@ namespace Data
             existing.Activo = usuario.Activo;
             existing.PasswordHash = usuario.PasswordHash;
 
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null) return false;
+
+            _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();
             return true;
         }
