@@ -34,7 +34,7 @@ namespace Application.Services
             if (user == null || !user.Activo)
                 return null;
 
-            // Validación de contraseña (plana o hash)
+           
             if (user.PasswordHash != request.Password)
             {
                 return null;

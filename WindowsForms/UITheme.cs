@@ -6,7 +6,7 @@ namespace WindowsForms
 {
     public static class UITheme
     {
-        // Paleta de colores médica y profesional extraída de Frontend.MVC (Crear.cshtml y Login.cshtml)
+        
         public static readonly Color Primary = Color.FromArgb(0, 70, 148);          // #004694 Azul Médico Institucional
         public static readonly Color PrimaryDark = Color.FromArgb(0, 51, 112);      // #003370
         public static readonly Color PrimaryLight = Color.FromArgb(230, 240, 250); // #e6f0fa Azul Suave
@@ -27,7 +27,7 @@ namespace WindowsForms
         public static readonly Color Warning = Color.FromArgb(180, 83, 9);         // #b45309 Ámbar
         public static readonly Color WarningLight = Color.FromArgb(254, 243, 199); // #fef3c7
 
-        // Tipografía moderna Segoe UI
+       
         public static readonly Font LargeTitleFont = new("Segoe UI", 15F, FontStyle.Bold);
         public static readonly Font HeaderFont = new("Segoe UI", 12.5F, FontStyle.Bold);
         public static readonly Font SubheaderFont = new("Segoe UI", 10F, FontStyle.Bold);

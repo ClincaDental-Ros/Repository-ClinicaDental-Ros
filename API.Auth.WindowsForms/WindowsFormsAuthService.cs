@@ -48,7 +48,7 @@ namespace API.Auth.WindowsForms
             }
             catch
             {
-                // Si falla el parseo de claims, conservamos los datos entregados por la respuesta del login
+                
             }
 
             OnAuthenticationStateChanged?.Invoke(true);

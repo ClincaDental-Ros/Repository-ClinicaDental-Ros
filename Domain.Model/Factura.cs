@@ -13,7 +13,7 @@ namespace Domain.Model
         public decimal Total { get; set; }
         public decimal MontoAPagarPaciente { get; set; }
         public bool EstadoPago { get; set; } = false;
-        public string MetodoPago { get; set; } = "Efectivo"; // Efectivo, Tarjeta, Transferencia
+        public string MetodoPago { get; set; } = "Efectivo"; 
         public DateTime FechaEmision { get; set; } = DateTime.Now;
         public List<ItemFactura> Items { get; set; } = new();
 

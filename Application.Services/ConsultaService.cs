@@ -68,7 +68,7 @@ namespace Application.Services
                 throw new InvalidOperationException("El turno asociado no existe.");
             }
 
-            // Marcar el turno como Atendido
+        
             turno.EstadoTurno = TurnoOdontologico.EstadoTurnoEnum.Atendido;
             await _turnoRepository.UpdateAsync(turno);
 
@@ -86,7 +86,7 @@ namespace Application.Services
 
             await _consultaRepository.AddAsync(consulta);
 
-            // Descontar stock de insumos utilizados y crear factura proforma
+          
             decimal totalInsumos = 0m;
             var facturaItems = new List<ItemFactura>();
 
@@ -108,7 +108,7 @@ namespace Application.Services
                 }
             }
 
-            // Generar factura inicial / proforma para cobro
+         
             var paciente = await _pacienteRepository.GetAsync(turno.PacienteId);
             decimal honorarios = turno.MontoEstimado > 0 ? turno.MontoEstimado : 12000m;
             decimal subtotal = honorarios + totalInsumos;

@@ -88,7 +88,7 @@ namespace WebAPI
                 return deleted ? Results.NoContent() : Results.NotFound();
             });
 
-            // Acciones de Admisión y Estado
+         
             group.MapPost("/{id:int}/confirmar-presencia", async (int id, ITurnoOdontologicoService service) =>
             {
                 var ok = await service.ConfirmarPresenciaAsync(id);

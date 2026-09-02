@@ -14,7 +14,7 @@ namespace API.Clients
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                // Credenciales inválidas: No disparar evento de sesión expirada
+              
                 return null;
             }
 

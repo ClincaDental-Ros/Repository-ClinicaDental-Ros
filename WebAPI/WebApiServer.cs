@@ -18,7 +18,7 @@ namespace WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configuración de DbContext (SQL Server 2022 con ConnectionString de appsettings.json)
+            
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                 ?? "Server=db65098.public.databaseasp.net,1433;Database=db65098;User Id=db65098;Password=t+5Y!9Ts3Cq#;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;";
 
@@ -33,7 +33,7 @@ namespace WebAPI
                 });
             });
 
-            // Configuración de CORS para permitir consumo desde cualquier cliente WinForms / Web
+            
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
@@ -44,7 +44,6 @@ namespace WebAPI
                 });
             });
 
-            // Configuración de Autenticación con JWT Bearer
             var key = Encoding.ASCII.GetBytes(AuthService.SecretKey);
             builder.Services.AddAuthentication(options =>
             {
@@ -69,7 +68,7 @@ namespace WebAPI
 
             builder.Services.AddAuthorization();
 
-            // Configuración de Swagger con soporte para Authorization Bearer
+     
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -105,7 +104,7 @@ namespace WebAPI
                 });
             });
 
-            // Registro de Repositorios (Data Layer)
+           
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<IPacienteRepository, PacienteRepository>();
             builder.Services.AddScoped<IOdontologoRepository, OdontologoRepository>();
@@ -118,7 +117,7 @@ namespace WebAPI
             builder.Services.AddScoped<IObraSocialRepository, ObraSocialRepository>();
             builder.Services.AddScoped<IHistoriaClinicaRepository, HistoriaClinicaRepository>();
 
-            // Registro de Servicios (Application Layer)
+     
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IPacienteService, PacienteService>();
             builder.Services.AddScoped<IOdontologoService, OdontologoService>();
@@ -132,7 +131,6 @@ namespace WebAPI
 
             var app = builder.Build();
 
-            // Inicializar la base de datos y cargar Seed Data en SQL Server Express
             using (var scope = app.Services.CreateScope())
             {
                 try
@@ -173,7 +171,6 @@ namespace WebAPI
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // Mapeo de Endpoints
             app.MapAuthEndpoints();
             app.MapPacienteEndpoints();
             app.MapOdontologoEndpoints();
