@@ -57,7 +57,6 @@ namespace WindowsForms
                 }
             }
         }
-
         private static void EnsureWebApiServerRunning()
         {
             try
