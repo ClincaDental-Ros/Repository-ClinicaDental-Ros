@@ -35,3 +35,7 @@ TestResults/
 # Otros IDEs
 .idea/
 .vscode/
+
+# Configuraciones y secretos de conexion
+appsettings.Development.json
+appsettings.*.local.json

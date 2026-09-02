@@ -17,7 +17,7 @@ namespace WindowsForms
 
         private TextBox txtUsername = null!;
         private TextBox txtPassword = null!;
-        private Button btnTogglePassword = null!;
+        private Button btnPassword = null!;
         private Button btnLogin = null!;
         private Label lblError = null!;
 
@@ -54,7 +54,7 @@ namespace WindowsForms
 
             int y = 20;
 
-            // Logo y Encabezado
+            
             var lblLogo = new Label
             {
                 Text = "🦷",
@@ -90,7 +90,7 @@ namespace WindowsForms
             pnlCard.Controls.Add(lblSub);
             y += 35;
 
-            // Campo: Usuario
+            
             var lblUser = new Label
             {
                 Text = "Usuario / Número de Documento:",
@@ -112,7 +112,7 @@ namespace WindowsForms
             pnlCard.Controls.Add(txtUsername);
             y += 35;
 
-            // Campo: Contraseña con Botón de Ojito Toggle
+            // Contraseña
             var lblPass = new Label
             {
                 Text = "Contraseña:",
@@ -133,7 +133,7 @@ namespace WindowsForms
                 Text = ""
             };
 
-            btnTogglePassword = new Button
+            btnPassword = new Button
             {
                 Text = "👁",
                 Location = new Point(350, y - 1),
@@ -144,15 +144,15 @@ namespace WindowsForms
                 BackColor = Color.FromArgb(241, 245, 249),
                 ForeColor = UITheme.Primary
             };
-            btnTogglePassword.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
-            btnTogglePassword.Click += (s, e) =>
+            btnPassword.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
+            btnPassword.Click += (s, e) =>
             {
                 txtPassword.UseSystemPasswordChar = !txtPassword.UseSystemPasswordChar;
-                btnTogglePassword.Text = txtPassword.UseSystemPasswordChar ? "👁" : "🙈";
+                btnPassword.Text = txtPassword.UseSystemPasswordChar ? "👁" : "🙈";
             };
 
             pnlCard.Controls.Add(txtPassword);
-            pnlCard.Controls.Add(btnTogglePassword);
+            pnlCard.Controls.Add(btnPassword);
             y += 40;
 
             lblError = new Label

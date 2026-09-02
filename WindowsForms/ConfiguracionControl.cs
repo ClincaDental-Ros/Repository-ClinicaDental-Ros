@@ -110,9 +110,9 @@ namespace WindowsForms
 
             int y = 15;
 
-            // ==========================================
-            // SECCIÓN 1: FOTO DE PERFIL / AVATAR
-            // ==========================================
+            
+            // FOTO DE PERFIL / AVATAR
+            
             var pnlFotoCard = new Panel { Location = new Point(25, y), Size = new Size(740, 115), BackColor = Color.White, Padding = new Padding(20) };
             pnlFotoCard.Paint += (s, e) =>
             {
@@ -166,9 +166,9 @@ namespace WindowsForms
             pnlBody.Controls.Add(pnlFotoCard);
             y += 130;
 
-            // ==========================================
-            // SECCIÓN 2: DATOS PERSONALES
-            // ==========================================
+            
+            // DATOS PERSONALES
+            
             var pnlDatosCard = new Panel { Location = new Point(25, y), Size = new Size(740, 210), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
             pnlDatosCard.Paint += (s, e) =>
             {
@@ -200,9 +200,9 @@ namespace WindowsForms
             pnlBody.Controls.Add(pnlDatosCard);
             y += 225;
 
-            // ==========================================
-            // SECCIÓN 3: OBRA SOCIAL Y COBERTURA
-            // ==========================================
+            
+            // OBRA SOCIAL Y COBERTURA
+            
             var pnlOSCard = new Panel { Location = new Point(25, y), Size = new Size(740, 125), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
             pnlOSCard.Paint += (s, e) =>
             {
@@ -239,9 +239,9 @@ namespace WindowsForms
             pnlBody.Controls.Add(pnlOSCard);
             y += 140;
 
-                        // ==========================================
-            // SECCIÓN 4: SEGURIDAD Y NOTIFICACIONES
-            // ==========================================
+                        
+            // SEGURIDAD Y NOTIFICACIONES
+            
             var pnlSegCard = new Panel { Location = new Point(25, y), Size = new Size(740, 215), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
             pnlSegCard.Paint += (s, e) =>
             {
@@ -341,9 +341,9 @@ namespace WindowsForms
             pnlBody.Controls.Add(pnlSegCard);
             y += 230;
 
-            // ==========================================
+            
             // BOTÓN GUARDAR Y FEEDBACK
-            // ==========================================
+            
             btnGuardar = new Button { Text = "💾 Guardar Todos los Cambios", Location = new Point(25, y), Size = new Size(260, 44) };
             UITheme.StylePrimaryButton(btnGuardar);
             btnGuardar.Click += BtnGuardar_Click;

@@ -1,4 +1,5 @@
 using Domain.Model;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data
@@ -30,6 +31,78 @@ namespace Data
 
         public async Task<IEnumerable<Paciente>> GetByCriteriaAsync(PacienteCriteria criteria)
         {
+            try
+            {
+                var connectionString = _context.Database.GetConnectionString();
+                if (!string.IsNullOrEmpty(connectionString))
+                {
+                    var sql = @"
+                        SELECT p.Id, p.Nombre, p.Apellido, p.Dni, p.Telefono, p.Mail, p.Domicilio, 
+                               p.EstadoHabilitado, p.ObraSocialId, p.NumeroAfiliado,
+                               o.Nombre AS ObraSocialNombre, o.[Plan] AS ObraSocialPlan, o.PorcentajeCobertura
+                        FROM Pacientes p
+                        LEFT JOIN ObrasSociales o ON p.ObraSocialId = o.Id
+                        WHERE 1 = 1";
+
+                    if (!string.IsNullOrWhiteSpace(criteria.Texto))
+                    {
+                        sql += @" AND (p.Nombre LIKE @SearchTerm 
+                                     OR p.Apellido LIKE @SearchTerm 
+                                     OR p.Mail LIKE @SearchTerm 
+                                     OR CAST(p.Dni AS VARCHAR(20)) LIKE @SearchTerm)";
+                    }
+
+                    if (criteria.SoloHabilitados.HasValue && criteria.SoloHabilitados.Value)
+                    {
+                        sql += " AND p.EstadoHabilitado = 1";
+                    }
+
+                    sql += " ORDER BY p.Apellido, p.Nombre";
+
+                    var pacientesAdo = new List<Paciente>();
+                    using var connection = new SqlConnection(connectionString);
+                    using var command = new SqlCommand(sql, connection);
+
+                    if (!string.IsNullOrWhiteSpace(criteria.Texto))
+                    {
+                        command.Parameters.AddWithValue("@SearchTerm", $"%{criteria.Texto.Trim()}%");
+                    }
+
+                    await connection.OpenAsync();
+                    using var reader = await command.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        var id = reader.GetInt32(0);
+                        var nombre = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                        var apellido = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                        var dni = reader.GetInt32(3);
+                        var telefono = reader.IsDBNull(4) ? "" : reader.GetString(4);
+                        var mail = reader.IsDBNull(5) ? "" : reader.GetString(5);
+                        var domicilio = reader.IsDBNull(6) ? "" : reader.GetString(6);
+                        var habilitado = reader.GetBoolean(7);
+                        int? obraSocialId = reader.IsDBNull(8) ? null : reader.GetInt32(8);
+                        var numAfiliado = reader.IsDBNull(9) ? null : reader.GetString(9);
+
+                        var pac = new Paciente(id, nombre, apellido, dni, telefono, mail, domicilio, habilitado, obraSocialId, numAfiliado);
+
+                        if (obraSocialId.HasValue && !reader.IsDBNull(10))
+                        {
+                            var osNombre = reader.GetString(10);
+                            var osPlan = reader.IsDBNull(11) ? "" : reader.GetString(11);
+                            var osCob = reader.IsDBNull(12) ? 0.50m : reader.GetDecimal(12);
+                            pac.ObraSocial = new ObraSocial(obraSocialId.Value, osNombre, osPlan, osCob);
+                        }
+
+                        pacientesAdo.Add(pac);
+                    }
+
+                    return pacientesAdo;
+                }
+            }
+            catch
+            {
+            }
+
             var query = _context.Pacientes
                 .Include(p => p.ObraSocial)
                 .AsQueryable();
