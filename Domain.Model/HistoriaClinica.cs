@@ -22,6 +22,33 @@ namespace Domain.Model
             AntecedentesMedicos = antecedentesMedicos;
             Alergias = alergias;
             ObservacionesGenerales = observacionesGenerales;
+            Validate();
+        }
+
+        public void Validate()
+        {
+            if (Id < 0)
+                throw new ArgumentException("El ID de la historia clínica no puede ser negativo.", nameof(Id));
+
+            if (NumeroHistoriaClinica <= 0)
+                throw new ArgumentException("El número de historia clínica debe ser mayor a cero.", nameof(NumeroHistoriaClinica));
+
+            if (PacienteId <= 0)
+                throw new ArgumentException("El ID del paciente es obligatorio.", nameof(PacienteId));
+        }
+
+        public void SetId(int id)
+        {
+            if (id < 0)
+                throw new ArgumentException("El ID de la historia clínica no puede ser negativo.", nameof(id));
+            Id = id;
+        }
+
+        public void SetNumeroHistoriaClinica(int num)
+        {
+            if (num <= 0)
+                throw new ArgumentException("El número de historia clínica debe ser mayor a cero.", nameof(num));
+            NumeroHistoriaClinica = num;
         }
     }
 }

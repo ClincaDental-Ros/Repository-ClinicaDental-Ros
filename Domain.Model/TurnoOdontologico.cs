@@ -50,12 +50,57 @@ namespace Domain.Model
             OdontologoId = odontologoId;
             EspecialidadId = especialidadId;
             MontoEstimado = montoEstimado;
+            Validate();
+        }
+
+        public void Validate()
+        {
+            if (Id < 0)
+                throw new ArgumentException("El ID del turno no puede ser negativo.", nameof(Id));
+
+            if (PacienteId < 0)
+                throw new ArgumentException("El ID del paciente no puede ser negativo.", nameof(PacienteId));
+
+            if (OdontologoId < 0)
+                throw new ArgumentException("El ID del odontólogo no puede ser negativo.", nameof(OdontologoId));
+
+            if (EspecialidadId < 0)
+                throw new ArgumentException("El ID de la especialidad no puede ser negativo.", nameof(EspecialidadId));
+
+            if (MontoEstimado < 0)
+                throw new ArgumentException("El monto estimado no puede ser negativo.", nameof(MontoEstimado));
+
+            if (EstadoTurno == EstadoTurnoEnum.Cancelado && string.IsNullOrWhiteSpace(MotivoCancelacion))
+                throw new ArgumentException("Debe ingresar un motivo al cancelar un turno.", nameof(MotivoCancelacion));
         }
 
         public void SetFechaT(DateTime fecha) => Fecha = fecha;
+
         public void SetHoraT(TimeOnly horarioTurno) => HorarioTurno = horarioTurno;
-        public void SetId(int id) => Id = id;
-        public void SetEstado(EstadoTurnoEnum estadoTurno) => EstadoTurno = estadoTurno;
-        public void SetMotivo(string? motivoCancelacion) => MotivoCancelacion = motivoCancelacion;
+
+        public void SetId(int id)
+        {
+            if (id < 0)
+                throw new ArgumentException("El ID no puede ser negativo.", nameof(id));
+            Id = id;
+        }
+
+        public void SetEstado(EstadoTurnoEnum estadoTurno)
+        {
+            EstadoTurno = estadoTurno;
+            if (EstadoTurno == EstadoTurnoEnum.Cancelado && string.IsNullOrWhiteSpace(MotivoCancelacion))
+            {
+                throw new ArgumentException("Debe ingresar un motivo al cancelar un turno.", nameof(MotivoCancelacion));
+            }
+        }
+
+        public void SetMotivo(string? motivoCancelacion)
+        {
+            MotivoCancelacion = motivoCancelacion;
+            if (EstadoTurno == EstadoTurnoEnum.Cancelado && string.IsNullOrWhiteSpace(MotivoCancelacion))
+            {
+                throw new ArgumentException("Debe ingresar un motivo al cancelar un turno.", nameof(MotivoCancelacion));
+            }
+        }
     }
 }

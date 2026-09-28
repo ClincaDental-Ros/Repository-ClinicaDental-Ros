@@ -32,6 +32,48 @@ namespace Domain.Model
             EstadoPago = estadoPago;
             MetodoPago = metodoPago;
             FechaEmision = DateTime.Now;
+            Validate();
+        }
+
+        public void Validate()
+        {
+            if (Id < 0)
+                throw new ArgumentException("El ID de la factura no puede ser negativo.", nameof(Id));
+
+            if (PacienteId <= 0)
+                throw new ArgumentException("El ID del paciente es obligatorio.", nameof(PacienteId));
+
+            if (TurnoId.HasValue && TurnoId.Value <= 0)
+                throw new ArgumentException("El ID del turno debe ser mayor a cero.", nameof(TurnoId));
+
+            if (Subtotal < 0)
+                throw new ArgumentException("El subtotal no puede ser negativo.", nameof(Subtotal));
+
+            if (DescuentoObraSocial < 0)
+                throw new ArgumentException("El descuento de la obra social no puede ser negativo.", nameof(DescuentoObraSocial));
+
+            if (Total < 0)
+                throw new ArgumentException("El total no puede ser negativo.", nameof(Total));
+
+            if (MontoAPagarPaciente < 0)
+                throw new ArgumentException("El monto a pagar por el paciente no puede ser negativo.", nameof(MontoAPagarPaciente));
+
+            if (string.IsNullOrWhiteSpace(MetodoPago))
+                throw new ArgumentException("El método de pago es obligatorio.", nameof(MetodoPago));
+        }
+
+        public void SetId(int id)
+        {
+            if (id < 0)
+                throw new ArgumentException("El ID de la factura no puede ser negativo.", nameof(id));
+            Id = id;
+        }
+
+        public void SetMetodoPago(string metodoPago)
+        {
+            if (string.IsNullOrWhiteSpace(metodoPago))
+                throw new ArgumentException("El método de pago es obligatorio.", nameof(metodoPago));
+            MetodoPago = metodoPago;
         }
     }
 }

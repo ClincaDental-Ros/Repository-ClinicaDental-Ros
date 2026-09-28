@@ -17,9 +17,27 @@ namespace Domain.Model
             EstadoHabilitado = estadoHabilitado;
             ObraSocialId = obraSocialId;
             NumeroAfiliado = numeroAfiliado;
+            Validate();
         }
 
-        public void SetId(int id) => Id = id;
+        public override void Validate()
+        {
+            base.Validate();
+
+            if (Id < 0)
+                throw new ArgumentException("El ID del paciente no puede ser negativo.", nameof(Id));
+
+            if (ObraSocialId.HasValue && ObraSocialId.Value <= 0)
+                throw new ArgumentException("El ID de la obra social debe ser mayor a cero.", nameof(ObraSocialId));
+        }
+
+        public void SetId(int id)
+        {
+            if (id < 0)
+                throw new ArgumentException("El ID del paciente no puede ser negativo.", nameof(id));
+            Id = id;
+        }
+
         public void SetEstadoHabilitado(bool habilitado) => EstadoHabilitado = habilitado;
     }
 }

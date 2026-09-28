@@ -24,6 +24,43 @@ namespace Domain.Model
             InsumoId = insumoId;
             CantidadInsumo = cantidadInsumo;
             PrecioUnitario = precioUnitario;
+            Validate();
+        }
+
+        public void Validate()
+        {
+            if (Id < 0)
+                throw new ArgumentException("El ID del ítem de factura no puede ser negativo.", nameof(Id));
+
+            if (InsumoId <= 0)
+                throw new ArgumentException("El ID del insumo es obligatorio.", nameof(InsumoId));
+
+            if (CantidadInsumo <= 0)
+                throw new ArgumentException("La cantidad de insumo debe ser mayor a cero.", nameof(CantidadInsumo));
+
+            if (PrecioUnitario < 0)
+                throw new ArgumentException("El precio unitario no puede ser negativo.", nameof(PrecioUnitario));
+        }
+
+        public void SetId(int id)
+        {
+            if (id < 0)
+                throw new ArgumentException("El ID no puede ser negativo.", nameof(id));
+            Id = id;
+        }
+
+        public void SetCantidad(int cantidad)
+        {
+            if (cantidad <= 0)
+                throw new ArgumentException("La cantidad de insumo debe ser mayor a cero.", nameof(cantidad));
+            CantidadInsumo = cantidad;
+        }
+
+        public void SetPrecioUnitario(decimal precio)
+        {
+            if (precio < 0)
+                throw new ArgumentException("El precio unitario no puede ser negativo.", nameof(precio));
+            PrecioUnitario = precio;
         }
     }
 }
