@@ -23,10 +23,6 @@ namespace WindowsForms
           
             BaseApiClient.BaseUrl = "http://localhost:5263";
 
-          
-            EnsureWebApiServerRunning();
-
-           
             BaseApiClient.OnUnauthorized += () =>
             {
                 authService.ClearSession();
@@ -40,7 +36,6 @@ namespace WindowsForms
 
                 if (loginResult != DialogResult.OK)
                 {
-                    
                     break;
                 }
 
@@ -49,48 +44,8 @@ namespace WindowsForms
 
                 if (homeResult != DialogResult.Retry)
                 {
-                   
                     break;
                 }
-            }
-        }
-        private static void EnsureWebApiServerRunning()
-        {
-            try
-            {
-                using var client = new HttpClient { Timeout = TimeSpan.FromMilliseconds(600) };
-                var res = client.GetAsync("http://localhost:5263/swagger/v1/swagger.json").GetAwaiter().GetResult();
-                if (res.IsSuccessStatusCode)
-                {
-                    return; 
-                }
-            }
-            catch
-            {
-               
-            }
-
-            try
-            {
-              
-                _ = Task.Run(() => WebAPI.WebApiServer.StartAsync(new string[] { "--urls", "http://localhost:5263" }));
-
-              
-                for (int i = 0; i < 15; i++)
-                {
-                    Thread.Sleep(300);
-                    try
-                    {
-                        using var c = new HttpClient { Timeout = TimeSpan.FromMilliseconds(400) };
-                        var r = c.GetAsync("http://localhost:5263/swagger/v1/swagger.json").GetAwaiter().GetResult();
-                        if (r.IsSuccessStatusCode) break;
-                    }
-                    catch { }
-                }
-            }
-            catch
-            {
-                
             }
         }
     }
