@@ -267,7 +267,7 @@ namespace WindowsForms
             gridFacturas.AutoGenerateColumns = false;
 
             gridFacturas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", HeaderText = "Factura N°", Width = 90, DataPropertyName = "Id" });
-            gridFacturas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Fecha", HeaderText = "Fecha Emisión", Width = 130 });
+            gridFacturas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Fecha", HeaderText = "Fecha Emisión", Width = 130, DataPropertyName = "FechaEmision" });
             gridFacturas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Paciente", HeaderText = "Paciente", Width = 200, DataPropertyName = "PacienteNombre" });
             gridFacturas.Columns.Add(new DataGridViewTextBoxColumn { Name = "ObraSocial", HeaderText = "Obra Social", Width = 160, DataPropertyName = "ObraSocialNombre" });
             gridFacturas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Prestación", Width = 130, DataPropertyName = "Total" });
