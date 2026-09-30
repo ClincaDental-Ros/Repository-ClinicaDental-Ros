@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -44,7 +45,14 @@ namespace WebAPI
                 });
             });
 
-            var key = Encoding.ASCII.GetBytes(AuthService.SecretKey);
+            // ─── JWT Authentication ───────────────────────────────────────
+            var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+            var secretKey = jwtSettings["SecretKey"]
+                ?? "TurnoMolarSuperSecretSecurityKeyForJWTAuthentication2026";
+            var issuer = jwtSettings["Issuer"] ?? "TurnoMolarAPI";
+            var audience = jwtSettings["Audience"] ?? "TurnoMolarClients";
+
+            var key = Encoding.ASCII.GetBytes(secretKey);
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,16 +67,33 @@ namespace WebAPI
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = AuthService.Issuer,
+                    ValidIssuer = issuer,
                     ValidateAudience = true,
-                    ValidAudience = AuthService.Audience,
+                    ValidAudience = audience,
                     ClockSkew = TimeSpan.Zero
                 };
             });
 
-            builder.Services.AddAuthorization();
+            // ─── Authorization Policies por Rol ──────────────────────────
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy =>
+                    policy.RequireRole("Admin"));
 
-     
+                options.AddPolicy("AdminOrRecepcionista", policy =>
+                    policy.RequireRole("Admin", "Recepcionista"));
+
+                options.AddPolicy("AdminOrOdontologo", policy =>
+                    policy.RequireRole("Admin", "Odontologo"));
+
+                options.AddPolicy("StaffOnly", policy =>
+                    policy.RequireRole("Admin", "Recepcionista", "Odontologo"));
+
+                options.AddPolicy("Authenticated", policy =>
+                    policy.RequireAuthenticatedUser());
+            });
+
+         
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -118,7 +143,7 @@ namespace WebAPI
             builder.Services.AddScoped<IHistoriaClinicaRepository, HistoriaClinicaRepository>();
 
      
-            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<Application.Services.IAuthService, AuthService>();
             builder.Services.AddScoped<IPacienteService, PacienteService>();
             builder.Services.AddScoped<IOdontologoService, OdontologoService>();
             builder.Services.AddScoped<IEspecialidadService, EspecialidadService>();

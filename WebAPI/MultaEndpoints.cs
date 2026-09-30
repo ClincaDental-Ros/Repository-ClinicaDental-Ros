@@ -7,7 +7,9 @@ namespace WebAPI
     {
         public static void MapMultaEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/multas").WithTags("Multas y Sanciones");
+            var group = app.MapGroup("/api/multas")
+                .WithTags("Multas y Sanciones")
+                .RequireAuthorization();
 
             group.MapGet("/", async (int? pacienteId, bool? soloImpagas, IMultaService service) =>
             {
@@ -36,13 +38,13 @@ namespace WebAPI
             {
                 var created = await service.CrearMultaAsync(dto);
                 return Results.Created($"/api/multas/{created.Id}", created);
-            });
+            }).RequireAuthorization("StaffOnly");
 
             group.MapPost("/{id:int}/pagar", async (int id, IMultaService service) =>
             {
                 var ok = await service.PagarMultaAsync(id);
                 return ok ? Results.Ok(new { message = "Multa saldada y paciente rehabilitado si no registra más deudas." }) : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
         }
     }
 }

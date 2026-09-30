@@ -7,7 +7,9 @@ namespace WebAPI
     {
         public static void MapOdontologoEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/odontologos").WithTags("Odontólogos");
+            var group = app.MapGroup("/api/odontologos")
+                .WithTags("Odontólogos")
+                .RequireAuthorization();
 
             group.MapGet("/", async (int? especialidadId, IOdontologoService service) =>
             {
@@ -37,7 +39,7 @@ namespace WebAPI
                 {
                     return Results.BadRequest(new { message = ex.Message });
                 }
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapPut("/{id:int}", async (int id, OdontologoDTO dto, IOdontologoService service) =>
             {
@@ -51,13 +53,13 @@ namespace WebAPI
                 {
                     return Results.BadRequest(new { message = ex.Message });
                 }
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id:int}", async (int id, IOdontologoService service) =>
             {
                 var deleted = await service.DeleteAsync(id);
                 return deleted ? Results.NoContent() : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOnly");
         }
     }
 }

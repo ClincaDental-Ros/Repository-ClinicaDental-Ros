@@ -7,7 +7,9 @@ namespace WebAPI
     {
         public static void MapEspecialidadEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/especialidades").WithTags("Especialidades");
+            var group = app.MapGroup("/api/especialidades")
+                .WithTags("Especialidades")
+                .RequireAuthorization();
 
             group.MapGet("/", async (IEspecialidadService service) =>
             {
@@ -25,20 +27,20 @@ namespace WebAPI
             {
                 var created = await service.AddAsync(dto);
                 return Results.Created($"/api/especialidades/{created.Id}", created);
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapPut("/{id:int}", async (int id, EspecialidadDTO dto, IEspecialidadService service) =>
             {
                 dto.Id = id;
                 var updated = await service.UpdateAsync(dto);
                 return updated ? Results.Ok(dto) : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id:int}", async (int id, IEspecialidadService service) =>
             {
                 var deleted = await service.DeleteAsync(id);
                 return deleted ? Results.NoContent() : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOnly");
         }
     }
 }

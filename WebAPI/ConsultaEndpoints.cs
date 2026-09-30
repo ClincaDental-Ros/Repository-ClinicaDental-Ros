@@ -7,7 +7,9 @@ namespace WebAPI
     {
         public static void MapConsultaEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/consultas").WithTags("Consultas Clínicas");
+            var group = app.MapGroup("/api/consultas")
+                .WithTags("Consultas Clínicas")
+                .RequireAuthorization();
 
             group.MapGet("/", async (int? pacienteId, IConsultaService service) =>
             {
@@ -43,7 +45,7 @@ namespace WebAPI
                 {
                     return Results.BadRequest(new { message = ex.Message });
                 }
-            });
+            }).RequireAuthorization("AdminOrOdontologo");
 
             group.MapPost("/{id:int}/valorar", async (int id, ValoracionRequest request, IConsultaService service) =>
             {

@@ -6,7 +6,9 @@ namespace WebAPI
     {
         public static void MapReportesEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/reportes").WithTags("Reportes y Estadísticas");
+            var group = app.MapGroup("/api/reportes")
+                .WithTags("Reportes y Estadísticas")
+                .RequireAuthorization("StaffOnly");
 
             group.MapGet("/turnos-dia", async (DateTime? fecha, IReportesService service) =>
             {
@@ -29,7 +31,7 @@ namespace WebAPI
                 var fHasta = fechaHasta ?? DateTime.Today;
                 var rep = await service.GetReporteFacturacionAsync(fDesde, fHasta);
                 return Results.Ok(rep);
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
 
             group.MapGet("/historia-clinica/{pacienteId:int}", async (int pacienteId, IReportesService service) =>
             {

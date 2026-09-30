@@ -7,7 +7,9 @@ namespace WebAPI
     {
         public static void MapFacturaEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/facturas").WithTags("Facturación y Caja");
+            var group = app.MapGroup("/api/facturas")
+                .WithTags("Facturación y Caja")
+                .RequireAuthorization();
 
             group.MapGet("/", async (int? pacienteId, IFacturaService service) =>
             {
@@ -36,13 +38,13 @@ namespace WebAPI
             {
                 var created = await service.CrearFacturaAsync(dto);
                 return Results.Created($"/api/facturas/{created.Id}", created);
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
 
             group.MapPost("/{id:int}/pagar", async (int id, RegistrarPagoRequest request, IFacturaService service) =>
             {
                 var ok = await service.RegistrarPagoAsync(id, request.MetodoPago);
                 return ok ? Results.Ok(new { message = "Pago registrado y comprobante emitido." }) : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
         }
     }
 

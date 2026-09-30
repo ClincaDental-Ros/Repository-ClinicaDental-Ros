@@ -7,7 +7,9 @@ namespace WebAPI
     {
         public static void MapTurnoOdontologicoEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/turnos").WithTags("Turnos");
+            var group = app.MapGroup("/api/turnos")
+                .WithTags("Turnos")
+                .RequireAuthorization();
 
             group.MapGet("/", async (
                 DateTime? fecha,
@@ -80,26 +82,26 @@ namespace WebAPI
                 {
                     return Results.BadRequest(new { message = ex.Message });
                 }
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
 
             group.MapDelete("/{id:int}", async (int id, ITurnoOdontologicoService service) =>
             {
                 var deleted = await service.DeleteAsync(id);
                 return deleted ? Results.NoContent() : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOnly");
 
          
             group.MapPost("/{id:int}/confirmar-presencia", async (int id, ITurnoOdontologicoService service) =>
             {
                 var ok = await service.ConfirmarPresenciaAsync(id);
                 return ok ? Results.Ok(new { message = "Presencia confirmada con éxito." }) : Results.NotFound();
-            });
+            }).RequireAuthorization("StaffOnly");
 
             group.MapPost("/{id:int}/registrar-ausencia", async (int id, RegistrarAusenciaRequest request, ITurnoOdontologicoService service) =>
             {
                 var ok = await service.RegistrarAusenciaAsync(id, request.Motivo, request.MontoMulta);
                 return ok ? Results.Ok(new { message = "Ausencia registrada y multa generada con inhabilitación del paciente." }) : Results.NotFound();
-            });
+            }).RequireAuthorization("StaffOnly");
 
             group.MapPost("/{id:int}/cancelar", async (int id, CancelarTurnoRequest request, ITurnoOdontologicoService service) =>
             {
@@ -111,7 +113,7 @@ namespace WebAPI
             {
                 var ok = await service.AtenderTurnoAsync(id);
                 return ok ? Results.Ok(new { message = "Turno marcado como atendido." }) : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOrOdontologo");
         }
     }
 

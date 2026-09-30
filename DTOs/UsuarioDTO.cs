@@ -34,4 +34,9 @@ namespace DTOs
         public string PasswordActual { get; set; } = string.Empty;
         public string PasswordNueva { get; set; } = string.Empty;
     }
+
+    public class RefreshTokenRequestDTO
+    {
+        public string Token { get; set; } = string.Empty;
+    }
 }

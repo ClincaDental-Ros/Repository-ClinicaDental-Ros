@@ -7,7 +7,9 @@ namespace WebAPI
     {
         public static void MapPacienteEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/pacientes").WithTags("Pacientes");
+            var group = app.MapGroup("/api/pacientes")
+                .WithTags("Pacientes")
+                .RequireAuthorization();
 
             group.MapGet("/", async (string? texto, bool? soloHabilitados, IPacienteService service) =>
             {
@@ -38,7 +40,7 @@ namespace WebAPI
                 {
                     return Results.BadRequest(new { message = ex.Message });
                 }
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
 
             group.MapPut("/{id:int}", async (int id, PacienteDTO dto, IPacienteService service) =>
             {
@@ -52,19 +54,19 @@ namespace WebAPI
                 {
                     return Results.BadRequest(new { message = ex.Message });
                 }
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
 
             group.MapDelete("/{id:int}", async (int id, IPacienteService service) =>
             {
                 var deleted = await service.DeleteAsync(id);
                 return deleted ? Results.NoContent() : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOnly");
 
             group.MapPatch("/{id:int}/habilitar", async (int id, bool habilitar, IPacienteService service) =>
             {
                 var ok = await service.ToggleHabilitacionAsync(id, habilitar);
                 return ok ? Results.Ok() : Results.NotFound();
-            });
+            }).RequireAuthorization("AdminOrRecepcionista");
         }
     }
 }
