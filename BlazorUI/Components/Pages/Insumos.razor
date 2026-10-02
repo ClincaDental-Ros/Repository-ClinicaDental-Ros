@@ -1,5 +1,5 @@
-﻿Ins@page "/insumos"
-@attribute [Authorize(Roles = "Admin, Odontologo")]
+﻿@page "/insumos"
+@attribute [Authorize(Roles = BlazorUI.Auth.Permisos.Insumos)]
 @inject InsumoApiClient ApiClient
 
 <PageTitle>Insumos y Stock - DentalClinic</PageTitle>

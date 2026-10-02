@@ -1,0 +1,476 @@
+﻿@page "/portal-paciente"
+@attribute [Authorize(Roles = BlazorUI.Auth.Permisos.PortalPaciente)]
+@inject BlazorUI.Auth.BlazorAuthService AuthService
+@inject TurnoApiClient TurnoClient
+@inject ReportesApiClient ReportesClient
+@inject MultaApiClient MultaClient
+@inject PacienteApiClient PacienteClient
+
+<PageTitle>Portal del Paciente - DentalClinic</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <!-- ENCABEZADO -->
+    <div class="bg-white p-3 border-bottom shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Portal del Paciente - Clínica Odontológica Rosario</h4>
+        <p class="text-muted small mb-0">Autogestión de citas, descarga de comprobantes, historial clínico y estado de cuenta</p>
+    </div>
+
+    <!-- PESTAÑAS -->
+    <ul class="nav nav-tabs px-3 pt-2 bg-white">
+        <li class="nav-item"><button class="nav-link @(activeTab == 0 ? "active fw-bold" : "")" @onclick="() => activeTab = 0">🏠 Inicio / Próximo Turno</button></li>
+        <li class="nav-item"><button class="nav-link @(activeTab == 1 ? "active fw-bold" : "")" @onclick="() => activeTab = 1">📅 Mis Turnos</button></li>
+        <li class="nav-item"><button class="nav-link @(activeTab == 2 ? "active fw-bold" : "")" @onclick="() => activeTab = 2">📋 Mi Historial Clínico</button></li>
+        <li class="nav-item"><button class="nav-link @(activeTab == 3 ? "active fw-bold" : "")" @onclick="() => activeTab = 3">💳 Métodos de Pago y Saldo</button></li>
+        <li class="nav-item"><button class="nav-link @(activeTab == 4 ? "active fw-bold" : "")" @onclick="() => activeTab = 4">🛡️ Mi Obra Social</button></li>
+    </ul>
+
+    <div class="p-3">
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger py-2 small">@errorMessage</div>
+        }
+
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="small text-muted mt-2">Cargando tu portal...</div>
+            </div>
+        }
+        else if (activeTab == 0)
+        {
+            <!-- TAB INICIO -->
+            <h3 class="fw-bold mb-3" style="color: var(--color-primary);">
+                ¡Hola, @(AuthService.GetNombreCompleto() ?? "Paciente")! Bienvenido a tu portal de salud dental.
+            </h3>
+
+            <div class="rounded p-4 mb-3 text-white d-flex justify-content-between align-items-center flex-wrap gap-3"
+                 style="background-color: var(--color-primary); max-width: 760px;">
+                <div>
+                    <div class="small fw-bold" style="color: #c8e1ff;">PRÓXIMO TURNO ODONTOLÓGICO</div>
+                    @if (proximoTurno != null)
+                    {
+                        <div class="fs-4 fw-bold my-1">Profesional: @proximoTurno.OdontologoNombre</div>
+                        <div class="fw-semibold">Fecha y Hora: @proximoTurno.Fecha.ToString("dd/MM/yyyy") a las @proximoTurno.HorarioTurno hs</div>
+                        <div class="small" style="color: #c8e1ff;">Ubicación: Consultorio 3 • Piso 1, Sede Rosario</div>
+                        <div class="small fw-bold mt-1" style="color: #34d399;">ESTADO: @proximoTurno.EstadoTurno.ToUpper()</div>
+                    }
+                    else
+                    {
+                        <div class="fs-5 fw-bold my-1">No tenés turnos próximos agendados.</div>
+                        <div class="small" style="color: #c8e1ff;">Presioná el botón de abajo para solicitar una cita.</div>
+                    }
+                </div>
+                @if (proximoTurno != null)
+                {
+                    <button class="btn btn-theme-success" @onclick="VerTicket">🧾 Ver Ticket Digital</button>
+                }
+            </div>
+
+            <button class="btn btn-theme-primary mb-4" @onclick="() => showReservaModal = true">
+                📅 + Solicitar y Agendar Nuevo Turno
+            </button>
+
+            <h6 class="fw-bold">Nuestras Especialidades de Atención:</h6>
+            <div class="d-flex flex-wrap gap-3">
+                @foreach (var (icono, nombre) in especialidades)
+                {
+                    <div class="bg-white border rounded p-3" style="width: 165px;">
+                        <div class="fs-4">@icono</div>
+                        <div class="fw-bold mt-1" style="color: var(--color-primary);">@nombre</div>
+                    </div>
+                }
+            </div>
+        }
+        else if (activeTab == 1)
+        {
+            <!-- TAB MIS TURNOS -->
+            <div class="bg-white p-3 border rounded mb-3 d-flex gap-2">
+                <button class="btn btn-theme-success" @onclick="() => showReservaModal = true">📅 Agendar Turno</button>
+                <button class="btn btn-theme-danger" @onclick="SolicitarCancelarTurno" disabled="@(seleccionado == null)">❌ Cancelar Turno</button>
+                <button class="btn btn-theme-secondary" @onclick="CargarDatos">🔄 Actualizar</button>
+            </div>
+
+            <div class="table-responsive bg-white rounded shadow-sm border">
+                <table class="table table-hover align-middle mb-0 table-theme">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Horario</th>
+                            <th>Profesional Odontólogo</th>
+                            <th>Especialidad</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (misTurnos.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center py-4 text-muted">Todavía no tenés turnos registrados.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var t in misTurnos)
+                            {
+                                <tr class="@(seleccionado?.Id == t.Id ? "selected-row" : "")"
+                                    @onclick="() => seleccionado = t"
+                                    style="cursor: pointer;">
+                                    <td>@t.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td><span class="badge bg-light text-dark border">@t.HorarioTurno</span></td>
+                                    <td>@t.OdontologoNombre</td>
+                                    <td>@t.EspecialidadNombre</td>
+                                    <td>@t.EstadoTurno</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else if (activeTab == 2)
+        {
+            // TAB HISTORIAL CLÍNICO
+            if (historiaSinPermiso)
+            {
+                <div class="alert alert-warning">Tu historia clínica no está disponible en este momento. Consultá en Recepción.</div>
+            }
+            else if (historia == null)
+            {
+                <div class="alert alert-info">Todavía no tenés historia clínica registrada.</div>
+            }
+            else
+            {
+                <div class="bg-white p-3 border rounded mb-3">
+                    <div class="fw-bold">📋 Historia Clínica N° @historia.NumeroHistoriaClinica.ToString("D5") - @historia.PacienteNombre</div>
+                    <div class="small text-muted mt-1">
+                        • Antecedentes: @(string.IsNullOrWhiteSpace(historia.AntecedentesMedicos) ? "Sin datos" : historia.AntecedentesMedicos)
+                        | Alergias: @(string.IsNullOrWhiteSpace(historia.Alergias) ? "Ninguna registrada" : historia.Alergias)
+                    </div>
+                </div>
+
+                <div class="table-responsive bg-white rounded shadow-sm border">
+                    <table class="table table-hover align-middle mb-0 table-theme">
+                        <thead>
+                            <tr>
+                                <th>Fecha de Atención</th>
+                                <th>Odontólogo</th>
+                                <th>Diagnóstico (CIE-10)</th>
+                                <th>Tratamiento Realizado</th>
+                                <th>Observaciones Médicas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (historia.ConsultasPrevias.Count == 0)
+                            {
+                                <tr><td colspan="5" class="text-center py-4 text-muted">Todavía no tenés consultas registradas.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in historia.ConsultasPrevias.OrderByDescending(c => c.Fecha))
+                                {
+                                    <tr>
+                                        <td>@c.Fecha.ToString("dd/MM/yyyy")</td>
+                                        <td>@c.OdontologoNombre</td>
+                                        <td>@c.Diagnostico</td>
+                                        <td>@c.Tratamiento</td>
+                                        <td><small class="text-muted">@c.Observaciones</small></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+        else if (activeTab == 3)
+        {
+            <!-- TAB PAGOS Y SALDO -->
+            <div class="rounded p-4 mb-3 text-white" style="background-color: var(--color-primary); max-width: 760px;">
+                <div class="small fw-bold" style="color: #c8e1ff;">ESTADO DE CUENTA Y SALDO</div>
+                <div class="fs-3 fw-bold my-1">
+                    Saldo Deudor Pendiente: @(DeudaTotal > 0 ? DeudaTotal.ToString("C2") : "$ 0,00 (Al día)")
+                </div>
+                @if (DeudaTotal > 0)
+                {
+                    <div class="fw-bold" style="color: #f87171;">ESTADO: INHABILITADO PARA NUEVOS TURNOS (Registra multas impagas)</div>
+                }
+                else
+                {
+                    <div class="fw-bold" style="color: #34d399;">ESTADO: HABILITADO PARA RESERVAS</div>
+                }
+            </div>
+
+            <h6 class="fw-bold">Detalle de Multas por Inasistencia o Cargos Pendientes:</h6>
+            <div class="table-responsive bg-white rounded shadow-sm border" style="max-width: 760px;">
+                <table class="table align-middle mb-0 table-theme">
+                    <thead>
+                        <tr>
+                            <th>ID Multa</th>
+                            <th>Monto ($)</th>
+                            <th>Concepto / Motivo</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (misMultas.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center py-4 text-muted">No tenés multas ni cargos pendientes.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var m in misMultas)
+                            {
+                                <tr>
+                                    <td>#@m.Id</td>
+                                    <td>@m.Monto.ToString("C2")</td>
+                                    <td>@m.Motivo</td>
+                                    <td>
+                                        @if (m.EstadoPago)
+                                        {
+                                            <span class="fw-bold text-success">✅ Pagada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold text-danger">❌ Impaga</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        @if (!m.EstadoPago)
+                                        {
+                                            <button class="btn btn-sm btn-theme-success" @onclick="() => SolicitarPago(m)">💳 Pagar</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <!-- TAB OBRA SOCIAL -->
+            <div class="bg-white border rounded p-4" style="max-width: 600px;">
+                <h5 class="fw-bold mb-3" style="color: var(--color-primary);">🛡️ Cobertura Médica y Prepaga Registrada</h5>
+                @if (string.IsNullOrWhiteSpace(pacienteInfo?.ObraSocialNombre))
+                {
+                    <p class="mb-2">No tenés una obra social registrada.</p>
+                }
+                else
+                {
+                    <p class="fw-bold mb-2">Obra Social: @pacienteInfo!.ObraSocialNombre</p>
+                    <p class="mb-2">N° de Afiliado / Credencial: @(pacienteInfo.NumeroAfiliado ?? "S/D")</p>
+                }
+                <p class="small text-muted mb-0">ℹ️ Para actualizar tu obra social o presentar una nueva credencial, presentate en Recepción.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- MODALES (los mismos componentes que usa Turnos.razor) -->
+<TurnoReservaModal Show="showReservaModal"
+                   OnClosed="() => showReservaModal = false"
+                   OnReserved="HandleTurnoReservado" />
+
+<TurnoTicketModal Show="showTicketModal"
+                  Turno="turnoTicket"
+                  OnClosed="() => showTicketModal = false" />
+
+<ConfirmModal Show="showConfirmModal"
+              Titulo="Cancelar Turno"
+              Mensaje="@mensajeConfirmacion"
+              OnResponse="HandleConfirmacionCancelar" />
+
+<ConfirmModal Show="showConfirmPago"
+              Titulo="Pagar Multa"
+              Mensaje="@mensajePago"
+              OnResponse="HandleConfirmacionPago" />
+
+@code {
+    // Permite que el NavMenu abra una pestaña con /portal-paciente?tab=1
+    [SupplyParameterFromQuery(Name = "tab")]
+    public int? Tab { get; set; }
+
+    private int activeTab = 0;
+    private int? pacienteId;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<TurnoOdontologicoDTO> misTurnos = new();
+    private TurnoOdontologicoDTO? proximoTurno;
+    private TurnoOdontologicoDTO? seleccionado;
+    private TurnoOdontologicoDTO? turnoTicket;
+
+    private HistoriaClinicaDTO? historia;
+    private bool historiaSinPermiso = false;
+    private PacienteDTO? pacienteInfo;
+    private List<MultaDTO> misMultas = new();
+    private MultaDTO? multaAPagar;
+    private bool showConfirmPago = false;
+    private string mensajePago = "";
+
+    private decimal DeudaTotal => misMultas.Where(m => !m.EstadoPago).Sum(m => m.Monto);
+
+    private bool showReservaModal = false;
+    private bool showTicketModal = false;
+    private bool showConfirmModal = false;
+    private string mensajeConfirmacion = "";
+
+    private readonly (string Icono, string Nombre)[] especialidades =
+    {
+        ("🦷", "Odontología Gral."),
+        ("😁", "Ortodoncia"),
+        ("🔬", "Endodoncia"),
+        ("🛠️", "Implantología")
+    };
+
+    protected override void OnParametersSet()
+    {
+        activeTab = Tab is >= 0 and <= 4 ? Tab.Value : 0;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        pacienteId = AuthService.GetEntidadId();
+
+        if (pacienteId == null)
+        {
+            errorMessage = "No se pudo identificar al paciente de esta sesión.";
+            isLoading = false;
+            return;
+        }
+
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        isLoading = true;
+        errorMessage = null;
+        var errores = new List<string>();
+
+        // Turnos
+        try
+        {
+            misTurnos = await TurnoClient.GetByCriteriaAsync(new TurnoCriteriaDTO { PacienteId = pacienteId });
+
+            // Próximo turno: futuro y todavía vigente (Pendiente o Presente)
+            proximoTurno = misTurnos
+                .Where(t => t.Fecha.Date >= DateTime.Today
+                            && (t.EstadoTurno == "Pendiente" || t.EstadoTurno == "Presente"))
+                .OrderBy(t => t.Fecha)
+                .ThenBy(t => t.HorarioTurno)
+                .FirstOrDefault();
+
+            if (seleccionado != null)
+                seleccionado = misTurnos.FirstOrDefault(t => t.Id == seleccionado.Id);
+        }
+        catch (Exception ex) { errores.Add($"turnos ({ex.Message})"); }
+
+        // Datos del paciente (obra social)
+        try
+        {
+            pacienteInfo = await PacienteClient.GetByIdAsync(pacienteId!.Value);
+        }
+        catch (Exception ex) { errores.Add($"obra social ({ex.Message})"); }
+
+        // Historia clínica
+        historiaSinPermiso = false;
+        try
+        {
+            historia = await ReportesClient.GetHistoriaClinicaAsync(pacienteId!.Value);
+        }
+        catch (HttpRequestException ex) when (ex.Message.Contains("403"))
+        {
+            // La API no deja ver la historia con este rol: no es un error general de la pantalla
+            historiaSinPermiso = true;
+        }
+        catch (Exception ex) { errores.Add($"historia clínica ({ex.Message})"); }
+
+        // Multas
+        try
+        {
+            misMultas = await MultaClient.GetAllAsync(pacienteId);
+        }
+        catch (Exception ex) { errores.Add($"multas ({ex.Message})"); }
+
+        if (errores.Count > 0)
+            errorMessage = "No se pudo cargar: " + string.Join("; ", errores);
+
+        isLoading = false;
+    }
+
+    private void VerTicket()
+    {
+        turnoTicket = proximoTurno;
+        showTicketModal = true;
+    }
+
+    private async Task HandleTurnoReservado(TurnoOdontologicoDTO creado)
+    {
+        showReservaModal = false;
+        turnoTicket = creado;
+        showTicketModal = true;
+        await CargarDatos();
+    }
+
+    private void SolicitarCancelarTurno()
+    {
+        if (seleccionado == null) return;
+
+        if (seleccionado.EstadoTurno is "Cancelado" or "Atendido" or "NoAsistido")
+        {
+            errorMessage = $"No se puede cancelar un turno en estado {seleccionado.EstadoTurno}.";
+            return;
+        }
+
+        errorMessage = null;
+        mensajeConfirmacion = $"¿Desea cancelar el turno para el {seleccionado.Fecha:dd/MM/yyyy} a las {seleccionado.HorarioTurno}?";
+        showConfirmModal = true;
+    }
+
+    private async Task HandleConfirmacionCancelar(bool confirmado)
+    {
+        showConfirmModal = false;
+
+        if (!confirmado || seleccionado == null) return;
+
+        try
+        {
+            await TurnoClient.CancelarAsync(seleccionado.Id, "Cancelado por el paciente desde el portal");
+            seleccionado = null;
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"No se pudo cancelar el turno: {ex.Message}";
+        }
+    }
+
+    private void SolicitarPago(MultaDTO multa)
+    {
+        multaAPagar = multa;
+        mensajePago = $"¿Desea abonar la multa de {multa.Monto:C2} para rehabilitar su cuenta?";
+        showConfirmPago = true;
+    }
+
+    private async Task HandleConfirmacionPago(bool confirmado)
+    {
+        showConfirmPago = false;
+
+        if (!confirmado || multaAPagar == null) return;
+
+        try
+        {
+            await MultaClient.PagarAsync(multaAPagar.Id);
+            multaAPagar = null;
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"No se pudo procesar el pago: {ex.Message}";
+        }
+    }
+}

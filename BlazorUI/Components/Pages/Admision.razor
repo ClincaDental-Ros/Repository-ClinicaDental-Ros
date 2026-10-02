@@ -1,5 +1,5 @@
 ﻿@page "/admision"
-@attribute [Authorize(Roles = "Recepcionista, Admin")]
+@attribute [Authorize(Roles = BlazorUI.Auth.Permisos.Admision)]
 @inject TurnoApiClient TurnoClient
 @inject MultaApiClient MultaClient
 

@@ -1,5 +1,5 @@
 ﻿@page "/especialidades"
-@attribute [Authorize(Roles = "Admin, Odontologo")]
+@attribute [Authorize(Roles = BlazorUI.Auth.Permisos.Especialidades)]
 @inject EspecialidadApiClient ApiClient
 
 <PageTitle>Especialidades - DentalClinic</PageTitle>

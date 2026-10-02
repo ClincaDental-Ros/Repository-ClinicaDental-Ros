@@ -1,5 +1,5 @@
 ﻿@page "/pacientes"
-@attribute [Authorize(Roles = "Admin,Recepcionista")]
+@attribute [Authorize(Roles = BlazorUI.Auth.Permisos.Pacientes)]
 @inject PacienteApiClient ApiClient
 
 <PageTitle>Gestión de Pacientes - DentalClinic</PageTitle>

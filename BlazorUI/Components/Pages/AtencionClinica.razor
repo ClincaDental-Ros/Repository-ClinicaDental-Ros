@@ -1,5 +1,5 @@
 ﻿@page "/atencion-clinica"
-@attribute [Authorize(Roles = "Odontologo, Admin")]
+@attribute [Authorize(Roles = BlazorUI.Auth.Permisos.AtencionClinica)]
 @inject TurnoApiClient TurnoClient
 @inject ConsultaApiClient ConsultaClient
 @inject InsumoApiClient InsumoClient
