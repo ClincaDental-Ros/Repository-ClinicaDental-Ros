@@ -1,0 +1,107 @@
+﻿@inject EspecialidadApiClient ApiClient
+
+@if (Show)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+
+                <!-- HEADER -->
+                <div class="modal-header btn-theme-primary text-white">
+                    <h5 class="modal-title fw-bold">
+                        🏷️ @(IsEditing ? $"Editar Especialidad #{Model.Id}" : "Registrar Especialidad")
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body p-4">
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger py-2 small" role="alert">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="color: var(--color-text-primary);">Nombre *:</label>
+                        <input type="text" class="form-control" @bind="Model.Nombre" placeholder="Ej: Ortodoncia, Endodoncia..." />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="color: var(--color-text-primary);">Descripción:</label>
+                        <textarea class="form-control" rows="3" @bind="Model.Descripcion" placeholder="Alcance clínico o detalles del tratamiento..."></textarea>
+                    </div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
+                    <button type="button" class="btn btn-theme-primary" @onclick="GuardarEspecialidad" disabled="@isSaving">
+                        @(isSaving ? "Guardando..." : "💾 Guardar")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EspecialidadDTO Model { get; set; } = new();
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private bool isSaving = false;
+    private string errorMessage = "";
+
+    protected override void OnParametersSet()
+    {
+        if (Show)
+        {
+            errorMessage = "";
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        await OnClosed.InvokeAsync();
+    }
+
+    private async Task GuardarEspecialidad()
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(Model.Nombre))
+        {
+            errorMessage = "El nombre de la especialidad es obligatorio.";
+            return;
+        }
+
+        isSaving = true;
+
+        try
+        {
+            if (!IsEditing)
+            {
+                await ApiClient.CreateAsync(Model);
+            }
+            else
+            {
+                await ApiClient.UpdateAsync(Model);
+            }
+
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

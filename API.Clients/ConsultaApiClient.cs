@@ -4,6 +4,15 @@ namespace API.Clients
 {
     public class ConsultaApiClient : BaseApiClient
     {
+        public ConsultaApiClient() : base()
+        {
+        }
+
+        public ConsultaApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<ConsultaDTO>> GetAllAsync(int? pacienteId = null)
         {
             var url = pacienteId.HasValue ? $"/api/consultas?pacienteId={pacienteId.Value}" : "/api/consultas";
@@ -34,6 +43,15 @@ namespace API.Clients
 
     public class FacturaApiClient : BaseApiClient
     {
+        public FacturaApiClient() : base()
+        {
+        }
+
+        public FacturaApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<FacturaDTO>> GetAllAsync(int? pacienteId = null)
         {
             var url = pacienteId.HasValue ? $"/api/facturas?pacienteId={pacienteId.Value}" : "/api/facturas";
@@ -64,6 +82,15 @@ namespace API.Clients
 
     public class MultaApiClient : BaseApiClient
     {
+        public MultaApiClient() : base()
+        {
+        }
+
+        public MultaApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<MultaDTO>> GetAllAsync(int? pacienteId = null, bool? soloImpagas = null)
         {
             var query = new List<string>();
@@ -93,6 +120,15 @@ namespace API.Clients
 
     public class ReportesApiClient : BaseApiClient
     {
+        public ReportesApiClient() : base()
+        {
+        }
+
+        public ReportesApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<ReporteTurnosDiaDTO?> GetTurnosDiaAsync(DateTime? fecha = null)
         {
             var qs = fecha.HasValue ? $"?fecha={fecha.Value:yyyy-MM-dd}" : "";

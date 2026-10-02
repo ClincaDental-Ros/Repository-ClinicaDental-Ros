@@ -1,0 +1,204 @@
+﻿@inject OdontologoApiClient ApiClient
+@inject EspecialidadApiClient EspClient
+
+@if (Show)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow-lg border-0">
+
+                <!-- HEADER -->
+                <div class="modal-header btn-theme-primary text-white">
+                    <h5 class="modal-title fw-bold">
+                        🩺 @(IsEditing ? $"Editar Odontólogo #{Model.Id}" : "Registrar Odontólogo")
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger py-2 small" role="alert">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">N° Matrícula *:</label>
+                            <input type="text" class="form-control" @bind="matriculaTexto" placeholder="Ej: 12345" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Especialidad *:</label>
+                            @if (isLoadingEspecialidades)
+                            {
+                                <select class="form-select" disabled>
+                                    <option>Cargando especialidades...</option>
+                                </select>
+                            }
+                            else
+                            {
+                                <select class="form-select" @bind="Model.EspecialidadId">
+                                    @foreach (var esp in especialidades)
+                                    {
+                                        <option value="@esp.Id">@esp.Nombre</option>
+                                    }
+                                </select>
+                            }
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nombre *:</label>
+                            <input type="text" class="form-control" @bind="Model.Nombre" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Apellido *:</label>
+                            <input type="text" class="form-control" @bind="Model.Apellido" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">DNI *:</label>
+                            <input type="text" class="form-control" @bind="dniTexto" placeholder="Número de DNI..." />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono:</label>
+                            <input type="text" class="form-control" @bind="Model.Telefono" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email:</label>
+                            <input type="email" class="form-control" @bind="Model.Mail" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Domicilio:</label>
+                            <input type="text" class="form-control" @bind="Model.Domicilio" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
+                    <button type="button" class="btn btn-theme-primary" @onclick="GuardarOdontologo" disabled="@isSaving">
+                        @(isSaving ? "Guardando..." : "💾 Guardar Profesional")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public OdontologoDTO Model { get; set; } = new();
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private List<EspecialidadDTO> especialidades = new();
+    private bool isLoadingEspecialidades = false;
+    private bool isSaving = false;
+    private string errorMessage = "";
+    private string matriculaTexto = "";
+    private string dniTexto = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Show)
+        {
+            errorMessage = "";
+            matriculaTexto = Model.NumMatricula > 0 ? Model.NumMatricula.ToString() : "";
+            dniTexto = Model.Dni > 0 ? Model.Dni.ToString() : "";
+
+            if (especialidades.Count == 0)
+            {
+                await CargarEspecialidades();
+            }
+
+            // Si es nuevo y hay especialidades, seleccionar la primera por defecto
+            if (!IsEditing && Model.EspecialidadId <= 0 && especialidades.Count > 0)
+            {
+                Model.EspecialidadId = especialidades[0].Id;
+            }
+        }
+    }
+
+    private async Task CargarEspecialidades()
+    {
+        isLoadingEspecialidades = true;
+        try
+        {
+            especialidades = await EspClient.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error cargando especialidades: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingEspecialidades = false;
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        await OnClosed.InvokeAsync();
+    }
+
+    private async Task GuardarOdontologo()
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(Model.Nombre) || string.IsNullOrWhiteSpace(Model.Apellido) || string.IsNullOrWhiteSpace(matriculaTexto))
+        {
+            errorMessage = "Por favor, complete los campos obligatorios (*).";
+            return;
+        }
+
+        if (!int.TryParse(matriculaTexto.Trim(), out var matricula) || matricula <= 0)
+        {
+            errorMessage = "La matrícula debe ser un número entero positivo.";
+            return;
+        }
+
+        int.TryParse(dniTexto.Trim(), out var dni);
+
+        Model.NumMatricula = matricula;
+        Model.Dni = dni;
+
+        if (Model.EspecialidadId <= 0 && especialidades.Count > 0)
+        {
+            Model.EspecialidadId = especialidades[0].Id;
+        }
+
+        isSaving = true;
+
+        try
+        {
+            if (!IsEditing)
+            {
+                await ApiClient.CreateAsync(Model);
+            }
+            else
+            {
+                await ApiClient.UpdateAsync(Model);
+            }
+
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

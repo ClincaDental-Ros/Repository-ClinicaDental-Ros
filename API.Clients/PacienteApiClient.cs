@@ -4,6 +4,15 @@ namespace API.Clients
 {
     public class PacienteApiClient : BaseApiClient
     {
+        public PacienteApiClient() : base()
+        {
+        }
+
+        public PacienteApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<PacienteDTO>> GetAllAsync()
         {
             var list = await GetAsync<List<PacienteDTO>>("/api/pacientes");

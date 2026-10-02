@@ -1,0 +1,270 @@
+﻿@page "/odontologos"
+@attribute [Authorize(Roles = "Administrador, Odontologo")]
+@inject OdontologoApiClient ApiClient
+@inject EspecialidadApiClient EspClient
+
+<PageTitle>Cuerpo Médico - DentalClinic</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <!-- ENCABEZADO SUPERIOR -->
+    <div class="bg-white p-3 border-bottom shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Cuerpo Médico Odontológico</h4>
+        <p class="text-muted small mb-0">Plantel de profesionales, matrículas habilitadas y asignación de especialidades</p>
+    </div>
+
+    <!-- TARJETAS MÉTRICAS -->
+    <div class="row g-3 p-3 m-0 bg-light">
+        <div class="col-md-4">
+            <div class="card-stat border-primary">
+                <span class="text-muted small fw-bold">Odontólogos</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@odontologos.Count</h3>
+                <small class="text-secondary">Profesionales activos</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat border-info">
+                <span class="text-muted small fw-bold">Especialidades</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@EspecialidadesCubiertasCount</h3>
+                <small class="text-secondary">Áreas cubiertas</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat border-success">
+                <span class="text-muted small fw-bold">Atención</span>
+                <h3 class="fw-bold my-1 text-success">Consultorios 1 al 4</h3>
+                <small class="text-secondary">Sede Central Rosario</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE FILTROS Y ACCIONES -->
+    <div class="bg-white p-3 border-top border-bottom">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-bold text-secondary">Especialidad:</span>
+                    <select class="form-select" @bind="filtroEspecialidadId" @bind:after="CargarOdontologos">
+                        @foreach (var esp in filtroEspecialidades)
+                        {
+                            <option value="@esp.Id">@esp.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-8 d-flex justify-content-end gap-2 flex-wrap">
+                <button class="btn btn-theme-primary" @onclick="CargarOdontologos" disabled="@isLoading">
+                    🔄 Refrescar
+                </button>
+                <button class="btn btn-theme-success" @onclick="AbrirModalNuevo">
+                    + Nuevo Profesional
+                </button>
+                <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">
+                    ✏️ Modificar
+                </button>
+                <button class="btn btn-theme-danger" @onclick="EliminarSeleccionado" disabled="@(seleccionado == null)">
+                    🗑 Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE ODONTÓLOGOS -->
+    <div class="p-3">
+        <div class="table-responsive bg-white rounded shadow-sm border">
+            <table class="table table-hover align-middle mb-0 table-theme">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Matrícula Nac.</th>
+                        <th>Apellido</th>
+                        <th>Nombre</th>
+                        <th>Especialidad Principal</th>
+                        <th>Teléfono Directo</th>
+                        <th>Correo Electrónico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="small text-muted mt-2">Cargando profesionales...</div>
+                            </td>
+                        </tr>
+                    }
+                    else if (odontologos.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                No se encontraron odontólogos registrados para la especialidad seleccionada.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var o in odontologos)
+                        {
+                            <tr class="@(seleccionado?.Id == o.Id ? "selected-row" : "")"
+                                @onclick="() => seleccionado = o"
+                                @ondblclick="() => AbrirModalEditar(o)"
+                                style="cursor: pointer;">
+                                <td><strong>#@o.Id</strong></td>
+                                <td><span class="badge bg-light text-dark border">@o.NumMatricula</span></td>
+                                <td>@o.Apellido</td>
+                                <td>@o.Nombre</td>
+                                <td><span class="badge bg-info-subtle text-info fw-bold border border-info">@(o.EspecialidadNombre ?? "General")</span></td>
+                                <td>@o.Telefono</td>
+                                <td>@o.Mail</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BARRA DE ESTADO INFERIOR -->
+        <div class="bg-white p-2 mt-2 border rounded text-muted small">
+            @lblEstado
+        </div>
+    </div>
+</div>
+
+<!-- SUBCOMPONENTE MODAL DE EDICIÓN / ALTA -->
+<OdontologoDetalleModal Show="showModal"
+                        Model="modalModel"
+                        IsEditing="isEditing"
+                        OnClosed="() => showModal = false"
+                        OnSaved="HandleOdontologoGuardado" />
+
+<!-- SUBCOMPONENTE MODAL DE CONFIRMACIÓN -->
+<ConfirmModal Show="showConfirmModal"
+              Titulo="Confirmar Baja de Profesional"
+              Mensaje="@mensajeConfirmacion"
+              OnResponse="HandleConfirmacionEliminar" />
+
+@code {
+    private List<OdontologoDTO> odontologos = new();
+    private List<EspecialidadDTO> filtroEspecialidades = new();
+    private int filtroEspecialidadId = 0;
+    private OdontologoDTO? seleccionado;
+    private string lblEstado = "Cargando profesionales...";
+    private bool isLoading = false;
+
+    private bool showModal = false;
+    private bool isEditing = false;
+    private OdontologoDTO modalModel = new();
+
+    private bool showConfirmModal = false;
+    private string mensajeConfirmacion = "";
+
+    private int EspecialidadesCubiertasCount => odontologos.Select(o => o.EspecialidadId).Distinct().Count();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarFiltroEspecialidades();
+        await CargarOdontologos();
+    }
+
+    private async Task CargarFiltroEspecialidades()
+    {
+        try
+        {
+            var list = await EspClient.GetAllAsync();
+            filtroEspecialidades = new List<EspecialidadDTO>
+            {
+                new EspecialidadDTO { Id = 0, Nombre = "Todas las especialidades" }
+            };
+            filtroEspecialidades.AddRange(list);
+        }
+        catch
+        {
+            filtroEspecialidades = new List<EspecialidadDTO>
+            {
+                new EspecialidadDTO { Id = 0, Nombre = "Todas las especialidades" }
+            };
+        }
+    }
+
+    private async Task CargarOdontologos()
+    {
+        isLoading = true;
+        lblEstado = "Cargando profesionales...";
+        try
+        {
+            int? espId = filtroEspecialidadId > 0 ? filtroEspecialidadId : null;
+            odontologos = await ApiClient.GetAllAsync(espId);
+            lblEstado = $"Cuerpo médico activo: {odontologos.Count} profesional(es) en nómina.";
+
+            if (seleccionado != null)
+            {
+                seleccionado = odontologos.FirstOrDefault(o => o.Id == seleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void AbrirModalNuevo()
+    {
+        modalModel = new OdontologoDTO();
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void AbrirModalEditar(OdontologoDTO o)
+    {
+        modalModel = new OdontologoDTO
+        {
+            Id = o.Id,
+            NumMatricula = o.NumMatricula,
+            Nombre = o.Nombre,
+            Apellido = o.Apellido,
+            Dni = o.Dni,
+            Telefono = o.Telefono,
+            Mail = o.Mail,
+            Domicilio = o.Domicilio,
+            EspecialidadId = o.EspecialidadId
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void ModificarSeleccionado()
+    {
+        if (seleccionado != null) AbrirModalEditar(seleccionado);
+    }
+
+    private async Task HandleOdontologoGuardado()
+    {
+        showModal = false;
+        await CargarOdontologos();
+    }
+
+    private void EliminarSeleccionado()
+    {
+        if (seleccionado == null) return;
+
+        mensajeConfirmacion = $"¿Desea dar de baja al profesional Dr/a. {seleccionado.Apellido}, {seleccionado.Nombre}?";
+        showConfirmModal = true;
+    }
+
+    private async Task HandleConfirmacionEliminar(bool confirmado)
+    {
+        showConfirmModal = false;
+
+        if (confirmado && seleccionado != null)
+        {
+            await ApiClient.DeleteAsync(seleccionado.Id);
+            seleccionado = null;
+            await CargarOdontologos();
+        }
+    }
+}

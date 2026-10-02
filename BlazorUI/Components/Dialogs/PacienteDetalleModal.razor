@@ -1,0 +1,210 @@
+﻿@inject PacienteApiClient ApiClient
+
+@if (Show)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow-lg border-0">
+
+                <!-- HEADER -->
+                <div class="modal-header btn-theme-primary text-white">
+                    <h5 class="modal-title fw-bold">
+                        🦷 @(IsEditing ? $"Editar Ficha Médica #{Model.Id}" : "Registrar Nuevo Paciente")
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger py-2 small" role="alert">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nombre *:</label>
+                            <input type="text" class="form-control" @bind="Model.Nombre" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Apellido *:</label>
+                            <input type="text" class="form-control" @bind="Model.Apellido" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Tipo Doc:</label>
+                            <select class="form-select" @bind="tipoDoc">
+                                <option value="DNI">DNI</option>
+                                <option value="CUIL">CUIL</option>
+                                <option value="Pasaporte">Pasaporte</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Documento *:</label>
+                            <input type="text" class="form-control" @bind="dniTexto" placeholder="Número de documento..." />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono *:</label>
+                            <input type="text" class="form-control" @bind="Model.Telefono" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Correo Electrónico *:</label>
+                            <input type="email" class="form-control" @bind="Model.Mail" />
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Domicilio:</label>
+                            <input type="text" class="form-control" @bind="Model.Domicilio" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Obra Social *:</label>
+                            <select class="form-select" @bind="selectedObraSocialIndex">
+                                <option value="0">Particular (Sin Obra Social)</option>
+                                <option value="1">OSDE</option>
+                                <option value="2">Swiss Medical</option>
+                                <option value="3">IOMA</option>
+                                <option value="4">IAPOS</option>
+                                <option value="5">Sancor Salud</option>
+                                <option value="6">Federada Salud</option>
+                                <option value="7">Jerárquicos Salud</option>
+                                <option value="8">Galeno</option>
+                                <option value="9">Otra (Especificar)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">N° de Afiliado / Cred:</label>
+                            <input type="text" class="form-control" @bind="Model.NumeroAfiliado" />
+                        </div>
+
+                        <!-- CREDENCIALES DEL PORTAL -->
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold border-bottom pb-2" style="color: var(--color-primary);">
+                                🔑 Credenciales de Acceso (Portal del Paciente)
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Usuario Portal:</label>
+                            <input type="text" class="form-control bg-light" readonly
+                                   value="@(IsEditing ? (Model.Username ?? "N/A") : "(Se generará automáticamente al guardar)")" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Clave Inicial:</label>
+                            <input type="text" class="form-control bg-light" readonly
+                                   value="@(IsEditing ? (Model.PasswordDefault ?? "paciente123") : "paciente123")" />
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="chkHabilitadoModal" @bind="Model.EstadoHabilitado" />
+                                <label class="form-check-label fw-bold @(Model.EstadoHabilitado ? "text-success" : "text-danger")" for="chkHabilitadoModal">
+                                    @(Model.EstadoHabilitado ? "Paciente Habilitado para Turnos" : "Paciente Inhabilitado (Bloqueo por Deuda/Falta)")
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
+                    <button type="button" class="btn btn-theme-primary" @onclick="GuardarPaciente" disabled="@isSaving">
+                        @(isSaving ? "Guardando..." : "💾 Guardar Paciente")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public PacienteDTO Model { get; set; } = new();
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+    [Parameter] public EventCallback<PacienteDTO> OnSaved { get; set; }
+
+    private bool isSaving = false;
+    private string errorMessage = "";
+    private string tipoDoc = "DNI";
+    private string dniTexto = "";
+    private int selectedObraSocialIndex = 0;
+
+    protected override void OnParametersSet()
+    {
+        if (Show)
+        {
+            dniTexto = Model.Dni > 0 ? Model.Dni.ToString() : "";
+            selectedObraSocialIndex = Model.ObraSocialId switch
+            {
+                1 => 1,
+                2 => 2,
+                3 => 3,
+                _ => 0
+            };
+            errorMessage = "";
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        await OnClosed.InvokeAsync();
+    }
+
+    private async Task GuardarPaciente()
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(Model.Nombre) || string.IsNullOrWhiteSpace(Model.Apellido) || string.IsNullOrWhiteSpace(dniTexto))
+        {
+            errorMessage = "Por favor, complete los campos obligatorios (*).";
+            return;
+        }
+
+        if (!int.TryParse(dniTexto.Trim(), out var dni) || dni <= 0)
+        {
+            errorMessage = "El DNI ingresado debe ser un número válido.";
+            return;
+        }
+
+        Model.Dni = dni;
+        isSaving = true;
+
+        try
+        {
+            Model.ObraSocialId = selectedObraSocialIndex switch
+            {
+                1 => 1,
+                2 => 2,
+                3 => 3,
+                _ => 4
+            };
+
+            PacienteDTO? resultado;
+            if (!IsEditing)
+            {
+                resultado = await ApiClient.CreateAsync(Model);
+            }
+            else
+            {
+                await ApiClient.UpdateAsync(Model);
+                resultado = Model;
+            }
+
+            await OnSaved.InvokeAsync(resultado ?? Model);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

@@ -1,0 +1,149 @@
+﻿@implements IDisposable
+@inject BlazorAuthService AuthService
+@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm px-3" style="background-color: var(--color-primary-dark);">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold me-4" href="/">🦷 DentalClinic</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <!-- 1. Menú Maestros -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white fw-semibold" href="#" id="dropMaestros" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        📁 Maestros
+                    </a>
+                    <ul class="dropdown-menu shadow border-0" aria-labelledby="dropMaestros">
+                        <li><a class="dropdown-item" href="/pacientes">👥 Pacientes</a></li>
+                        <li><a class="dropdown-item @(EsDeshabilitado("itemOdontologos") ? "disabled" : "")" href="/odontologos">🩺 Odontólogos</a></li>
+                        <li><a class="dropdown-item @(EsDeshabilitado("itemEspecialidades") ? "disabled" : "")" href="/especialidades">🏷️ Especialidades</a></li>
+                        <li><a class="dropdown-item @(EsDeshabilitado("itemInsumos") ? "disabled" : "")" href="/insumos">📦 Insumos y Stock</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/configuracion">⚙️ Configuración de Perfil</a></li>
+                    </ul>
+                </li>
+
+                <!-- 2. Menú Gestión Clínica -->
+                @if (EsVisibleMenu("menuClinica"))
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white fw-semibold" href="#" id="dropClinica" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            🏥 Gestión Clínica
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="dropClinica">
+                            <li><a class="dropdown-item" href="/turnos">📅 Gestión de Turnos</a></li>
+                            <li><a class="dropdown-item" href="/admision">🛎️ Recepción / Sala de Espera</a></li>
+                            <li><a class="dropdown-item @(EsDeshabilitado("itemAtencion") ? "disabled" : "")" href="/atencion-clinica">💉 Consola Médica</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- 3. Menú Caja y Facturación -->
+                @if (EsVisibleMenu("menuCaja"))
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white fw-semibold" href="#" id="dropCaja" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            💳 Caja y Facturación
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="dropCaja">
+                            <li><a class="dropdown-item @(EsDeshabilitado("itemCobro") ? "disabled" : "")" href="/cobro">🧾 Cobro, Caja y Liquidación</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- 4. Menú Reportes -->
+                @if (EsVisibleMenu("menuReportes"))
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white fw-semibold" href="#" id="dropReportes" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            📊 Reportes
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="dropReportes">
+                            <li><a class="dropdown-item @(EsDeshabilitado("itemMetricas") ? "disabled" : "")" href="/reportes">📈 Reportes y Métricas</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- 5. Menú Mi Portal (Paciente) -->
+                @if (EsVisibleMenu("menuPortal"))
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white fw-semibold" href="#" id="dropPortal" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            👤 Portal Paciente
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="dropPortal">
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=0">🏠 Mi Portal del Paciente</a></li>
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=1">📅 Mis Turnos y Citas</a></li>
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=2">📋 Mi Historial Clínico</a></li>
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=3">💳 Mis Pagos y Deudas</a></li>
+                        </ul>
+                    </li>
+                }
+            </ul>
+
+            <!-- Botón Cierre de Sesión -->
+            <button class="btn btn-theme-secondary btn-sm fw-bold" @onclick="CerrarSesion">
+                🚪 Cerrar Sesión
+            </button>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private string Rol => AuthService.GetRol() ?? "Admin";
+
+    protected override void OnInitialized()
+    {
+        AuthService.OnAuthenticationStateChanged += HandleAuthStateChanged;
+    }
+
+    private void HandleAuthStateChanged(bool isAuth)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private bool EsVisibleMenu(string menuKey)
+    {
+        return menuKey switch
+        {
+            "menuClinica" => Rol != "Paciente",
+            "menuCaja" => Rol != "Paciente",
+            "menuReportes" => Rol != "Paciente",
+            "menuPortal" => Rol == "Paciente" || Rol == "Admin",
+            _ => true
+        };
+    }
+
+    private bool EsDeshabilitado(string itemKey)
+    {
+        if (Rol == "Paciente")
+        {
+            return itemKey is "itemOdontologos" or "itemEspecialidades" or "itemInsumos";
+        }
+        if (Rol == "Odontologo")
+        {
+            return itemKey is "itemEspecialidades" or "itemCobro";
+        }
+        if (Rol == "Recepcionista")
+        {
+            return itemKey is "itemAtencion" or "itemMetricas";
+        }
+        return false;
+    }
+
+    private async Task CerrarSesion()
+    {
+        await AuthService.ClearSessionAsync();
+        Navigation.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthenticationStateChanged -= HandleAuthStateChanged;
+    }
+}

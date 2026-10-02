@@ -4,6 +4,17 @@ namespace API.Clients
 {
     public class TurnoApiClient : BaseApiClient
     {
+        // Constructor viejo: lo usa WindowsForms
+        public TurnoApiClient() : base()
+        {
+        }
+
+        // Constructor nuevo: lo usa Blazor por inyección de dependencias
+        public TurnoApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<TurnoOdontologicoDTO>> GetAllAsync()
         {
             var list = await GetAsync<List<TurnoOdontologicoDTO>>("/api/turnos");

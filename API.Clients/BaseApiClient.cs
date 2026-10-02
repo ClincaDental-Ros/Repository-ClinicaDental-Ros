@@ -6,8 +6,9 @@ namespace API.Clients
 {
     public abstract class BaseApiClient
     {
+        // ---------- MODO VIEJO (WindowsForms): HttpClient compartido + AuthServiceProvider ----------
         private static string _baseUrl = "http://localhost:5263";
-        private static readonly HttpClient _httpClient = new();
+        private static readonly HttpClient _sharedHttpClient = new();
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             PropertyNameCaseInsensitive = true
@@ -19,31 +20,51 @@ namespace API.Clients
             set
             {
                 _baseUrl = value.TrimEnd('/');
-                _httpClient.BaseAddress = new Uri(_baseUrl);
+                _sharedHttpClient.BaseAddress = new Uri(_baseUrl);
             }
         }
 
         static BaseApiClient()
         {
-            _httpClient.BaseAddress = new Uri(_baseUrl);
+            _sharedHttpClient.BaseAddress = new Uri(_baseUrl);
+        }
+
+        // ---------- MODO NUEVO (Blazor): un HttpClient y un IAuthService por usuario ----------
+        private readonly HttpClient? _ownHttpClient;
+        private readonly IAuthService? _ownAuthService;
+
+        // Constructor viejo: lo sigue usando WindowsForms (new AuthApiClient())
+        protected BaseApiClient()
+        {
+        }
+
+        // Constructor nuevo: lo usa el contenedor de DI de Blazor
+        protected BaseApiClient(HttpClient httpClient, IAuthService authService)
+        {
+            _ownHttpClient = httpClient;
+            _ownAuthService = authService;
         }
 
         public static event Action? OnUnauthorized;
 
-        protected async Task<HttpClient> GetConfiguredClientAsync()
+        protected Task<HttpClient> GetConfiguredClientAsync()
         {
-            _httpClient.DefaultRequestHeaders.Authorization = null;
+            // Si vino por el constructor nuevo usa lo propio; si no, el comportamiento de siempre
+            var client = _ownHttpClient ?? _sharedHttpClient;
+            var auth = _ownAuthService ?? (AuthServiceProvider.IsInitialized ? AuthServiceProvider.Current : null);
 
-            if (AuthServiceProvider.IsInitialized && AuthServiceProvider.Current.IsAuthenticated())
+            client.DefaultRequestHeaders.Authorization = null;
+
+            if (auth != null && auth.IsAuthenticated())
             {
-                var token = AuthServiceProvider.Current.GetToken();
+                var token = auth.GetToken();
                 if (!string.IsNullOrWhiteSpace(token))
                 {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
             }
 
-            return _httpClient;
+            return Task.FromResult(client);
         }
 
         protected async Task<T?> GetAsync<T>(string endpoint)

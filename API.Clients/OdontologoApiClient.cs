@@ -4,6 +4,15 @@ namespace API.Clients
 {
     public class OdontologoApiClient : BaseApiClient
     {
+        public OdontologoApiClient() : base()
+        {
+        }
+
+        public OdontologoApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<OdontologoDTO>> GetAllAsync(int? especialidadId = null)
         {
             var url = especialidadId.HasValue && especialidadId.Value > 0
@@ -37,6 +46,15 @@ namespace API.Clients
 
     public class EspecialidadApiClient : BaseApiClient
     {
+        public EspecialidadApiClient() : base()
+        {
+        }
+
+        public EspecialidadApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<EspecialidadDTO>> GetAllAsync()
         {
             var list = await GetAsync<List<EspecialidadDTO>>("/api/especialidades");
@@ -66,6 +84,15 @@ namespace API.Clients
 
     public class InsumoApiClient : BaseApiClient
     {
+        public InsumoApiClient() : base()
+        {
+        }
+
+        public InsumoApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<List<InsumoDTO>> GetAllAsync()
         {
             var list = await GetAsync<List<InsumoDTO>>("/api/insumos");

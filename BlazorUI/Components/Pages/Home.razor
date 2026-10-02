@@ -1,0 +1,139 @@
+﻿@page "/"
+@attribute [Authorize]
+@inject BlazorAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Inicio - DentalClinic</PageTitle>
+
+<div class="container-fluid p-4">
+
+    <!-- BIENVENIDA Y RESUMEN -->
+    <div class="bg-white p-4 rounded shadow-sm border mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="fw-bold mb-1" style="color: var(--color-primary);">
+                    ¡Bienvenido/a, @AuthService.GetNombreCompleto()!
+                </h3>
+                <p class="text-muted mb-0">
+                    Sistema MDI Web de Gestión Odontológica Integral | Rol activo:
+                    <span class="badge bg-primary text-uppercase ms-1">@AuthService.GetRol()</span>
+                </p>
+            </div>
+            <div class="text-end">
+                <span class="text-secondary small fw-bold">Fecha actual:</span>
+                <div class="fw-bold text-dark fs-6">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETAS DE MÓDULOS RECOMENDADOS SEGÚN ROL -->
+    <h5 class="fw-bold mb-3" style="color: var(--color-primary);">Acceso Rápido a Módulos</h5>
+
+    <div class="row g-3">
+        @if (AuthService.IsInRole("Paciente"))
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold" style="color: var(--color-primary);">🏠 Portal del Paciente</h5>
+                            <p class="text-muted small">Consulte sus turnos agendados, solicite nuevas citas médicas y revise sus pagos.</p>
+                        </div>
+                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("portal-paciente")'>Ir al Portal</button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (AuthService.IsInRole("Odontologo", "Admin"))
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold" style="color: var(--color-primary);">💉 Consola Médica</h5>
+                            <p class="text-muted small">Evolución clínica de pacientes en espera, diagnósticos CIE-10 y descuento de insumos.</p>
+                        </div>
+                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("atencion-clinica")'>Abrir Consola</button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (AuthService.IsInRole("Recepcionista", "Admin"))
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold" style="color: var(--color-primary);">🛎️ Recepción y Admisión</h5>
+                            <p class="text-muted small">Confirmación de presencia en sala de espera y registro de sanciones por inasistencia.</p>
+                        </div>
+                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("admision")'>Ir a Recepción</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold" style="color: var(--color-primary);">🧾 Caja y Cobros</h5>
+                            <p class="text-muted small">Emisión de facturas, liquidación de obras sociales y cobro de prestaciones.</p>
+                        </div>
+                        <button class="btn btn-theme-success w-100 mt-3" @onclick='() => NavegarA("cobro")'>Ir a Caja</button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (AuthService.IsInRole("Admin"))
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold" style="color: var(--color-primary);">📅 Gestión de Turnos</h5>
+                            <p class="text-muted small">Agenda centralizada de turnos odontológicos y disponibilidad de profesionales.</p>
+                        </div>
+                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("turnos")'>Ver Agenda</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold" style="color: var(--color-primary);">📊 Reportes y Auditoría</h5>
+                            <p class="text-muted small">Indicadores de ausentismo, facturación consolidada e historial clínico.</p>
+                        </div>
+                        <button class="btn btn-theme-secondary w-100 mt-3" @onclick='() => NavegarA("reportes")'>Ver Auditoría</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Redirección inteligente basada en rol si no es Admin
+        var rol = AuthService.GetRol();
+        if (rol == "Paciente")
+        {
+            Navigation.NavigateTo("portal-paciente");
+        }
+        else if (rol == "Odontologo")
+        {
+            Navigation.NavigateTo("atencion-clinica");
+        }
+        else if (rol == "Recepcionista")
+        {
+            Navigation.NavigateTo("admision");
+        }
+    }
+
+    private void NavegarA(string ruta) => Navigation.NavigateTo(ruta);
+}

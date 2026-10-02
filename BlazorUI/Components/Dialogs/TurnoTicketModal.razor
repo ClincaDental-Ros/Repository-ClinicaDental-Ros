@@ -1,0 +1,76 @@
+﻿@inject TurnoApiClient ApiClient
+
+@if (Show && Turno != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+
+                <!-- HEADER TICKET -->
+                <div class="modal-header btn-theme-primary text-white p-3">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">🦷 Clínica Dental Rosario</h5>
+                        <small class="text-white-50 fw-semibold">COMPROBANTE DE ATENCIÓN / TICKET DIGITAL</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
+                </div>
+
+                <!-- BODY TICKET -->
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 fs-6 fw-bold">
+                            CÓDIGO DE RESERVA: TM-@Turno.Id.ToString("D5")
+                        </span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex justify-content-between border-bottom pb-1">
+                            <span class="fw-bold text-secondary">PACIENTE:</span>
+                            <span class="fw-bold text-dark">@Turno.PacienteNombre</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom pb-1">
+                            <span class="fw-bold text-secondary">PROFESIONAL:</span>
+                            <span class="fw-bold text-dark">@Turno.OdontologoNombre</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom pb-1">
+                            <span class="fw-bold text-secondary">ESPECIALIDAD:</span>
+                            <span class="fw-bold text-dark">@Turno.EspecialidadNombre</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom pb-1">
+                            <span class="fw-bold text-secondary">FECHA Y HORA:</span>
+                            <span class="fw-bold text-primary">@Turno.Fecha.ToString("dd/MM/yyyy") a las @Turno.HorarioTurno</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom pb-1">
+                            <span class="fw-bold text-secondary">UBICACIÓN:</span>
+                            <span class="fw-bold text-dark">Consultorio 3 - Piso 1, Sede Rosario</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold text-secondary">ESTADO:</span>
+                            <span class="badge bg-success-subtle text-success fw-bold border border-success">
+                                RESERVA CONFIRMADA (Citado)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOOTER TICKET -->
+                <div class="modal-footer bg-light justify-content-center">
+                    <button type="button" class="btn btn-theme-success px-4" @onclick="Cerrar">
+                        Aceptar / Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public TurnoOdontologicoDTO? Turno { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+
+    private async Task Cerrar()
+    {
+        await OnClosed.InvokeAsync();
+    }
+}

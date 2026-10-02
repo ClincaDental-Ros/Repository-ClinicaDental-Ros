@@ -1,0 +1,328 @@
+﻿@inject TurnoApiClient TurnoClient
+@inject PacienteApiClient PacienteClient
+@inject OdontologoApiClient OdontologoClient
+@inject EspecialidadApiClient EspecialidadClient
+@inject MultaApiClient MultaClient
+
+@if (Show)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow-lg border-0">
+
+                <div class="modal-header btn-theme-primary text-white">
+                    <h5 class="modal-title fw-bold">📅 Agendamiento de Turno Odontológico</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
+                </div>
+
+                <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger py-2 small" role="alert">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <div class="row g-3">
+                        <!-- 1. PACIENTE -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">1. Paciente *:</label>
+                            @if (isLoadingData)
+                            {
+                                <select class="form-select" disabled><option>Cargando pacientes...</option></select>
+                            }
+                            else
+                            {
+                                <select class="form-select" value="@selectedPacienteId" @onchange="OnPacienteChanged">
+                                    <option value="0">-- Seleccione un paciente --</option>
+                                    @foreach (var p in pacientes)
+                                    {
+                                        <option value="@p.Id">@p.NombreCompleto</option>
+                                    }
+                                </select>
+                            }
+
+                            @if (!string.IsNullOrEmpty(estadoPacienteTexto))
+                            {
+                                <div class="mt-1 small fw-bold @(pacienteHabilitado ? "text-success" : "text-danger")">
+                                    @estadoPacienteTexto
+                                </div>
+                            }
+                        </div>
+
+                        <!-- 2. ESPECIALIDAD -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">2. Especialidad *:</label>
+                            <select class="form-select" value="@selectedEspecialidadId" @onchange="OnEspecialidadChanged">
+                                @foreach (var esp in especialidades)
+                                {
+                                    <option value="@esp.Id">@esp.Nombre</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- 3. ODONTÓLOGO -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">3. Profesional *:</label>
+                            <select class="form-select" @bind="selectedOdontologoId">
+                                <option value="0">-- Seleccione profesional --</option>
+                                @foreach (var o in odontologosFiltrados)
+                                {
+                                    <option value="@o.Id">@o.NombreCompleto</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- 4. FECHA -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">4. Fecha de Cita *:</label>
+                            <input type="date" class="form-control" @bind="fechaCita" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+
+                        <!-- 5. HORARIO -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">5. Horario *:</label>
+                            <select class="form-select" @bind="horarioSeleccionado">
+                                @foreach (var h in horariosDisponibles)
+                                {
+                                    <option value="@h">@h hs</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- 6. COBERTURA / PAGO -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">6. Cobertura / Pago *:</label>
+                            <select class="form-select" @bind="metodoPagoSeleccionado">
+                                <option value="Obra Social">Obra Social / Cobertura Médica</option>
+                                <option value="Particular">Particular (Efectivo / Tarjeta)</option>
+                            </select>
+                        </div>
+
+                        <!-- MONTO ESTIMADO -->
+                        <div class="col-md-12">
+                            <div class="p-2 bg-light border rounded text-primary fw-bold small">
+                                Arancel Estimado de Consulta: $ 12.000,00 (Sujeto a cobertura)
+                            </div>
+                        </div>
+
+                        <!-- POLÍTICAS -->
+                        <div class="col-md-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="chkPoliticas" @bind="aceptaPoliticas" />
+                                <label class="form-check-label small fw-semibold text-secondary" for="chkPoliticas">
+                                    Acepto las políticas de cancelación (mínimo 24 hs antes) y asistencia.
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
+                    <button type="button" class="btn btn-theme-primary" @onclick="ReservarTurno" disabled="@(!pacienteHabilitado || isSaving)">
+                        @(isSaving ? "Agendando..." : "✅ Confirmar Reserva")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+    [Parameter] public EventCallback<TurnoOdontologicoDTO> OnReserved { get; set; }
+
+    private List<PacienteDTO> pacientes = new();
+    private List<EspecialidadDTO> especialidades = new();
+    private List<OdontologoDTO> odontologos = new();
+    private List<OdontologoDTO> odontologosFiltrados = new();
+
+    private int selectedPacienteId = 0;
+    private int selectedEspecialidadId = 0;
+    private int selectedOdontologoId = 0;
+    private DateTime fechaCita = DateTime.Today.AddDays(1);
+    private string horarioSeleccionado = "09:00";
+    private string metodoPagoSeleccionado = "Obra Social";
+    private bool aceptaPoliticas = true;
+
+    private bool isLoadingData = false;
+    private bool isSaving = false;
+    private bool pacienteHabilitado = true;
+    private string estadoPacienteTexto = "";
+    private string errorMessage = "";
+
+    private readonly List<string> horariosDisponibles = new()
+    {
+        "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+        "12:00", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Show && pacientes.Count == 0)
+        {
+            await CargarDatosIniciales();
+        }
+    }
+
+    private async Task CargarDatosIniciales()
+    {
+        isLoadingData = true;
+        errorMessage = "";
+        try
+        {
+            pacientes = await PacienteClient.GetAllAsync();
+            especialidades = await EspecialidadClient.GetAllAsync();
+            odontologos = await OdontologoClient.GetAllAsync();
+
+            if (especialidades.Count > 0)
+            {
+                selectedEspecialidadId = especialidades[0].Id;
+                FiltrarOdontologos();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error cargando datos: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingData = false;
+        }
+    }
+
+    private void FiltrarOdontologos()
+    {
+        if (selectedEspecialidadId > 0)
+        {
+            var list = odontologos.Where(o => o.EspecialidadId == selectedEspecialidadId).ToList();
+            odontologosFiltrados = list.Count > 0 ? list : odontologos;
+        }
+        else
+        {
+            odontologosFiltrados = odontologos;
+        }
+
+        if (odontologosFiltrados.Count > 0)
+        {
+            selectedOdontologoId = odontologosFiltrados[0].Id;
+        }
+    }
+
+    private async Task OnPacienteChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            selectedPacienteId = id;
+            await ValidarPacienteSeleccionado();
+        }
+    }
+
+    private void OnEspecialidadChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            selectedEspecialidadId = id;
+            FiltrarOdontologos();
+        }
+    }
+
+    private async Task ValidarPacienteSeleccionado()
+    {
+        errorMessage = "";
+        estadoPacienteTexto = "";
+        pacienteHabilitado = true;
+
+        var p = pacientes.FirstOrDefault(pac => pac.Id == selectedPacienteId);
+        if (p == null) return;
+
+        if (!p.EstadoHabilitado)
+        {
+            estadoPacienteTexto = "⚠️ PACIENTE INHABILITADO POR MULTAS O DEUDA";
+            pacienteHabilitado = false;
+            errorMessage = "El paciente no puede agendar turnos hasta regularizar sus deudas.";
+            return;
+        }
+
+        try
+        {
+            var multas = await MultaClient.GetAllAsync(p.Id, soloImpagas: true);
+            if (multas.Count > 0)
+            {
+                estadoPacienteTexto = $"⚠️ REGISTRA {multas.Count} MULTA(S) IMPAGA(S)";
+                pacienteHabilitado = false;
+                errorMessage = "El paciente debe saldar sus multas pendientes antes de solicitar un turno.";
+                return;
+            }
+
+            estadoPacienteTexto = $"✅ Habilitado - Cobertura: {p.ObraSocialNombre ?? "Particular"}";
+        }
+        catch
+        {
+            estadoPacienteTexto = "✅ Habilitado";
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        await OnClosed.InvokeAsync();
+    }
+
+    private async Task ReservarTurno()
+    {
+        errorMessage = "";
+
+        if (selectedPacienteId <= 0)
+        {
+            errorMessage = "Seleccione un paciente válido.";
+            return;
+        }
+
+        if (selectedOdontologoId <= 0)
+        {
+            errorMessage = "Seleccione un odontólogo disponible.";
+            return;
+        }
+
+        if (!aceptaPoliticas)
+        {
+            errorMessage = "Debe aceptar las políticas de cancelación y reprogramación.";
+            return;
+        }
+
+        TimeOnly.TryParse(horarioSeleccionado, out var horario);
+
+        isSaving = true;
+
+        try
+        {
+            var dto = new TurnoOdontologicoDTO
+            {
+                PacienteId = selectedPacienteId,
+                OdontologoId = selectedOdontologoId,
+                EspecialidadId = selectedEspecialidadId > 0 ? selectedEspecialidadId : 1,
+                Fecha = fechaCita.Date,
+                HorarioTurno = horario,
+                EstadoTurno = "Pendiente",
+                MontoEstimado = 12000m
+            };
+
+            var creado = await TurnoClient.ReservarAsync(dto);
+            if (creado != null)
+            {
+                await OnReserved.InvokeAsync(creado);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

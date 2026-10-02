@@ -1,0 +1,344 @@
+﻿@page "/turnos"
+@attribute [Authorize(Roles = "Admin,Recepcionista,Odontologo")]
+@inject TurnoApiClient ApiClient
+@inject OdontologoApiClient OdontologoClient
+
+<PageTitle>Gestión de Turnos - DentalClinic</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <!-- ENCABEZADO SUPERIOR -->
+    <div class="bg-white p-3 border-bottom shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Gestión de Turnos y Agenda Odontológica</h4>
+        <p class="text-muted small mb-0">Monitoreo de citas, estados de atención, cancelaciones y sala de espera</p>
+    </div>
+
+    <!-- TARJETAS MÉTRICAS -->
+    <div class="row g-3 p-3 m-0 bg-light">
+        <div class="col-md-2">
+            <div class="card-stat border-primary">
+                <span class="text-muted small fw-bold">Total Turnos</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@turnos.Count</h3>
+                <small class="text-secondary">En el período</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card-stat border-warning">
+                <span class="text-muted small fw-bold">Citados</span>
+                <h3 class="fw-bold my-1 text-warning">@turnos.Count(t => t.EstadoTurno == "Pendiente")</h3>
+                <small class="text-secondary">Por asistir</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat border-info">
+                <span class="text-muted small fw-bold">En Espera</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@turnos.Count(t => t.EstadoTurno == "Presente")</h3>
+                <small class="text-secondary">Llegaron a clínica</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat border-success">
+                <span class="text-muted small fw-bold">Atendidos</span>
+                <h3 class="fw-bold my-1 text-success">@turnos.Count(t => t.EstadoTurno == "Atendido")</h3>
+                <small class="text-secondary">Consultas realizadas</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card-stat border-danger">
+                <span class="text-muted small fw-bold">Inasistencias</span>
+                <h3 class="fw-bold my-1 text-danger">@turnos.Count(t => t.EstadoTurno == "NoAsistido")</h3>
+                <small class="text-secondary">Multados</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE FILTROS Y ACCIONES -->
+    <div class="bg-white p-3 border-top border-bottom">
+        <div class="row g-2 align-items-center">
+            <!-- FILTRO FECHA -->
+            <div class="col-md-3 d-flex align-items-center gap-2">
+                <div class="form-check me-1">
+                    <input class="form-check-input" type="checkbox" id="chkFiltrarFecha"
+                           @bind="usarFiltroFecha" @bind:after="CargarTurnos" />
+                    <label class="form-check-label fw-bold text-secondary" for="chkFiltrarFecha">Fecha:</label>
+                </div>
+                <input type="date" class="form-control" disabled="@(!usarFiltroFecha)"
+                       @bind="filtroFecha" @bind:after="CargarTurnos" />
+            </div>
+
+            <!-- FILTRO ESTADO -->
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-bold text-secondary">Estado:</span>
+                    <select class="form-select" @bind="filtroEstado" @bind:after="CargarTurnos">
+                        <option value="Todos">Todos los estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Presente">Presente</option>
+                        <option value="Atendido">Atendido</option>
+                        <option value="Cancelado">Cancelado</option>
+                        <option value="NoAsistido">NoAsistido</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- FILTRO ODONTÓLOGO -->
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-bold text-secondary">Odontólogo:</span>
+                    <select class="form-select" @bind="filtroOdontologoId" @bind:after="CargarTurnos">
+                        <option value="0">Todos los profesionales</option>
+                        @foreach (var o in filtroOdontologos)
+                        {
+                            <option value="@o.Id">@o.NombreCompleto</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="col-md-3 d-flex justify-content-end gap-2">
+                <button class="btn btn-theme-primary" @onclick="CargarTurnos" disabled="@isLoading">
+                    🔍 Filtrar
+                </button>
+                <button class="btn btn-theme-success" @onclick="() => showReservaModal = true">
+                    📅 Agendar Turno
+                </button>
+                <button class="btn btn-theme-danger" @onclick="SolicitarCancelarTurno" disabled="@(seleccionado == null)">
+                    ❌ Cancelar Turno
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE TURNOS -->
+    <div class="p-3">
+        <div class="table-responsive bg-white rounded shadow-sm border">
+            <table class="table table-hover align-middle mb-0 table-theme">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Fecha Cita</th>
+                        <th>Horario</th>
+                        <th>Paciente</th>
+                        <th>Odontólogo Asignado</th>
+                        <th>Especialidad</th>
+                        <th>Estado</th>
+                        <th>Observación / Motivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="small text-muted mt-2">Cargando agenda de turnos...</div>
+                            </td>
+                        </tr>
+                    }
+                    else if (turnos.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                No se encontraron turnos registrados para los criterios seleccionados.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var t in turnos)
+                        {
+                            <tr class="@(seleccionado?.Id == t.Id ? "selected-row" : "")"
+                                @onclick="() => seleccionado = t"
+                                style="cursor: pointer;">
+                                <td><strong>#@t.Id</strong></td>
+                                <td>@t.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge bg-light text-dark border">@t.HorarioTurno</span></td>
+                                <td>@t.PacienteNombre</td>
+                                <td>@t.OdontologoNombre</td>
+                                <td>@t.EspecialidadNombre</td>
+                                <td>
+                                    @switch (t.EstadoTurno)
+                                    {
+                                        case "Pendiente":
+                                            <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border border-warning">⏳ Citado (Pendiente)</span>
+                                            break;
+                                        case "Presente":
+                                            <span class="badge bg-info-subtle text-info fw-bold border border-info">✅ En Sala de Espera</span>
+                                            break;
+                                        case "Atendido":
+                                            <span class="badge bg-success-subtle text-success fw-bold border border-success">🩺 Atendido</span>
+                                            break;
+                                        case "Cancelado":
+                                            <span class="badge bg-secondary-subtle text-secondary fw-bold border border-secondary">🚫 Cancelado</span>
+                                            break;
+                                        case "NoAsistido":
+                                            <span class="badge bg-danger-subtle text-danger fw-bold border border-danger">❌ Ausente (Multado)</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-light text-dark border">@t.EstadoTurno</span>
+                                            break;
+                                    }
+                                </td>
+                                <td><small class="text-muted">@(t.MotivoCancelacion ?? "-")</small></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BARRA DE ESTADO INFERIOR -->
+        <div class="bg-white p-2 mt-2 border rounded text-muted small">
+            @lblEstado
+        </div>
+    </div>
+</div>
+
+<!-- MODAL RESERVA DE TURNO -->
+<TurnoReservaModal Show="showReservaModal"
+                   OnClosed="() => showReservaModal = false"
+                   OnReserved="HandleTurnoReservado" />
+
+<!-- MODAL COMPROBANTE TICKET DIGITAL -->
+<TurnoTicketModal Show="showTicketModal"
+                  Turno="turnoCreadoTicket"
+                  OnClosed="() => showTicketModal = false" />
+
+<!-- MODAL DE CONFIRMACIÓN DE CANCELACIÓN -->
+<ConfirmModal Show="showConfirmModal"
+              Titulo="Cancelar Turno"
+              Mensaje="@mensajeConfirmacion"
+              OnResponse="HandleConfirmacionCancelar" />
+
+<!-- MODAL ALERTA DE ADVERTENCIA -->
+@if (showAlertModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">⚠️ Atención</h5>
+                    <button type="button" class="btn-close" @onclick="() => showAlertModal = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-0 text-secondary">@alertMessage</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-theme-secondary" @onclick="() => showAlertModal = false">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<TurnoOdontologicoDTO> turnos = new();
+    private List<OdontologoDTO> filtroOdontologos = new();
+    private TurnoOdontologicoDTO? seleccionado;
+
+    private bool usarFiltroFecha = false;
+    private DateTime filtroFecha = DateTime.Today;
+    private string filtroEstado = "Todos";
+    private int filtroOdontologoId = 0;
+
+    private string lblEstado = "Cargando turnos...";
+    private bool isLoading = false;
+
+    // Modales
+    private bool showReservaModal = false;
+    private bool showTicketModal = false;
+    private TurnoOdontologicoDTO? turnoCreadoTicket;
+
+    private bool showConfirmModal = false;
+    private string mensajeConfirmacion = "";
+
+    private bool showAlertModal = false;
+    private string alertMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarFiltroOdontologos();
+        await CargarTurnos();
+    }
+
+    private async Task CargarFiltroOdontologos()
+    {
+        try
+        {
+            filtroOdontologos = await OdontologoClient.GetAllAsync();
+        }
+        catch { }
+    }
+
+    private async Task CargarTurnos()
+    {
+        isLoading = true;
+        lblEstado = "Cargando turnos...";
+
+        try
+        {
+            var criteria = new TurnoCriteriaDTO();
+
+            if (usarFiltroFecha)
+                criteria.Fecha = filtroFecha.Date;
+
+            if (filtroEstado != "Todos")
+                criteria.EstadoTurno = filtroEstado;
+
+            if (filtroOdontologoId > 0)
+                criteria.OdontologoId = filtroOdontologoId;
+
+            turnos = await ApiClient.GetByCriteriaAsync(criteria);
+            lblEstado = $"Agenda cargada: {turnos.Count} turno(s) en listado.";
+
+            if (seleccionado != null)
+            {
+                seleccionado = turnos.FirstOrDefault(t => t.Id == seleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleTurnoReservado(TurnoOdontologicoDTO creado)
+    {
+        showReservaModal = false;
+        turnoCreadoTicket = creado;
+        showTicketModal = true;
+        await CargarTurnos();
+    }
+
+    private void SolicitarCancelarTurno()
+    {
+        if (seleccionado == null) return;
+
+        if (seleccionado.EstadoTurno == "Cancelado" || seleccionado.EstadoTurno == "Atendido")
+        {
+            alertMessage = $"No se puede cancelar un turno en estado {seleccionado.EstadoTurno}.";
+            showAlertModal = true;
+            return;
+        }
+
+        mensajeConfirmacion = $"¿Desea cancelar el turno de {seleccionado.PacienteNombre} para el {seleccionado.Fecha:dd/MM/yyyy} a las {seleccionado.HorarioTurno}?";
+        showConfirmModal = true;
+    }
+
+    private async Task HandleConfirmacionCancelar(bool confirmado)
+    {
+        showConfirmModal = false;
+
+        if (confirmado && seleccionado != null)
+        {
+            await ApiClient.CancelarAsync(seleccionado.Id, "Cancelación solicitada por el usuario");
+            seleccionado = null;
+            await CargarTurnos();
+        }
+    }
+}

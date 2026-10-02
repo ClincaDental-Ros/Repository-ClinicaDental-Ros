@@ -1,0 +1,48 @@
+﻿@inject BlazorUI.Auth.BlazorAuthService AuthService
+
+@if (!initialized)
+{
+    <p class="text-center mt-5">Cargando...</p>
+}
+else
+{
+    <Router AppAssembly="typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="alert alert-warning text-center mt-5">
+                            <h4>Acceso Denegado</h4>
+                            <p>No tenés permisos para ver esta página.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger text-center mt-5">
+                            <h4>Sesión Expirada</h4>
+                            <p>Por favor, <a href="/login">iniciá sesión</a> para continuar.</p>
+                        </div>
+                    }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>No encontrado</PageTitle>
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <p role="alert">Lo sentimos, no hay nada en esta dirección.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+}
+
+@code {
+    private bool initialized;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+        initialized = true;
+    }
+}

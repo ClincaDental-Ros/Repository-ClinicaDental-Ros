@@ -7,6 +7,17 @@ namespace API.Clients
 {
     public class AuthApiClient : BaseApiClient
     {
+        // Constructor viejo: lo usa WindowsForms (new AuthApiClient())
+        public AuthApiClient() : base()
+        {
+        }
+
+        // Constructor nuevo: lo usa Blazor por inyección de dependencias
+        public AuthApiClient(HttpClient httpClient, IAuthService authService)
+            : base(httpClient, authService)
+        {
+        }
+
         public async Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO request)
         {
             var client = await GetConfiguredClientAsync();
@@ -14,7 +25,6 @@ namespace API.Clients
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-              
                 return null;
             }
 

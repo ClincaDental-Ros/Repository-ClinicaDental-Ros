@@ -1,0 +1,195 @@
+﻿@page "/cobro"
+@attribute [Authorize(Roles = "Admin, Recepcionista")]
+@inject FacturaApiClient ApiClient
+
+<PageTitle>Caja y Facturación - DentalClinic</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <!-- ENCABEZADO SUPERIOR -->
+    <div class="bg-white p-3 border-bottom shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Módulo de Cobro, Caja y Liquidación a Obras Sociales</h4>
+        <p class="text-muted small mb-0">Emisión de comprobantes, liquidación de coseguros, descuentos de obras sociales y pagos recibidos</p>
+    </div>
+
+    <!-- TARJETAS MÉTRICAS (UITheme) -->
+    <div class="row g-3 p-3 m-0 bg-light">
+        <div class="col-md-3">
+            <div class="card-stat border-primary">
+                <span class="text-muted small fw-bold">Total Facturado</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@facturas.Sum(f => f.Total).ToString("C0")</h3>
+                <small class="text-secondary">Consultas + Insumos</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat border-success">
+                <span class="text-muted small fw-bold">Cobrado en Caja</span>
+                <h3 class="fw-bold my-1 text-success">@facturas.Where(f => f.EstadoPago).Sum(f => f.MontoAPagarPaciente).ToString("C0")</h3>
+                <small class="text-secondary">Efectivo y Tarjetas</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat border-info">
+                <span class="text-muted small fw-bold">A Liquidar O.S.</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@facturas.Sum(f => f.DescuentoObraSocial).ToString("C0")</h3>
+                <small class="text-secondary">Obras Sociales</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat @(PendientesCount > 0 ? "border-warning" : "border-secondary")">
+                <span class="text-muted small fw-bold">Pendientes de Cobro</span>
+                <h3 class="fw-bold my-1 @(PendientesCount > 0 ? "text-warning" : "text-secondary")">@PendientesCount</h3>
+                <small class="text-secondary">Órdenes en espera</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE ACCIONES -->
+    <div class="bg-white p-3 border-top border-bottom">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-theme-primary" @onclick="CargarFacturas" disabled="@isLoading">
+                🔄 Actualizar Lista
+            </button>
+            <button class="btn btn-theme-success" @onclick="AbrirDetalleSeleccionado" disabled="@(seleccionado == null)">
+                🧾 Abrir Detalle y Cobrar
+            </button>
+        </div>
+    </div>
+
+    <!-- TABLA DE FACTURAS -->
+    <div class="p-3">
+        <div class="table-responsive bg-white rounded shadow-sm border">
+            <table class="table table-hover align-middle mb-0 table-theme">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Factura N°</th>
+                        <th>Fecha Emisión</th>
+                        <th>Paciente</th>
+                        <th>Obra Social</th>
+                        <th>Total Prestación</th>
+                        <th>Desc. Obra Social</th>
+                        <th>A Pagar Paciente</th>
+                        <th>Estado Cobro</th>
+                        <th>Medio de Pago</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="small text-muted mt-2">Cargando comprobantes...</div>
+                            </td>
+                        </tr>
+                    }
+                    else if (facturas.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                No hay facturas o liquidaciones registradas.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var f in facturas)
+                        {
+                            <tr class="@(seleccionado?.Id == f.Id ? "selected-row" : "")"
+                                @onclick="() => seleccionado = f"
+                                @ondblclick="() => AbrirDetalle(f)"
+                                style="cursor: pointer;">
+                                <td><strong>#@f.Id</strong></td>
+                                <td>@f.FechaEmision.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@f.PacienteNombre</td>
+                                <td>@f.ObraSocialNombre</td>
+                                <td>@f.Total.ToString("C2")</td>
+                                <td class="text-success fw-bold"> -@f.DescuentoObraSocial.ToString("C2")</td>
+                                <td><strong>@f.MontoAPagarPaciente.ToString("C2")</strong></td>
+                                <td>
+                                    @if (f.EstadoPago)
+                                    {
+                                        <span class="badge bg-success-subtle text-success fw-bold border border-success">✅ PAGADO</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border border-warning">⏳ PENDIENTE</span>
+                                    }
+                                </td>
+                                <td><small class="text-muted">@(f.MetodoPago ?? "-")</small></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-2 mt-2 border rounded text-muted small">
+            @lblEstado
+        </div>
+    </div>
+</div>
+
+<!-- SUBCOMPONENTE MODAL DE FACTURA -->
+<FacturaDetalleModal Show="showModal"
+                     Factura="modalFactura"
+                     OnClosed="() => showModal = false"
+                     OnPaid="HandleFacturaPagada" />
+
+@code {
+    private List<FacturaDTO> facturas = new();
+    private FacturaDTO? seleccionado;
+    private string lblEstado = "Cargando facturas...";
+    private bool isLoading = false;
+
+    private bool showModal = false;
+    private FacturaDTO? modalFactura;
+
+    private int PendientesCount => facturas.Count(f => !f.EstadoPago);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarFacturas();
+    }
+
+    private async Task CargarFacturas()
+    {
+        isLoading = true;
+        lblEstado = "Cargando facturas desde la API...";
+        try
+        {
+            facturas = await ApiClient.GetAllAsync();
+            lblEstado = $"Total facturas: {facturas.Count}. Pendientes de cobro en caja: {PendientesCount}.";
+
+            if (seleccionado != null)
+            {
+                seleccionado = facturas.FirstOrDefault(f => f.Id == seleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void AbrirDetalle(FacturaDTO f)
+    {
+        modalFactura = f;
+        showModal = true;
+    }
+
+    private void AbrirDetalleSeleccionado()
+    {
+        if (seleccionado != null) AbrirDetalle(seleccionado);
+    }
+
+    private async Task HandleFacturaPagada()
+    {
+        showModal = false;
+        await CargarFacturas();
+    }
+}

@@ -1,0 +1,326 @@
+﻿@page "/reportes"
+@attribute [Authorize(Roles = "Admin,Recepcionista")]
+@inject ReportesApiClient ReportesClient
+@inject PacienteApiClient PacienteClient
+
+<PageTitle>Reportes y Auditoría - DentalClinic</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <!-- ENCABEZADO SUPERIOR -->
+    <div class="bg-white p-3 border-bottom shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Módulo de Reportes, Auditoría y Estadísticas</h4>
+        <p class="text-muted small mb-0">Métricas de ausentismo, liquidación a obras sociales, balance financiero e historial médico</p>
+    </div>
+
+    <!-- PESTAÑAS (NAV-TABS) -->
+    <div class="bg-white border-bottom px-3 pt-2">
+        <ul class="nav nav-tabs border-0">
+            <li class="nav-item">
+                <button class="nav-link fw-bold @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">
+                    📅 Citas del Día
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">
+                    ⚠️ Tasa de Ausentismo y Multas
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold @(activeTab == 2 ? "active" : "")" @onclick="() => activeTab = 2">
+                    💰 Facturación y Obras Sociales
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">
+                    📋 Historia Clínica
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- CONTENIDO PESTAÑA 0: CITAS DEL DÍA -->
+    @if (activeTab == 0)
+    {
+        <div class="p-3">
+            <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3">
+                <label class="fw-bold text-secondary">Fecha:</label>
+                <input type="date" class="form-control" style="width: 180px;" @bind="fechaTurnosDia" @bind:after="CargarReporteTurnos" />
+                <button class="btn btn-theme-primary" @onclick="CargarReporteTurnos">🔄 Consultar</button>
+            </div>
+
+            @if (reporteTurnos != null)
+            {
+                <div class="p-3 rounded mb-3 text-white fw-bold" style="background-color: var(--color-primary);">
+                    📊 Total: @reporteTurnos.TotalTurnos | Pendientes: @reporteTurnos.TurnosPendientes | En Sala: @reporteTurnos.TurnosPresentes | Atendidos: @reporteTurnos.TurnosAtendidos | Ausencias: @reporteTurnos.TurnosAusentes | Cancelados: @reporteTurnos.TurnosCancelados
+                </div>
+
+                <div class="table-responsive bg-white rounded shadow-sm border">
+                    <table class="table table-hover align-middle mb-0 table-theme">
+                        <thead>
+                            <tr>
+                                <th>Horario</th>
+                                <th>Paciente Citado</th>
+                                <th>Profesional Asignado</th>
+                                <th>Especialidad</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in reporteTurnos.DetalleTurnos)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border">@t.HorarioTurno</span></td>
+                                    <td>@t.PacienteNombre</td>
+                                    <td>@t.OdontologoNombre</td>
+                                    <td>@t.EspecialidadNombre</td>
+                                    <td><span class="badge bg-secondary-subtle text-dark border">@t.EstadoTurno</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- CONTENIDO PESTAÑA 1: AUSENTISMO -->
+    @if (activeTab == 1)
+    {
+        <div class="p-3">
+            <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3 flex-wrap">
+                <label class="fw-bold text-secondary">Desde:</label>
+                <input type="date" class="form-control" style="width: 170px;" @bind="ausDesde" />
+                <label class="fw-bold text-secondary">Hasta:</label>
+                <input type="date" class="form-control" style="width: 170px;" @bind="ausHasta" />
+                <button class="btn btn-theme-primary" @onclick="CargarReporteAusentismo">📊 Calcular Métricas</button>
+            </div>
+
+            @if (reporteAusentismo != null)
+            {
+                <div class="bg-white p-4 rounded shadow-sm border">
+                    <h5 class="fw-bold text-danger border-bottom pb-2">
+                        📊 INFORME EJECUTIVO DE AUSENTISMO Y SANCIONES CLÍNICAS
+                    </h5>
+                    <p class="text-muted small">Período Evaluado: @reporteAusentismo.FechaDesde.ToString("dd/MM/yyyy") al @reporteAusentismo.FechaHasta.ToString("dd/MM/yyyy")</p>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded border">
+                                <span class="text-secondary small fw-bold">Turnos Programados</span>
+                                <h4 class="fw-bold mb-0 text-dark">@reporteAusentismo.TotalTurnosProgramados</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded border">
+                                <span class="text-secondary small fw-bold">Inasistencias Registradas</span>
+                                <h4 class="fw-bold mb-0 text-danger">@reporteAusentismo.TotalAusencias</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded border">
+                                <span class="text-secondary small fw-bold">Tasa de Ausentismo Global</span>
+                                <h4 class="fw-bold mb-0 text-danger">@reporteAusentismo.PorcentajeAusentismo %</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-light border-start border-4 border-danger rounded">
+                        <p class="mb-1"><strong>• Total de Multas Emitidas:</strong> @reporteAusentismo.TotalMultasGeneradas.ToString("C2")</p>
+                        <p class="mb-1"><strong>• Total de Multas Cobradas / Regularizadas:</strong> @reporteAusentismo.TotalMultasCobradas.ToString("C2")</p>
+                        <p class="mb-0 text-danger"><strong>• Saldo Pendiente de Cobro por Multas:</strong> @((reporteAusentismo.TotalMultasGeneradas - reporteAusentismo.TotalMultasCobradas).ToString("C2"))</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- CONTENIDO PESTAÑA 2: FACTURACIÓN -->
+    @if (activeTab == 2)
+    {
+        <div class="p-3">
+            <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3 flex-wrap">
+                <label class="fw-bold text-secondary">Desde:</label>
+                <input type="date" class="form-control" style="width: 170px;" @bind="facDesde" />
+                <label class="fw-bold text-secondary">Hasta:</label>
+                <input type="date" class="form-control" style="width: 170px;" @bind="facHasta" />
+                <button class="btn btn-theme-primary" @onclick="CargarReporteFacturacion">📈 Liquidar Período</button>
+            </div>
+
+            @if (reporteFacturacion != null)
+            {
+                <div class="p-3 rounded mb-3 text-white fw-bold" style="background-color: var(--color-primary);">
+                    📈 Total Facturado: @reporteFacturacion.TotalFacturado.ToString("C2") | Cobrado en Caja: @reporteFacturacion.TotalCobradoPacientes.ToString("C2") | Liquidación O.S.: @reporteFacturacion.TotalLiquidadoObrasSociales.ToString("C2") | Consultas: @reporteFacturacion.CantidadConsultasAtendidas
+                </div>
+
+                <div class="table-responsive bg-white rounded shadow-sm border">
+                    <table class="table table-hover align-middle mb-0 table-theme">
+                        <thead>
+                            <tr>
+                                <th>N° Factura</th>
+                                <th>Fecha</th>
+                                <th>Paciente</th>
+                                <th>Obra Social</th>
+                                <th>Total Prestación</th>
+                                <th>Liq. Obra Social</th>
+                                <th>Cobrado Paciente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in reporteFacturacion.Facturas)
+                            {
+                                <tr>
+                                    <td><strong>#@f.Id</strong></td>
+                                    <td>@f.FechaEmision.ToString("dd/MM/yyyy")</td>
+                                    <td>@f.PacienteNombre</td>
+                                    <td>@f.ObraSocialNombre</td>
+                                    <td>@f.Total.ToString("C2")</td>
+                                    <td class="text-success fw-bold">@f.DescuentoObraSocial.ToString("C2")</td>
+                                    <td><strong>@f.MontoAPagarPaciente.ToString("C2")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- CONTENIDO PESTAÑA 3: HISTORIA CLÍNICA -->
+    @if (activeTab == 3)
+    {
+        <div class="p-3">
+            <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3 flex-wrap">
+                <label class="fw-bold text-secondary">Paciente:</label>
+                <select class="form-select" style="max-width: 380px;" value="@selectedPacienteHCId" @onchange="OnPacienteHCChanged">
+                    @foreach (var p in pacientes)
+                    {
+                        <option value="@p.Id">@p.NombreCompleto</option>
+                    }
+                </select>
+                <button class="btn btn-theme-primary" @onclick="CargarHistoriaClinicaPaciente">🔍 Ver Ficha</button>
+            </div>
+
+            @if (historiaClinica != null)
+            {
+                <div class="bg-white p-3 border rounded shadow-sm mb-3">
+                    <h6 class="fw-bold mb-1" style="color: var(--color-primary);">
+                        📋 Historia Clínica N° @historiaClinica.NumeroHistoriaClinica.ToString("D5") - Paciente: @historiaClinica.PacienteNombre (Alta: @historiaClinica.FechaAlta.ToString("dd/MM/yyyy"))
+                    </h6>
+                    <p class="mb-1 small"><strong>• Antecedentes Médicos:</strong> @historiaClinica.AntecedentesMedicos | <strong>Alergias:</strong> @historiaClinica.Alergias</p>
+                    <p class="mb-0 small text-muted"><strong>• Observaciones Generales:</strong> @historiaClinica.ObservacionesGenerales</p>
+                </div>
+
+                <div class="table-responsive bg-white rounded shadow-sm border">
+                    <table class="table table-hover align-middle mb-0 table-theme">
+                        <thead>
+                            <tr>
+                                <th>Fecha Atención</th>
+                                <th>Profesional Interviniente</th>
+                                <th>Diagnóstico (CIE-10)</th>
+                                <th>Tratamiento Realizado</th>
+                                <th>Evolución y Notas Clínicas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (historiaClinica.ConsultasPrevias == null || historiaClinica.ConsultasPrevias.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-3 text-muted">El paciente no registra consultas anteriores.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in historiaClinica.ConsultasPrevias)
+                                {
+                                    <tr>
+                                        <td>@c.Fecha.ToString("dd/MM/yyyy")</td>
+                                        <td>@c.OdontologoNombre</td>
+                                        <td><span class="badge bg-light text-dark border">@c.Diagnostico</span></td>
+                                        <td>@c.Tratamiento</td>
+                                        <td><small class="text-muted">@c.Observaciones</small></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private int activeTab = 0;
+
+    // Tab 0
+    private DateTime fechaTurnosDia = DateTime.Today;
+    private ReporteTurnosDiaDTO? reporteTurnos;
+
+    // Tab 1
+    private DateTime ausDesde = DateTime.Today.AddDays(-30);
+    private DateTime ausHasta = DateTime.Today;
+    private ReporteAusentismoDTO? reporteAusentismo;
+
+    // Tab 2
+    private DateTime facDesde = DateTime.Today.AddDays(-30);
+    private DateTime facHasta = DateTime.Today;
+    private ReporteFacturacionDTO? reporteFacturacion;
+
+    // Tab 3
+    private List<PacienteDTO> pacientes = new();
+    private int selectedPacienteHCId = 0;
+    private HistoriaClinicaDTO? historiaClinica;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarReporteTurnos();
+        await CargarReporteAusentismo();
+        await CargarReporteFacturacion();
+        await CargarPacientesHC();
+    }
+
+    private async Task CargarReporteTurnos()
+    {
+        try { reporteTurnos = await ReportesClient.GetTurnosDiaAsync(fechaTurnosDia.Date); } catch { }
+    }
+
+    private async Task CargarReporteAusentismo()
+    {
+        try { reporteAusentismo = await ReportesClient.GetAusentismoAsync(ausDesde.Date, ausHasta.Date); } catch { }
+    }
+
+    private async Task CargarReporteFacturacion()
+    {
+        try { reporteFacturacion = await ReportesClient.GetFacturacionAsync(facDesde.Date, facHasta.Date); } catch { }
+    }
+
+    private async Task CargarPacientesHC()
+    {
+        try
+        {
+            pacientes = await PacienteClient.GetAllAsync();
+            if (pacientes.Count > 0)
+            {
+                selectedPacienteHCId = pacientes[0].Id;
+                await CargarHistoriaClinicaPaciente();
+            }
+        }
+        catch { }
+    }
+
+    private async Task OnPacienteHCChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            selectedPacienteHCId = id;
+            await CargarHistoriaClinicaPaciente();
+        }
+    }
+
+    private async Task CargarHistoriaClinicaPaciente()
+    {
+        if (selectedPacienteHCId <= 0) return;
+        try { historiaClinica = await ReportesClient.GetHistoriaClinicaAsync(selectedPacienteHCId); } catch { }
+    }
+}

@@ -1,0 +1,339 @@
+﻿@page "/pacientes"
+@attribute [Authorize(Roles = "Admin,Recepcionista")]
+@inject PacienteApiClient ApiClient
+
+<PageTitle>Gestión de Pacientes - DentalClinic</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <!-- ENCABEZADO SUPERIOR -->
+    <div class="bg-white p-3 border-bottom shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Gestión de Pacientes y Fichas Médicas</h4>
+        <p class="text-muted small mb-0">Padrón general, control de habilitaciones, obras sociales y antecedentes clínicos</p>
+    </div>
+
+    <!-- TARJETAS MÉTRICAS  -->
+    <div class="row g-3 p-3 m-0 bg-light">
+        <div class="col-md-3">
+            <div class="card-stat border-primary">
+                <span class="text-muted small fw-bold">Total Pacientes</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@pacientes.Count</h3>
+                <small class="text-secondary">Registrados en clínica</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat border-success">
+                <span class="text-muted small fw-bold">Habilitados</span>
+                <h3 class="fw-bold my-1 text-success">@pacientes.Count(p => p.EstadoHabilitado)</h3>
+                <small class="text-secondary">Aptos para turnos</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat border-danger">
+                <span class="text-muted small fw-bold">Inhabilitados</span>
+                <h3 class="fw-bold my-1 text-danger">@pacientes.Count(p => !p.EstadoHabilitado)</h3>
+                <small class="text-secondary">Con multas o deudas</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-stat border-info">
+                <span class="text-muted small fw-bold">Con Obra Social</span>
+                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@pacientes.Count(p => p.ObraSocialId.HasValue && p.ObraSocialId.Value != 4)</h3>
+                <small class="text-secondary">Prepagas y mutuales</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE FILTROS Y ACCIONES -->
+    <div class="bg-white p-3 border-top border-bottom">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-light fw-bold text-secondary">Buscar:</span>
+                    <input type="text" class="form-control" placeholder="Nombre, Apellido, DNI o Email..."
+                           @bind="textoBuscar" @bind:event="oninput" @onkeyup="HandleKeyUp" />
+                </div>
+            </div>
+            <div class="col-md-2 d-flex align-items-center">
+                <div class="form-check ms-2">
+                    <input class="form-check-input" type="checkbox" id="chkSoloHabilitados"
+                           @bind="soloHabilitados" @bind:after="CargarPacientes" />
+                    <label class="form-check-label fw-semibold text-secondary" for="chkSoloHabilitados">
+                        Solo Habilitados
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-7 d-flex justify-content-end gap-2 flex-wrap">
+                <button class="btn btn-theme-primary" @onclick="CargarPacientes" disabled="@isLoading">🔍 Buscar</button>
+                <button class="btn btn-theme-success" @onclick="AbrirModalNuevo">+ Nuevo Paciente</button>
+                <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">✏️ Modificar</button>
+                <button class="btn btn-warning fw-bold text-dark" @onclick="SolicitarToggleHabilitacion" disabled="@(seleccionado == null)">🔒 Cambiar Estado</button>
+                <button class="btn btn-theme-danger" @onclick="SolicitarEliminar" disabled="@(seleccionado == null)">🗑️ Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE PACIENTES -->
+    <div class="p-3">
+        <div class="table-responsive bg-white rounded shadow-sm border">
+            <table class="table table-hover align-middle mb-0 table-theme">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>DNI / Doc.</th>
+                        <th>Apellido</th>
+                        <th>Nombre</th>
+                        <th>Usuario Portal</th>
+                        <th>Teléfono</th>
+                        <th>Correo Electrónico</th>
+                        <th>Obra Social / Cobertura</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="small text-muted mt-2">Cargando pacientes desde la base de datos...</div>
+                            </td>
+                        </tr>
+                    }
+                    else if (pacientes.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                No se encontraron pacientes registrados con los criterios seleccionados.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var p in pacientes)
+                        {
+                            <tr class="@(seleccionado?.Id == p.Id ? "selected-row" : "")"
+                                @onclick="() => seleccionado = p"
+                                @ondblclick="() => AbrirModalEditar(p)"
+                                style="cursor: pointer;">
+                                <td><strong>#@p.Id</strong></td>
+                                <td>@p.Dni</td>
+                                <td>@p.Apellido</td>
+                                <td>@p.Nombre</td>
+                                <td><span class="badge bg-light text-dark border">@(p.Username ?? "N/A")</span></td>
+                                <td>@p.Telefono</td>
+                                <td>@p.Mail</td>
+                                <td>@(p.ObraSocialNombre ?? "Particular")</td>
+                                <td>
+                                    @if (p.EstadoHabilitado)
+                                    {
+                                        <span class="badge bg-success-subtle text-success fw-bold border border-success">✅ Habilitado</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger fw-bold border border-danger">❌ Inhabilitado</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-2 mt-2 border rounded text-muted small">
+            @lblEstado
+        </div>
+    </div>
+</div>
+
+<!-- SUBCOMPONENTE MODAL -->
+<PacienteDetalleModal Show="showModal"
+                      Model="modalModel"
+                      IsEditing="isEditing"
+                      OnClosed="() => showModal = false"
+                      OnSaved="HandlePacienteGuardado" />
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<ConfirmModal Show="showConfirmModal"
+              Titulo="@confirmTitle"
+              Mensaje="@confirmMessage"
+              OnResponse="HandleConfirmacion" />
+
+<!-- MODAL CONFIRMACIÓN CREDENCIALES -->
+@if (showCredsModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold">Alta de Paciente Exitosa</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => showCredsModal = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="fw-bold mb-3 text-dark">¡Paciente registrado con éxito!</p>
+                    <div class="p-3 bg-light rounded border">
+                        <p class="fw-bold text-primary mb-2">🔑 Credenciales para el Portal del Paciente:</p>
+                        <p class="mb-1"><strong>• Usuario:</strong> <code>@createdUsername</code></p>
+                        <p class="mb-0"><strong>• Contraseña:</strong> <code>@createdPassword</code></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success fw-bold px-4" @onclick="() => showCredsModal = false">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<PacienteDTO> pacientes = new();
+    private PacienteDTO? seleccionado;
+    private string textoBuscar = "";
+    private bool soloHabilitados = false;
+    private string lblEstado = "Cargando pacientes...";
+    private bool isLoading = false;
+
+    private bool showModal = false;
+    private bool isEditing = false;
+    private PacienteDTO modalModel = new();
+
+    private bool showConfirmModal = false;
+    private string confirmTitle = "";
+    private string confirmMessage = "";
+    private TipoAccionConfirmar accionPendiente;
+
+    private enum TipoAccionConfirmar
+    {
+        ToggleEstado,
+        Eliminar
+    }
+
+    private bool showCredsModal = false;
+    private string createdUsername = "";
+    private string createdPassword = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarPacientes();
+    }
+
+    private async Task CargarPacientes()
+    {
+        isLoading = true;
+        lblEstado = "Buscando pacientes en la base de datos...";
+        try
+        {
+            bool? habilitadosFilter = soloHabilitados ? true : null;
+            pacientes = await ApiClient.GetByCriteriaAsync(textoBuscar.Trim(), habilitadosFilter);
+            lblEstado = $"Padrón activo: {pacientes.Count} paciente(s) registrado(s). Habilitados: {pacientes.Count(p => p.EstadoHabilitado)}.";
+            if (seleccionado != null)
+            {
+                seleccionado = pacientes.FirstOrDefault(p => p.Id == seleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error al cargar: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await CargarPacientes();
+    }
+
+    private void AbrirModalNuevo()
+    {
+        modalModel = new PacienteDTO { EstadoHabilitado = true };
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void AbrirModalEditar(PacienteDTO p)
+    {
+        modalModel = new PacienteDTO
+        {
+            Id = p.Id,
+            Nombre = p.Nombre,
+            Apellido = p.Apellido,
+            Dni = p.Dni,
+            Telefono = p.Telefono,
+            Mail = p.Mail,
+            Domicilio = p.Domicilio,
+            EstadoHabilitado = p.EstadoHabilitado,
+            ObraSocialId = p.ObraSocialId,
+            NumeroAfiliado = p.NumeroAfiliado,
+            Username = p.Username,
+            PasswordDefault = p.PasswordDefault
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void ModificarSeleccionado()
+    {
+        if (seleccionado != null) AbrirModalEditar(seleccionado);
+    }
+
+    private async Task HandlePacienteGuardado(PacienteDTO guardado)
+    {
+        showModal = false;
+        if (!isEditing)
+        {
+            createdUsername = guardado.Username ?? (string.IsNullOrWhiteSpace(guardado.Mail) ? $"{guardado.Nombre.ToLower()}{guardado.Dni}" : guardado.Mail.Split('@')[0]);
+            createdPassword = guardado.PasswordDefault ?? "paciente123";
+            showCredsModal = true;
+        }
+        await CargarPacientes();
+    }
+
+    private void SolicitarToggleHabilitacion()
+    {
+        if (seleccionado == null) return;
+        bool nuevoEstado = !seleccionado.EstadoHabilitado;
+        string accion = nuevoEstado ? "HABILITAR" : "INHABILITAR (Bloqueo de turnos)";
+
+        confirmTitle = "Control de Estado";
+        confirmMessage = $"¿Desea {accion} al paciente {seleccionado.Apellido}, {seleccionado.Nombre}?";
+        accionPendiente = TipoAccionConfirmar.ToggleEstado;
+        showConfirmModal = true;
+    }
+
+    private void SolicitarEliminar()
+    {
+        if (seleccionado == null) return;
+
+        confirmTitle = "Confirmar Eliminación";
+        confirmMessage = $"¿Está seguro de eliminar la ficha médica del paciente {seleccionado.Apellido}, {seleccionado.Nombre}?\nEsta acción no se puede deshacer.";
+        accionPendiente = TipoAccionConfirmar.Eliminar;
+        showConfirmModal = true;
+    }
+
+    private async Task HandleConfirmacion(bool confirmado)
+    {
+        showConfirmModal = false;
+
+        if (!confirmado || seleccionado == null) return;
+
+        if (accionPendiente == TipoAccionConfirmar.ToggleEstado)
+        {
+            seleccionado.EstadoHabilitado = !seleccionado.EstadoHabilitado;
+            await ApiClient.UpdateAsync(seleccionado);
+            await CargarPacientes();
+        }
+        else if (accionPendiente == TipoAccionConfirmar.Eliminar)
+        {
+            var ok = await ApiClient.DeleteAsync(seleccionado.Id);
+            if (ok)
+            {
+                seleccionado = null;
+                await CargarPacientes();
+            }
+        }
+    }
+}

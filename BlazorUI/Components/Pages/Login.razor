@@ -1,0 +1,128 @@
+﻿@page "/login"
+@attribute [AllowAnonymous]
+
+@inject AuthApiClient AuthClient
+@inject BlazorAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Clínica Odontológica - Acceso al Sistema</PageTitle>
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm p-4" style="width: 100%; max-width: 420px; border-radius: 8px; border: 1px solid var(--color-border); background-color: var(--color-card-bg);">
+
+        <div class="text-center mb-3">
+            <div style="font-size: 2.5rem; line-height: 1;">🦷</div>
+            <h3 class="fw-bold mt-2 mb-1" style="color: var(--color-text-primary);">Clínica Odontológica</h3>
+            <p class="text-muted small mb-0">Gestión Odontológica Profesional • Sede Rosario</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(lblError))
+        {
+            <div class="alert alert-danger text-center py-2 px-3 small my-2" role="alert">
+                @lblError
+            </div>
+        }
+
+        <!-- 1. Formulario limpio: Sin FormName ni configuraciones extrañas -->
+        <EditForm Model="loginModel" OnValidSubmit="RealizarLogin">
+            <div class="mb-3">
+                <label class="form-label fw-bold mb-1" style="color: var(--color-text-primary); font-size: 0.9rem;">Usuario / Número de Documento:</label>
+                <InputText @bind-Value="loginModel.Username" class="form-control" disabled="@isSubmitting" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold mb-1" style="color: var(--color-text-primary); font-size: 0.9rem;">Contraseña:</label>
+                <div class="input-group">
+                    <InputText @bind-Value="loginModel.Password" type="@(showPassword ? "text" : "password")" class="form-control" disabled="@isSubmitting" />
+                    <button type="button" class="btn btn-theme-secondary" @onclick="ToggleShowPassword" tabindex="-1">
+                        @(showPassword ? "🙈" : "👁")
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 mb-2">
+                <button type="submit" class="btn btn-theme-primary w-100 py-2" disabled="@isSubmitting">
+                    @(isSubmitting ? "Autenticando..." : "Iniciar Sesión")
+                </button>
+            </div>
+        </EditForm>
+
+        <div class="text-center mt-3 pt-2 border-top">
+            <small class="text-muted" style="font-size: 0.75rem;">© 2026 Clínica Odontológica Rosario • Todos los derechos reservados</small>
+        </div>
+    </div>
+</div>
+
+@code {
+    // 2. Modelo privado y simple. Chau [SupplyParameterFromForm].
+    private LoginRequestDTO loginModel = new();
+
+    private string lblError = "";
+    private bool isSubmitting = false;
+    private bool showPassword = false;
+
+    private void ToggleShowPassword()
+    {
+        showPassword = !showPassword;
+    }
+
+    private async Task RealizarLogin()
+    {
+        if (string.IsNullOrWhiteSpace(loginModel.Username) || string.IsNullOrWhiteSpace(loginModel.Password))
+        {
+            lblError = "Ingresá tu usuario y contraseña.";
+            return;
+        }
+
+        lblError = "";
+        isSubmitting = true;
+        string? urlDestino = null; // Variable para guardar a dónde vamos
+
+        try
+        {
+            var request = new LoginRequestDTO
+            {
+                Username = loginModel.Username.Trim(),
+                Password = loginModel.Password.Trim()
+            };
+
+            var response = await AuthClient.LoginAsync(request);
+            if (response != null && !string.IsNullOrWhiteSpace(response.Token))
+            {
+                // Guarda el token y avisa a Blazor que el usuario ya está logueado
+                AuthService.SetSession(response);
+
+                var rol = AuthService.GetRol();
+                urlDestino = rol switch
+                {
+                    "Paciente" => "/portal-paciente",
+                    "Odontologo" => "/atencion-clinica",
+                    "Recepcionista" => "/admision",
+                    _ => "/turnos"
+                };
+            }
+            else
+            {
+                lblError = "Usuario no existente o contraseña incorrecta.";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            lblError = "Error de conexión con el servidor o la base de datos.";
+        }
+        catch (Exception ex)
+        {
+            lblError = $"Error imprevisto: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+
+        // 3. Navegación FUERA del try-catch y SIN forceLoad
+        if (!string.IsNullOrEmpty(urlDestino))
+        {
+            Navigation.NavigateTo(urlDestino);
+        }
+    }
+}

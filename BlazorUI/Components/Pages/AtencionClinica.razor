@@ -1,0 +1,288 @@
+﻿@page "/atencion-clinica"
+@attribute [Authorize(Roles = "Odontologo, Admin")]
+@inject TurnoApiClient TurnoClient
+@inject ConsultaApiClient ConsultaClient
+@inject InsumoApiClient InsumoClient
+
+<PageTitle>Consola Médica - DentalClinic</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <!-- ENCABEZADO SUPERIOR -->
+    <div class="bg-white p-3 border-bottom shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Consola Médica Odontológica - Evolución Clínica</h4>
+        <p class="text-muted small mb-0">Diagnóstico (CIE-10), tratamientos realizados, consumo de insumos y derivación automática a facturación</p>
+    </div>
+
+    <!-- FORMULARIO CLINICO -->
+    <div class="p-3">
+        <div class="card shadow-sm border-0 p-4">
+
+            <!-- 1. PACIENTES EN ESPERA -->
+            <div class="mb-4">
+                <label class="form-label fw-bold" style="color: var(--color-primary);">
+                    1. Paciente en Sala de Espera (Estado: Presente) *:
+                </label>
+                <div class="d-flex gap-2">
+                    <select class="form-select" value="@selectedTurnoId" @onchange="OnTurnoSeleccionadoChanged" disabled="@(turnosPresentes.Count == 0)">
+                        @if (turnosPresentes.Count == 0)
+                        {
+                            <option value="0">No hay pacientes esperando en sala (Estado: Presente)</option>
+                        }
+                        else
+                        {
+                            <option value="0">-- Seleccione paciente en sala --</option>
+                            @foreach (var t in turnosPresentes)
+                            {
+                                <option value="@t.Id">@t.PacienteNombre - Cita @t.HorarioTurno hs (@t.EspecialidadNombre)</option>
+                            }
+                        }
+                    </select>
+                    <button class="btn btn-theme-secondary text-nowrap" @onclick="CargarTurnosPresentes" disabled="@isLoading">
+                        🔄 Refrescar Espera
+                    </button>
+                </div>
+
+                @if (turnoSeleccionado != null)
+                {
+                    <div class="mt-2 p-2 bg-light border rounded text-secondary small fw-bold">
+                        👤 Paciente: @turnoSeleccionado.PacienteNombre | Profesional: @turnoSeleccionado.OdontologoNombre | Especialidad: @turnoSeleccionado.EspecialidadNombre | Turno: @turnoSeleccionado.HorarioTurno
+                    </div>
+                }
+                else if (turnosPresentes.Count == 0)
+                {
+                    <div class="mt-2 text-muted small">
+                        ℹ️ Solicite a Recepción confirmar la presencia del paciente citado para habilitar la atención.
+                    </div>
+                }
+            </div>
+
+            <!-- 2. DIAGNÓSTICO -->
+            <div class="mb-3">
+                <label class="form-label fw-bold" style="color: var(--color-text-primary);">
+                    2. Diagnóstico Clínico / Código CIE-10 *:
+                </label>
+                <input type="text" class="form-control" @bind="diagnostico" placeholder="Ej: K02.1 Caries de la dentina / Restauración estética" />
+            </div>
+
+            <!-- 3. TRATAMIENTO -->
+            <div class="mb-3">
+                <label class="form-label fw-bold" style="color: var(--color-text-primary);">
+                    3. Tipo de Tratamiento Odontológico Realizado *:
+                </label>
+                <select class="form-select" @bind="tratamientoSeleccionado">
+                    <option value="Limpieza y Profilaxis Dental">Limpieza y Profilaxis Dental</option>
+                    <option value="Restauración con Resina Fotocurable">Restauración con Resina Fotocurable</option>
+                    <option value="Tratamiento de Conducto (Endodoncia)">Tratamiento de Conducto (Endodoncia)</option>
+                    <option value="Extracción Simple">Extracción Simple</option>
+                    <option value="Extracción Quirúrgica / Implante">Extracción Quirúrgica / Implante</option>
+                    <option value="Ajuste y Control de Ortodoncia">Ajuste y Control de Ortodoncia</option>
+                    <option value="Consulta y Diagnóstico General">Consulta y Diagnóstico General</option>
+                </select>
+            </div>
+
+            <!-- OPCIONES ADICIONALES -->
+            <div class="mb-3 d-flex gap-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkAnestesia" @bind="chkAnestesia" />
+                    <label class="form-check-label fw-bold text-secondary" for="chkAnestesia">Aplicó Anestesia Local</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkRadiografia" @bind="chkRadiografia" />
+                    <label class="form-check-label fw-bold text-secondary" for="chkRadiografia">Tomó Radiografías Periapicales / Panorámicas</label>
+                </div>
+            </div>
+
+            <!-- 4. OBSERVACIONES -->
+            <div class="mb-4">
+                <label class="form-label fw-bold" style="color: var(--color-text-primary);">
+                    4. Observaciones y Evolución Clínica:
+                </label>
+                <textarea class="form-control" rows="3" @bind="observaciones" placeholder="Detalles de la consulta, evolución médica, recomendaciones..."></textarea>
+            </div>
+
+            <!-- 5. INSUMOS -->
+            <div class="mb-4">
+                <label class="form-label fw-bold" style="color: var(--color-text-primary);">
+                    5. Insumos Consumidos durante la Atención (Se descontarán de Stock automáticamente):
+                </label>
+                <div class="p-3 border rounded bg-light" style="max-height: 180px; overflow-y: auto;">
+                    @if (insumosDisponibles.Count == 0)
+                    {
+                        <span class="text-muted small">No hay insumos registrados en inventario.</span>
+                    }
+                    else
+                    {
+                        @foreach (var ins in insumosDisponibles)
+                        {
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox" id="@($"ins_{ins.Id}")"
+                                       checked="@insumosSeleccionadosIds.Contains(ins.Id)"
+                                       @onchange="(e) => ToggleInsumoSelection(ins.Id, e.Value)" />
+                                <label class="form-check-label small" for="@($"ins_{ins.Id}")">
+                                    <strong>@ins.Nombre</strong> - @ins.Precio.ToString("C2") <span class="text-muted">(Stock disponible: @ins.Stock u.)</span>
+                                </label>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- BOTÓN DE ACCIÓN -->
+            <div>
+                <button class="btn btn-theme-success py-2 px-4 fs-6" @onclick="FinalizarAtencion" disabled="@(selectedTurnoId == 0 || isSaving)">
+                    @(isSaving ? "Registrando..." : "🩺 Finalizar Atención y Enviar Orden a Caja")
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(lblEstado))
+            {
+                <div class="mt-3 alert alert-info py-2 small" role="alert">
+                    @lblEstado
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TurnoOdontologicoDTO> turnosPresentes = new();
+    private List<InsumoDTO> insumosDisponibles = new();
+    private HashSet<int> insumosSeleccionadosIds = new();
+
+    private int selectedTurnoId = 0;
+    private TurnoOdontologicoDTO? turnoSeleccionado;
+
+    private string diagnostico = "K02.1 Caries de la dentina / Restauración estética";
+    private string tratamientoSeleccionado = "Restauración con Resina Fotocurable";
+    private bool chkAnestesia = true;
+    private bool chkRadiografia = false;
+    private string observaciones = "Paciente tolera adecuadamente el procedimiento. Se indica control preventivo en 6 meses.";
+
+    private string lblEstado = "";
+    private bool isLoading = false;
+    private bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarInsumos();
+        await CargarTurnosPresentes();
+    }
+
+    private async Task CargarInsumos()
+    {
+        try
+        {
+            insumosDisponibles = await InsumoClient.GetAllAsync();
+            if (insumosDisponibles.Count > 0)
+            {
+                insumosSeleccionadosIds.Add(insumosDisponibles[0].Id);
+                if (insumosDisponibles.Count > 1) insumosSeleccionadosIds.Add(insumosDisponibles[1].Id);
+            }
+        }
+        catch { }
+    }
+
+    private async Task CargarTurnosPresentes()
+    {
+        isLoading = true;
+        lblEstado = "";
+        try
+        {
+            var hoy = await TurnoClient.GetHoyAsync(DateTime.Today);
+            turnosPresentes = hoy.Where(t => t.EstadoTurno == "Presente").ToList();
+
+            if (selectedTurnoId > 0 && !turnosPresentes.Any(t => t.Id == selectedTurnoId))
+            {
+                selectedTurnoId = 0;
+                turnoSeleccionado = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error al cargar lista de espera: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OnTurnoSeleccionadoChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            selectedTurnoId = id;
+            turnoSeleccionado = turnosPresentes.FirstOrDefault(t => t.Id == selectedTurnoId);
+        }
+    }
+
+    private void ToggleInsumoSelection(int id, object? isChecked)
+    {
+        if (isChecked is bool checkedVal && checkedVal)
+        {
+            insumosSeleccionadosIds.Add(id);
+        }
+        else
+        {
+            insumosSeleccionadosIds.Remove(id);
+        }
+    }
+
+    private async Task FinalizarAtencion()
+    {
+        if (selectedTurnoId == 0 || turnoSeleccionado == null) return;
+
+        if (string.IsNullOrWhiteSpace(diagnostico))
+        {
+            lblEstado = "⚠️ Debe ingresar un diagnóstico clínico válido.";
+            return;
+        }
+
+        isSaving = true;
+        lblEstado = "Registrando atención médica...";
+
+        try
+        {
+            var itemsConsumidos = new List<ItemFacturaDTO>();
+            foreach (var ins in insumosDisponibles.Where(i => insumosSeleccionadosIds.Contains(i.Id)))
+            {
+                itemsConsumidos.Add(new ItemFacturaDTO
+                {
+                    InsumoId = ins.Id,
+                    InsumoNombre = ins.Nombre,
+                    CantidadInsumo = 1,
+                    PrecioUnitario = ins.Precio
+                });
+            }
+
+            var consultaDto = new ConsultaDTO
+            {
+                TurnoId = turnoSeleccionado.Id,
+                Diagnostico = diagnostico.Trim(),
+                Tratamiento = tratamientoSeleccionado,
+                Observaciones = observaciones.Trim(),
+                AnestesiaLocal = chkAnestesia,
+                Radiografias = chkRadiografia,
+                InsumosUtilizados = itemsConsumidos,
+                Fecha = DateTime.Now
+            };
+
+            await ConsultaClient.RegistrarAsync(consultaDto);
+
+            lblEstado = "✅ Atención médica registrada exitosamente. Se emitió la orden a Caja y se actualizó el stock.";
+            selectedTurnoId = 0;
+            turnoSeleccionado = null;
+            await CargarTurnosPresentes();
+            await CargarInsumos();
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error al finalizar consulta: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}
