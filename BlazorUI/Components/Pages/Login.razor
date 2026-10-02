@@ -23,7 +23,6 @@
             </div>
         }
 
-        <!-- 1. Formulario limpio: Sin FormName ni configuraciones extrañas -->
         <EditForm Model="loginModel" OnValidSubmit="RealizarLogin">
             <div class="mb-3">
                 <label class="form-label fw-bold mb-1" style="color: var(--color-text-primary); font-size: 0.9rem;">Usuario / Número de Documento:</label>
@@ -54,7 +53,7 @@
 </div>
 
 @code {
-    // 2. Modelo privado y simple. Chau [SupplyParameterFromForm].
+    // 2. Modelo privado y simple. .
     private LoginRequestDTO loginModel = new();
 
     private string lblError = "";
@@ -76,7 +75,7 @@
 
         lblError = "";
         isSubmitting = true;
-        string? urlDestino = null; // Variable para guardar a dónde vamos
+        string? urlDestino = null;
 
         try
         {
@@ -89,7 +88,6 @@
             var response = await AuthClient.LoginAsync(request);
             if (response != null && !string.IsNullOrWhiteSpace(response.Token))
             {
-                // Guarda el token y avisa a Blazor que el usuario ya está logueado
                 AuthService.SetSession(response);
 
                 var rol = AuthService.GetRol();

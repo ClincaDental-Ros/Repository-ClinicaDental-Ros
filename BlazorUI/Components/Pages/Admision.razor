@@ -7,13 +7,11 @@
 
 <div class="container-fluid p-0">
 
-    <!-- ENCABEZADO SUPERIOR -->
     <div class="bg-white p-3 border-bottom shadow-sm">
         <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Módulo de Recepción y Admisión Diaria</h4>
         <p class="text-muted small mb-0">Control de sala de espera, confirmación de presencia y aplicación de sanciones por ausentismo</p>
     </div>
 
-    <!-- TARJETAS MÉTRICAS (UITheme) -->
     <div class="row g-3 p-3 m-0 bg-light">
         <div class="col-md-3">
             <div class="card-stat border-primary">
@@ -45,7 +43,6 @@
         </div>
     </div>
 
-    <!-- BARRA DE ACCIONES Y FILTROS -->
     <div class="bg-white p-3 border-top border-bottom">
         <div class="row g-2 align-items-center">
             <div class="col-md-3 d-flex align-items-center gap-2">
@@ -69,7 +66,6 @@
         </div>
     </div>
 
-    <!-- TABLA DE ADMISIÓN -->
     <div class="p-3">
         <div class="table-responsive bg-white rounded shadow-sm border">
             <table class="table table-hover align-middle mb-0 table-theme">
@@ -147,13 +143,11 @@
     </div>
 </div>
 
-<!-- MODAL DE CONFIRMACIÓN DE AUSENCIA -->
 <ConfirmModal Show="showConfirmAusencia"
               Titulo="Registrar Ausencia y Aplicar Multa"
               Mensaje="@mensajeConfirmAusencia"
               OnResponse="HandleConfirmacionAusencia" />
 
-<!-- MODAL COBRO DE MULTAS IMPAGAS -->
 @if (showMultasModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">

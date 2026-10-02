@@ -10,7 +10,6 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Capa transparente: un click afuera cierra el menú desplegado -->
         @if (menuAbierto != null)
         {
             <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1000;" @onclick="CerrarMenu"></div>
@@ -123,7 +122,7 @@
 </nav>
 
 @code {
-    // Sin rol => sin menús (nunca asumir "Admin" por defecto)
+    // Sin rol => sin menús 
     private string Rol => AuthService.GetRol() ?? string.Empty;
 
     private string? menuAbierto;

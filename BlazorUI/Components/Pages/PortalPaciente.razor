@@ -10,13 +10,11 @@
 
 <div class="container-fluid p-0">
 
-    <!-- ENCABEZADO -->
     <div class="bg-white p-3 border-bottom shadow-sm">
         <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Portal del Paciente - Clínica Odontológica Rosario</h4>
         <p class="text-muted small mb-0">Autogestión de citas, descarga de comprobantes, historial clínico y estado de cuenta</p>
     </div>
 
-    <!-- PESTAÑAS -->
     <ul class="nav nav-tabs px-3 pt-2 bg-white">
         <li class="nav-item"><button class="nav-link @(activeTab == 0 ? "active fw-bold" : "")" @onclick="() => activeTab = 0">🏠 Inicio / Próximo Turno</button></li>
         <li class="nav-item"><button class="nav-link @(activeTab == 1 ? "active fw-bold" : "")" @onclick="() => activeTab = 1">📅 Mis Turnos</button></li>
@@ -41,7 +39,6 @@
         }
         else if (activeTab == 0)
         {
-            <!-- TAB INICIO -->
             <h3 class="fw-bold mb-3" style="color: var(--color-primary);">
                 ¡Hola, @(AuthService.GetNombreCompleto() ?? "Paciente")! Bienvenido a tu portal de salud dental.
             </h3>
@@ -86,7 +83,6 @@
         }
         else if (activeTab == 1)
         {
-            <!-- TAB MIS TURNOS -->
             <div class="bg-white p-3 border rounded mb-3 d-flex gap-2">
                 <button class="btn btn-theme-success" @onclick="() => showReservaModal = true">📅 Agendar Turno</button>
                 <button class="btn btn-theme-danger" @onclick="SolicitarCancelarTurno" disabled="@(seleccionado == null)">❌ Cancelar Turno</button>
@@ -355,8 +351,7 @@
         try
         {
             misTurnos = await TurnoClient.GetByCriteriaAsync(new TurnoCriteriaDTO { PacienteId = pacienteId });
-
-            // Próximo turno: futuro y todavía vigente (Pendiente o Presente)
+        
             proximoTurno = misTurnos
                 .Where(t => t.Fecha.Date >= DateTime.Today
                             && (t.EstadoTurno == "Pendiente" || t.EstadoTurno == "Presente"))
@@ -383,8 +378,7 @@
             historia = await ReportesClient.GetHistoriaClinicaAsync(pacienteId!.Value);
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("403"))
-        {
-            // La API no deja ver la historia con este rol: no es un error general de la pantalla
+        {          
             historiaSinPermiso = true;
         }
         catch (Exception ex) { errores.Add($"historia clínica ({ex.Message})"); }
