@@ -2,10 +2,10 @@ namespace Domain.Model
 {
     public class ObraSocial
     {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string Plan { get; set; } = string.Empty;
-        public decimal PorcentajeCobertura { get; set; } = 0.50m;
+        public int Id { get; private set; }
+        public string Nombre { get; private set; } = string.Empty;
+        public string Plan { get; private set; } = string.Empty;
+        public decimal PorcentajeCobertura { get; private set; } = 0.50m;
 
         public ObraSocial() { }
 

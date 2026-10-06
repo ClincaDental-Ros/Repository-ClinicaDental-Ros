@@ -61,14 +61,14 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Nombre = odontologo.Nombre;
-            existing.Apellido = odontologo.Apellido;
-            existing.Dni = odontologo.Dni;
-            existing.Telefono = odontologo.Telefono;
-            existing.Mail = odontologo.Mail;
-            existing.Domicilio = odontologo.Domicilio;
-            existing.NumMatricula = odontologo.NumMatricula;
-            existing.EspecialidadId = odontologo.EspecialidadId;
+            existing.SetNombre(odontologo.Nombre);
+            existing.SetApellido(odontologo.Apellido);
+            existing.SetDni(odontologo.Dni);
+            existing.SetTelefono(odontologo.Telefono);
+            existing.SetMail(odontologo.Mail);
+            existing.SetDomicilio(odontologo.Domicilio);
+            existing.SetMatricula(odontologo.NumMatricula);
+            existing.SetEspecialidadId(odontologo.EspecialidadId);
 
             await _context.SaveChangesAsync();
             return true;

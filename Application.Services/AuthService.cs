@@ -51,7 +51,7 @@ namespace Application.Services
             // Si la password está en texto plano, migrarla a hash
             if (!user.PasswordHash.Contains(':'))
             {
-                user.PasswordHash = HashPassword(request.Password);
+                user.SetPasswordHash(HashPassword(request.Password));
                 await _usuarioRepository.UpdateAsync(user);
             }
 
@@ -143,7 +143,7 @@ namespace Application.Services
             if (!VerifyPassword(passwordActual, user.PasswordHash))
                 return false;
 
-            user.PasswordHash = HashPassword(passwordNueva);
+            user.SetPasswordHash(HashPassword(passwordNueva));
             return await _usuarioRepository.UpdateAsync(user);
         }
 

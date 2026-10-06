@@ -2,12 +2,12 @@ namespace Domain.Model
 {
     public abstract class Persona
     {
-        public string Nombre { get; set; } = string.Empty;
-        public string Apellido { get; set; } = string.Empty;
-        public int Dni { get; set; }
-        public string Telefono { get; set; } = string.Empty;
-        public string Mail { get; set; } = string.Empty;
-        public string Domicilio { get; set; } = string.Empty;
+        public string Nombre { get; protected set; } = string.Empty;
+        public string Apellido { get; protected set; } = string.Empty;
+        public int Dni { get; protected set; }
+        public string Telefono { get; protected set; } = string.Empty;
+        public string Mail { get; protected set; } = string.Empty;
+        public string Domicilio { get; protected set; } = string.Empty;
 
         protected Persona() { }
 
@@ -42,6 +42,7 @@ namespace Domain.Model
                 throw new ArgumentException("El nombre es obligatorio.", nameof(nombre));
             Nombre = nombre;
         }
+        public void SetNombre(string nombre) => SetNom(nombre);
 
         public void SetApe(string apellido)
         {
@@ -49,6 +50,7 @@ namespace Domain.Model
                 throw new ArgumentException("El apellido es obligatorio.", nameof(apellido));
             Apellido = apellido;
         }
+        public void SetApellido(string apellido) => SetApe(apellido);
 
         public void SetDni(int dni)
         {
@@ -61,6 +63,7 @@ namespace Domain.Model
         {
             Telefono = telefono ?? string.Empty;
         }
+        public void SetTelefono(string telefono) => SetTel(telefono);
 
         public void SetMail(string mail)
         {
@@ -73,5 +76,6 @@ namespace Domain.Model
         {
             Domicilio = domicilio ?? string.Empty;
         }
+        public void SetDomicilio(string domicilio) => SetDom(domicilio);
     }
 }

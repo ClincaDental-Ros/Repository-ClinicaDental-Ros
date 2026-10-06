@@ -45,10 +45,10 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Nombre = insumo.Nombre;
-            existing.Descripcion = insumo.Descripcion;
-            existing.Precio = insumo.Precio;
-            existing.Stock = insumo.Stock;
+            existing.SetNombre(insumo.Nombre);
+            existing.SetDescripcion(insumo.Descripcion);
+            existing.SetPrecio(insumo.Precio);
+            existing.SetStock(insumo.Stock);
 
             await _context.SaveChangesAsync();
             return true;
@@ -71,7 +71,7 @@ namespace Data
             if (insumo == null || insumo.Stock < cantidad)
                 return false;
 
-            insumo.Stock -= cantidad;
+            insumo.SetStock(insumo.Stock - cantidad);
             await _context.SaveChangesAsync();
             return true;
         }

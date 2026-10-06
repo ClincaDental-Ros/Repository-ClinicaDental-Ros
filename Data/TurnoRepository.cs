@@ -109,14 +109,21 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Fecha = turno.Fecha;
-            existing.HorarioTurno = turno.HorarioTurno;
-            existing.EstadoTurno = turno.EstadoTurno;
-            existing.MotivoCancelacion = turno.MotivoCancelacion;
-            existing.PacienteId = turno.PacienteId;
-            existing.OdontologoId = turno.OdontologoId;
-            existing.EspecialidadId = turno.EspecialidadId;
-            existing.MontoEstimado = turno.MontoEstimado;
+            existing.SetFecha(turno.Fecha);
+            existing.SetHorarioTurno(turno.HorarioTurno);
+            existing.SetPacienteId(turno.PacienteId);
+            existing.SetOdontologoId(turno.OdontologoId);
+            existing.SetEspecialidadId(turno.EspecialidadId);
+            existing.SetMontoEstimado(turno.MontoEstimado);
+            if (turno.EstadoTurno == TurnoOdontologico.EstadoTurnoEnum.Cancelado)
+            {
+                existing.Cancelar(turno.MotivoCancelacion ?? "Cancelado");
+            }
+            else
+            {
+                existing.SetMotivo(turno.MotivoCancelacion);
+                existing.SetEstado(turno.EstadoTurno);
+            }
 
             await _context.SaveChangesAsync();
             return true;

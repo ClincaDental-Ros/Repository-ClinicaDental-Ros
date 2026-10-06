@@ -75,7 +75,7 @@ namespace Data
                 var paciente = await _context.Pacientes.FindAsync(multa.PacienteId);
                 if (paciente != null)
                 {
-                    paciente.EstadoHabilitado = true;
+                    paciente.SetEstadoHabilitado(true);
                 }
             }
 

@@ -90,7 +90,7 @@ namespace Data
                             var osNombre = reader.GetString(10);
                             var osPlan = reader.IsDBNull(11) ? "" : reader.GetString(11);
                             var osCob = reader.IsDBNull(12) ? 0.50m : reader.GetDecimal(12);
-                            pac.ObraSocial = new ObraSocial(obraSocialId.Value, osNombre, osPlan, osCob);
+                            pac.SetObraSocial(new ObraSocial(obraSocialId.Value, osNombre, osPlan, osCob));
                         }
 
                         pacientesAdo.Add(pac);
@@ -138,15 +138,14 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Nombre = paciente.Nombre;
-            existing.Apellido = paciente.Apellido;
-            existing.Dni = paciente.Dni;
-            existing.Telefono = paciente.Telefono;
-            existing.Mail = paciente.Mail;
-            existing.Domicilio = paciente.Domicilio;
-            existing.EstadoHabilitado = paciente.EstadoHabilitado;
-            existing.ObraSocialId = paciente.ObraSocialId;
-            existing.NumeroAfiliado = paciente.NumeroAfiliado;
+            existing.SetNombre(paciente.Nombre);
+            existing.SetApellido(paciente.Apellido);
+            existing.SetDni(paciente.Dni);
+            existing.SetTelefono(paciente.Telefono);
+            existing.SetMail(paciente.Mail);
+            existing.SetDomicilio(paciente.Domicilio);
+            existing.SetEstadoHabilitado(paciente.EstadoHabilitado);
+            existing.SetObraSocial(paciente.ObraSocialId, paciente.NumeroAfiliado);
 
             await _context.SaveChangesAsync();
             return true;

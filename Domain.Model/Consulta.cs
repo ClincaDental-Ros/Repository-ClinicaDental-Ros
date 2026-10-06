@@ -2,18 +2,18 @@ namespace Domain.Model
 {
     public class Consulta
     {
-        public int Id { get; set; }
-        public int TurnoId { get; set; }
-        public TurnoOdontologico? Turno { get; set; }
-        public string Observaciones { get; set; } = string.Empty;
-        public string Diagnostico { get; set; } = string.Empty; 
-        public bool Estado { get; set; } = true;
-        public string Tratamiento { get; set; } = string.Empty;
-        public bool AnestesiaLocal { get; set; } = false;
-        public bool Radiografias { get; set; } = false;
-        public string? Valoracion { get; set; }
-        public int? CalificacionEstrellas { get; set; } 
-        public DateTime Fecha { get; set; } = DateTime.Now;
+        public int Id { get; private set; }
+        public int TurnoId { get; private set; }
+        public TurnoOdontologico? Turno { get; private set; }
+        public string Observaciones { get; private set; } = string.Empty;
+        public string Diagnostico { get; private set; } = string.Empty; 
+        public bool Estado { get; private set; } = true;
+        public string Tratamiento { get; private set; } = string.Empty;
+        public bool AnestesiaLocal { get; private set; } = false;
+        public bool Radiografias { get; private set; } = false;
+        public string? Valoracion { get; private set; }
+        public int? CalificacionEstrellas { get; private set; } 
+        public DateTime Fecha { get; private set; } = DateTime.Now;
 
         public Consulta() { }
 
@@ -57,7 +57,15 @@ namespace Domain.Model
             Id = id;
         }
 
+        public void SetTurnoId(int turnoId)
+        {
+            if (turnoId <= 0)
+                throw new ArgumentException("El ID del turno es obligatorio y debe ser mayor a cero.", nameof(turnoId));
+            TurnoId = turnoId;
+        }
+
         public void SetObservac(string observaciones) => Observaciones = observaciones ?? string.Empty;
+        public void SetObservaciones(string observaciones) => SetObservac(observaciones);
 
         public void SetDiag(string diagnostico)
         {
@@ -65,6 +73,7 @@ namespace Domain.Model
                 throw new ArgumentException("El diagnóstico es obligatorio.", nameof(diagnostico));
             Diagnostico = diagnostico;
         }
+        public void SetDiagnostico(string diagnostico) => SetDiag(diagnostico);
 
         public void SetTratamiento(string tratamiento)
         {
@@ -75,6 +84,10 @@ namespace Domain.Model
 
         public void SetEstado(bool estado) => Estado = estado;
 
+        public void SetAnestesiaLocal(bool anestesiaLocal) => AnestesiaLocal = anestesiaLocal;
+
+        public void SetRadiografias(bool radiografias) => Radiografias = radiografias;
+
         public void SetValoracion(string? valoracion) => Valoracion = valoracion;
 
         public void SetCalificacion(int? calificacion)
@@ -83,5 +96,7 @@ namespace Domain.Model
                 throw new ArgumentOutOfRangeException(nameof(calificacion), "La calificación debe estar entre 1 y 5 estrellas.");
             CalificacionEstrellas = calificacion;
         }
+
+        public void SetFecha(DateTime fecha) => Fecha = fecha;
     }
 }

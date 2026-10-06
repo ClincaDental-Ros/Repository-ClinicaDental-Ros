@@ -71,7 +71,7 @@ namespace Application.Services
 
             if (dto.Items != null && dto.Items.Any())
             {
-                factura.Items = dto.Items.Select(i => new ItemFactura(0, 0, i.InsumoId, i.CantidadInsumo, i.PrecioUnitario)).ToList();
+                factura.SetItems(dto.Items.Select(i => new ItemFactura(0, 0, i.InsumoId, i.CantidadInsumo, i.PrecioUnitario)).ToList());
             }
 
             await _facturaRepository.AddAsync(factura);
@@ -83,8 +83,8 @@ namespace Application.Services
             var factura = await _facturaRepository.GetAsync(id);
             if (factura == null) return false;
 
-            factura.EstadoPago = true;
-            factura.MetodoPago = string.IsNullOrWhiteSpace(metodoPago) ? "Efectivo" : metodoPago;
+            factura.SetEstadoPago(true);
+            factura.SetMetodoPago(string.IsNullOrWhiteSpace(metodoPago) ? "Efectivo" : metodoPago);
 
             return await _facturaRepository.UpdateAsync(factura);
         }

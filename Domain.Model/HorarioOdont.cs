@@ -2,12 +2,12 @@ namespace Domain.Model
 {
     public class HorarioOdont
     {
-        public int Id { get; set; }
-        public int OdontologoId { get; set; }
-        public Odontologo? Odontologo { get; set; }
-        public string DiaSemana { get; set; } = string.Empty;
-        public TimeOnly HoraDesde { get; set; }
-        public TimeOnly HoraHasta { get; set; }
+        public int Id { get; private set; }
+        public int OdontologoId { get; private set; }
+        public Odontologo? Odontologo { get; private set; }
+        public string DiaSemana { get; private set; } = string.Empty;
+        public TimeOnly HoraDesde { get; private set; }
+        public TimeOnly HoraHasta { get; private set; }
 
         public HorarioOdont() { }
 
@@ -41,6 +41,13 @@ namespace Domain.Model
             if (id < 0)
                 throw new ArgumentException("El ID del horario no puede ser negativo.", nameof(id));
             Id = id;
+        }
+
+        public void SetOdontologoId(int odontologoId)
+        {
+            if (odontologoId <= 0)
+                throw new ArgumentException("El ID del odontólogo es obligatorio.", nameof(odontologoId));
+            OdontologoId = odontologoId;
         }
 
         public void SetDiaSemana(string diaSemana)

@@ -2,11 +2,11 @@ namespace Domain.Model
 {
     public class Insumo
     {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
-        public decimal Precio { get; set; }
-        public int Stock { get; set; }
+        public int Id { get; private set; }
+        public string Nombre { get; private set; } = string.Empty;
+        public string Descripcion { get; private set; } = string.Empty;
+        public decimal Precio { get; private set; }
+        public int Stock { get; private set; }
 
         public Insumo() { }
 

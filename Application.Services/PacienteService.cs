@@ -204,9 +204,9 @@ namespace Application.Services
                 var usuario = await _usuarioRepository.GetByEntidadIdAsync(dto.Id, "Paciente");
                 if (usuario != null)
                 {
-                    usuario.NombreCompleto = $"{dto.Nombre} {dto.Apellido}";
-                    usuario.Email = dto.Mail ?? usuario.Email;
-                    usuario.Activo = dto.EstadoHabilitado;
+                    usuario.SetNombreCompleto($"{dto.Nombre} {dto.Apellido}");
+                    usuario.SetEmail(dto.Mail ?? usuario.Email);
+                    usuario.SetActivo(dto.EstadoHabilitado);
                     await _usuarioRepository.UpdateAsync(usuario);
                 }
             }
@@ -235,7 +235,7 @@ namespace Application.Services
             var paciente = await _pacienteRepository.GetAsync(id);
             if (paciente == null) return false;
 
-            paciente.EstadoHabilitado = habilitar;
+            paciente.SetEstadoHabilitado(habilitar);
             var ok = await _pacienteRepository.UpdateAsync(paciente);
 
             try
@@ -243,7 +243,7 @@ namespace Application.Services
                 var usuario = await _usuarioRepository.GetByEntidadIdAsync(id, "Paciente");
                 if (usuario != null)
                 {
-                    usuario.Activo = habilitar;
+                    usuario.SetActivo(habilitar);
                     await _usuarioRepository.UpdateAsync(usuario);
                 }
             }

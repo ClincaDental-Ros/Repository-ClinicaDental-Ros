@@ -78,13 +78,13 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Diagnostico = consulta.Diagnostico;
-            existing.Tratamiento = consulta.Tratamiento;
-            existing.Observaciones = consulta.Observaciones;
-            existing.AnestesiaLocal = consulta.AnestesiaLocal;
-            existing.Radiografias = consulta.Radiografias;
-            existing.Valoracion = consulta.Valoracion;
-            existing.CalificacionEstrellas = consulta.CalificacionEstrellas;
+            existing.SetDiagnostico(consulta.Diagnostico);
+            existing.SetTratamiento(consulta.Tratamiento);
+            existing.SetObservaciones(consulta.Observaciones);
+            existing.SetAnestesiaLocal(consulta.AnestesiaLocal);
+            existing.SetRadiografias(consulta.Radiografias);
+            existing.SetValoracion(consulta.Valoracion);
+            existing.SetCalificacion(consulta.CalificacionEstrellas);
 
             await _context.SaveChangesAsync();
             return true;

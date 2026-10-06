@@ -43,9 +43,9 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Nombre = obraSocial.Nombre;
-            existing.Plan = obraSocial.Plan;
-            existing.PorcentajeCobertura = obraSocial.PorcentajeCobertura;
+            existing.SetNombre(obraSocial.Nombre);
+            existing.SetPlan(obraSocial.Plan);
+            existing.SetPorcentajeCobertura(obraSocial.PorcentajeCobertura);
 
             await _context.SaveChangesAsync();
             return true;
@@ -88,9 +88,9 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.AntecedentesMedicos = historiaClinica.AntecedentesMedicos;
-            existing.Alergias = historiaClinica.Alergias;
-            existing.ObservacionesGenerales = historiaClinica.ObservacionesGenerales;
+            existing.SetAntecedentesMedicos(historiaClinica.AntecedentesMedicos);
+            existing.SetAlergias(historiaClinica.Alergias);
+            existing.SetObservacionesGenerales(historiaClinica.ObservacionesGenerales);
 
             await _context.SaveChangesAsync();
             return true;

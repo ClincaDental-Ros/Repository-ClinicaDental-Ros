@@ -2,10 +2,10 @@ namespace Domain.Model
 {
     public class Odontologo : Persona
     {
-        public int Id { get; set; }
-        public int NumMatricula { get; set; }
-        public int EspecialidadId { get; set; }
-        public Especialidad? Especialidad { get; set; }
+        public int Id { get; private set; }
+        public int NumMatricula { get; private set; }
+        public int EspecialidadId { get; private set; }
+        public Especialidad? Especialidad { get; private set; }
 
         public Odontologo() { }
 
@@ -44,6 +44,13 @@ namespace Domain.Model
             if (numMatricula <= 0)
                 throw new ArgumentException("El número de matrícula debe ser mayor a cero.", nameof(numMatricula));
             NumMatricula = numMatricula;
+        }
+
+        public void SetEspecialidadId(int especialidadId)
+        {
+            if (especialidadId <= 0)
+                throw new ArgumentException("La especialidad es obligatoria y su ID debe ser mayor a cero.", nameof(especialidadId));
+            EspecialidadId = especialidadId;
         }
     }
 }

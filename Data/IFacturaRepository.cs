@@ -97,13 +97,10 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Descripcion = factura.Descripcion;
-            existing.Subtotal = factura.Subtotal;
-            existing.DescuentoObraSocial = factura.DescuentoObraSocial;
-            existing.Total = factura.Total;
-            existing.MontoAPagarPaciente = factura.MontoAPagarPaciente;
-            existing.EstadoPago = factura.EstadoPago;
-            existing.MetodoPago = factura.MetodoPago;
+            existing.SetDescripcion(factura.Descripcion);
+            existing.SetMontos(factura.Subtotal, factura.DescuentoObraSocial, factura.Total, factura.MontoAPagarPaciente);
+            existing.SetEstadoPago(factura.EstadoPago);
+            existing.SetMetodoPago(factura.MetodoPago);
 
             await _context.SaveChangesAsync();
             return true;

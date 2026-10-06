@@ -2,14 +2,14 @@ namespace Domain.Model
 {
     public class HistoriaClinica
     {
-        public int Id { get; set; }
-        public int NumeroHistoriaClinica { get; set; }
-        public int PacienteId { get; set; }
-        public Paciente? Paciente { get; set; }
-        public DateTime FechaAlta { get; set; } = DateTime.Now;
-        public string AntecedentesMedicos { get; set; } = string.Empty;
-        public string Alergias { get; set; } = string.Empty;
-        public string ObservacionesGenerales { get; set; } = string.Empty;
+        public int Id { get; private set; }
+        public int NumeroHistoriaClinica { get; private set; }
+        public int PacienteId { get; private set; }
+        public Paciente? Paciente { get; private set; }
+        public DateTime FechaAlta { get; private set; } = DateTime.Now;
+        public string AntecedentesMedicos { get; private set; } = string.Empty;
+        public string Alergias { get; private set; } = string.Empty;
+        public string ObservacionesGenerales { get; private set; } = string.Empty;
 
         public HistoriaClinica() { }
 
@@ -50,5 +50,18 @@ namespace Domain.Model
                 throw new ArgumentException("El número de historia clínica debe ser mayor a cero.", nameof(num));
             NumeroHistoriaClinica = num;
         }
+
+        public void SetPacienteId(int pacienteId)
+        {
+            if (pacienteId <= 0)
+                throw new ArgumentException("El ID del paciente es obligatorio.", nameof(pacienteId));
+            PacienteId = pacienteId;
+        }
+
+        public void SetAntecedentesMedicos(string antecedentes) => AntecedentesMedicos = antecedentes ?? string.Empty;
+
+        public void SetAlergias(string alergias) => Alergias = alergias ?? string.Empty;
+
+        public void SetObservacionesGenerales(string observaciones) => ObservacionesGenerales = observaciones ?? string.Empty;
     }
 }

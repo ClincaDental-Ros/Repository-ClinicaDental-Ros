@@ -2,10 +2,10 @@ namespace Domain.Model
 {
     public class Consultorio
     {
-        public int Id { get; set; }
-        public int NumConsultorio { get; set; }
-        public string Direccion { get; set; } = string.Empty;
-        public string Equipamiento { get; set; } = string.Empty;
+        public int Id { get; private set; }
+        public int NumConsultorio { get; private set; }
+        public string Direccion { get; private set; } = string.Empty;
+        public string Equipamiento { get; private set; } = string.Empty;
 
         public Consultorio() { }
 
@@ -49,6 +49,11 @@ namespace Domain.Model
             if (string.IsNullOrWhiteSpace(direccion))
                 throw new ArgumentException("La dirección del consultorio es obligatoria.", nameof(direccion));
             Direccion = direccion;
+        }
+
+        public void SetEquipamiento(string equipamiento)
+        {
+            Equipamiento = equipamiento ?? string.Empty;
         }
     }
 }

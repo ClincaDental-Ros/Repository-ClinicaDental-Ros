@@ -56,11 +56,11 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.NombreCompleto = usuario.NombreCompleto;
-            existing.Email = usuario.Email;
-            existing.Rol = usuario.Rol;
-            existing.Activo = usuario.Activo;
-            existing.PasswordHash = usuario.PasswordHash;
+            existing.SetNombreCompleto(usuario.NombreCompleto);
+            existing.SetEmail(usuario.Email);
+            existing.SetRol(usuario.Rol);
+            existing.SetActivo(usuario.Activo);
+            existing.SetPasswordHash(usuario.PasswordHash);
 
             await _context.SaveChangesAsync();
             return true;

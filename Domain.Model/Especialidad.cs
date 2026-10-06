@@ -2,9 +2,9 @@ namespace Domain.Model
 {
     public class Especialidad
     {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
+        public int Id { get; private set; }
+        public string Nombre { get; private set; } = string.Empty;
+        public string Descripcion { get; private set; } = string.Empty;
 
         public Especialidad() { }
 
@@ -38,7 +38,9 @@ namespace Domain.Model
                 throw new ArgumentException("El nombre de la especialidad es obligatorio.", nameof(nombre));
             Nombre = nombre;
         }
+        public void SetNombre(string nombre) => SetNom(nombre);
 
         public void SetDesc(string descripcion) => Descripcion = descripcion ?? string.Empty;
+        public void SetDescripcion(string descripcion) => SetDesc(descripcion);
     }
 }

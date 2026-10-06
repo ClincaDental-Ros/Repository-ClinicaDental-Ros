@@ -2,14 +2,14 @@ namespace Domain.Model
 {
     public class Usuario
     {
-        public int Id { get; set; }
-        public string Username { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
-        public string Rol { get; set; } = string.Empty; 
-        public string NombreCompleto { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public bool Activo { get; set; } = true;
-        public int? EntidadId { get; set; } 
+        public int Id { get; private set; }
+        public string Username { get; private set; } = string.Empty;
+        public string PasswordHash { get; private set; } = string.Empty;
+        public string Rol { get; private set; } = string.Empty; 
+        public string NombreCompleto { get; private set; } = string.Empty;
+        public string Email { get; private set; } = string.Empty;
+        public bool Activo { get; private set; } = true;
+        public int? EntidadId { get; private set; } 
 
         public Usuario() { }
 
@@ -66,6 +66,27 @@ namespace Domain.Model
             if (string.IsNullOrWhiteSpace(rol))
                 throw new ArgumentException("El rol del usuario es obligatorio.", nameof(rol));
             Rol = rol;
+        }
+
+        public void SetNombreCompleto(string nombreCompleto)
+        {
+            NombreCompleto = nombreCompleto ?? string.Empty;
+        }
+
+        public void SetEmail(string email)
+        {
+            if (!string.IsNullOrWhiteSpace(email) && !email.Contains("@"))
+                throw new ArgumentException("El formato del correo electrónico es inválido.", nameof(email));
+            Email = email ?? string.Empty;
+        }
+
+        public void SetActivo(bool activo) => Activo = activo;
+
+        public void SetEntidadId(int? entidadId)
+        {
+            if (entidadId.HasValue && entidadId.Value <= 0)
+                throw new ArgumentException("El ID de la entidad debe ser mayor a cero.", nameof(entidadId));
+            EntidadId = entidadId;
         }
 
         public void SetId(int id)

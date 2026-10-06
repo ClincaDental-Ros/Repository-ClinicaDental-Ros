@@ -2,14 +2,14 @@ namespace Domain.Model
 {
     public class Multa
     {
-        public int Id { get; set; }
-        public int PacienteId { get; set; }
-        public Paciente? Paciente { get; set; }
-        public decimal Monto { get; set; }
-        public bool EstadoPago { get; set; } = false;
-        public DateTime FechaEmision { get; set; } = DateTime.Now;
-        public DateTime? FechaPago { get; set; }
-        public string Motivo { get; set; } = "Ausencia no justificada a turno odontológico";
+        public int Id { get; private set; }
+        public int PacienteId { get; private set; }
+        public Paciente? Paciente { get; private set; }
+        public decimal Monto { get; private set; }
+        public bool EstadoPago { get; private set; } = false;
+        public DateTime FechaEmision { get; private set; } = DateTime.Now;
+        public DateTime? FechaPago { get; private set; }
+        public string Motivo { get; private set; } = "Ausencia no justificada a turno odontológico";
 
         public Multa() { }
 
@@ -47,6 +47,13 @@ namespace Domain.Model
             Id = id;
         }
 
+        public void SetPacienteId(int pacienteId)
+        {
+            if (pacienteId <= 0)
+                throw new ArgumentException("El ID del paciente es obligatorio.", nameof(pacienteId));
+            PacienteId = pacienteId;
+        }
+
         public void SetMonto(decimal monto)
         {
             if (monto <= 0)
@@ -60,6 +67,10 @@ namespace Domain.Model
                 throw new ArgumentException("El motivo de la multa es obligatorio.", nameof(motivo));
             Motivo = motivo;
         }
+
+        public void SetEstadoPago(bool estadoPago) => EstadoPago = estadoPago;
+
+        public void SetFechaPago(DateTime? fechaPago) => FechaPago = fechaPago;
 
         public void MarcarComoPagada()
         {

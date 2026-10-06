@@ -69,7 +69,7 @@ namespace Application.Services
             }
 
         
-            turno.EstadoTurno = TurnoOdontologico.EstadoTurnoEnum.Atendido;
+            turno.Atender();
             await _turnoRepository.UpdateAsync(turno);
 
             var consulta = new Consulta(
@@ -128,7 +128,7 @@ namespace Application.Services
                 false,
                 "Pendiente de Pago"
             );
-            factura.Items = facturaItems;
+            factura.SetItems(facturaItems);
 
             await _facturaRepository.AddAsync(factura);
 
@@ -141,8 +141,8 @@ namespace Application.Services
             var consulta = await _consultaRepository.GetAsync(id);
             if (consulta == null) return false;
 
-            consulta.CalificacionEstrellas = Math.Clamp(estrellas, 1, 5);
-            consulta.Valoracion = comentario;
+            consulta.SetCalificacion(Math.Clamp(estrellas, 1, 5));
+            consulta.SetValoracion(comentario);
             return await _consultaRepository.UpdateAsync(consulta);
         }
 

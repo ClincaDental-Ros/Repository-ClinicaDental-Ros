@@ -73,14 +73,12 @@ namespace Application.Services
 
         public async Task<TurnoOdontologicoDTO> ReservarTurnoAsync(TurnoOdontologicoDTO dto)
         {
-          
             var paciente = await _pacienteRepository.GetAsync(dto.PacienteId);
             if (paciente == null)
             {
                 throw new InvalidOperationException("El paciente especificado no existe.");
             }
 
-          
             if (!paciente.EstadoHabilitado)
             {
                 throw new InvalidOperationException($"El paciente {paciente.Apellido}, {paciente.Nombre} se encuentra INHABILITADO para solicitar turnos debido a deudas o multas pendientes.");
@@ -92,13 +90,11 @@ namespace Application.Services
                 throw new InvalidOperationException($"El paciente tiene {multasImpagas.Count()} multa(s) impaga(s). Debe regularizar su situación antes de reservar.");
             }
 
-           
             if (await _turnoRepository.PacienteTieneTurnoEnFechaAsync(dto.PacienteId, dto.Fecha))
             {
                 throw new InvalidOperationException($"El paciente ya posee un turno registrado para la fecha {dto.Fecha:dd/MM/yyyy}.");
             }
 
-         
             if (await _turnoRepository.TurnoExistsAsync(dto.Fecha, dto.HorarioTurno, dto.OdontologoId))
             {
                 throw new InvalidOperationException($"El odontólogo seleccionado ya tiene un turno agendado para el {dto.Fecha:dd/MM/yyyy} a las {dto.HorarioTurno}.");
@@ -140,14 +136,21 @@ namespace Application.Services
 
             Enum.TryParse<TurnoOdontologico.EstadoTurnoEnum>(dto.EstadoTurno, true, out var estado);
 
-            turno.Fecha = dto.Fecha;
-            turno.HorarioTurno = dto.HorarioTurno;
-            turno.EstadoTurno = estado;
-            turno.MotivoCancelacion = dto.MotivoCancelacion;
-            turno.PacienteId = dto.PacienteId;
-            turno.OdontologoId = dto.OdontologoId;
-            turno.EspecialidadId = dto.EspecialidadId;
-            turno.MontoEstimado = dto.MontoEstimado;
+            turno.SetFecha(dto.Fecha);
+            turno.SetHorarioTurno(dto.HorarioTurno);
+            turno.SetPacienteId(dto.PacienteId);
+            turno.SetOdontologoId(dto.OdontologoId);
+            turno.SetEspecialidadId(dto.EspecialidadId);
+            turno.SetMontoEstimado(dto.MontoEstimado);
+            if (estado == TurnoOdontologico.EstadoTurnoEnum.Cancelado)
+            {
+                turno.Cancelar(dto.MotivoCancelacion ?? "Cancelado");
+            }
+            else
+            {
+                turno.SetMotivo(dto.MotivoCancelacion);
+                turno.SetEstado(estado);
+            }
 
             return await _turnoRepository.UpdateAsync(turno);
         }
@@ -162,7 +165,7 @@ namespace Application.Services
             var turno = await _turnoRepository.GetAsync(id);
             if (turno == null) return false;
 
-            turno.EstadoTurno = TurnoOdontologico.EstadoTurnoEnum.Presente;
+            turno.ConfirmarPresencia();
             return await _turnoRepository.UpdateAsync(turno);
         }
 
@@ -171,18 +174,16 @@ namespace Application.Services
             var turno = await _turnoRepository.GetAsync(id);
             if (turno == null) return false;
 
-            turno.EstadoTurno = TurnoOdontologico.EstadoTurnoEnum.NoAsistido;
-            turno.MotivoCancelacion = string.IsNullOrWhiteSpace(motivo) ? "Ausencia registrada en recepción" : motivo;
+            turno.RegistrarAusencia(motivo);
             await _turnoRepository.UpdateAsync(turno);
 
-         
             var multa = new Multa(0, turno.PacienteId, montoMulta, false, null, $"Inasistencia a turno del {turno.Fecha:dd/MM/yyyy}: {motivo}");
             await _multaRepository.AddAsync(multa);
 
             var paciente = await _pacienteRepository.GetAsync(turno.PacienteId);
             if (paciente != null)
             {
-                paciente.EstadoHabilitado = false;
+                paciente.SetEstadoHabilitado(false);
                 await _pacienteRepository.UpdateAsync(paciente);
             }
 
@@ -194,8 +195,7 @@ namespace Application.Services
             var turno = await _turnoRepository.GetAsync(id);
             if (turno == null) return false;
 
-            turno.EstadoTurno = TurnoOdontologico.EstadoTurnoEnum.Cancelado;
-            turno.MotivoCancelacion = motivo;
+            turno.Cancelar(motivo);
             return await _turnoRepository.UpdateAsync(turno);
         }
 
@@ -204,7 +204,7 @@ namespace Application.Services
             var turno = await _turnoRepository.GetAsync(id);
             if (turno == null) return false;
 
-            turno.EstadoTurno = TurnoOdontologico.EstadoTurnoEnum.Atendido;
+            turno.Atender();
             return await _turnoRepository.UpdateAsync(turno);
         }
 

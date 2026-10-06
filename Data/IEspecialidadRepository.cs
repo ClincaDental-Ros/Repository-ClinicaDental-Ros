@@ -44,8 +44,8 @@ namespace Data
             if (existing == null)
                 return false;
 
-            existing.Nombre = especialidad.Nombre;
-            existing.Descripcion = especialidad.Descripcion;
+            existing.SetNombre(especialidad.Nombre);
+            existing.SetDescripcion(especialidad.Descripcion);
 
             await _context.SaveChangesAsync();
             return true;
