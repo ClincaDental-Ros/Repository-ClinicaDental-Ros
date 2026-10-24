@@ -59,7 +59,7 @@ Solución `DentalClinic.sln` (.NET 8, C#) organizada en capas:
 | `BlazorUI` | Interfaz web (Blazor Server) con las mismas funcionalidades. |
 | `Application.Services.Tests` | Pruebas unitarias (xUnit) del dominio y de los servicios. |
 
-Base de datos: SQL Server (local `.\SQLEXPRESS` o la base en la nube del equipo). La base se crea sola al iniciar la API (`EnsureCreated`) con datos de prueba.
+Base de datos: SQL Server en la nube del equipo (MonsterASP, base `db65098`). Si la base está vacía, la API crea las tablas y los datos de prueba al iniciar (`EnsureCreated`).
 
 ---
 
@@ -100,8 +100,7 @@ Requisitos: .NET 8 SDK, Visual Studio 2022 (para la aplicación de escritorio) y
 
 ### 1. Configurar la base de datos
 
-Por defecto la API usa `Server=.\SQLEXPRESS;Database=ClinicaOdontologicaDb` (archivo `WebAPI/appsettings.json`).
-Para usar otra base (por ejemplo, la de la nube) **no se escribe la contraseña en archivos versionados**; se usa una de estas opciones:
+La API usa la base en la nube. La cadena de conexión **no está en el repositorio** (tiene la contraseña), así que hay que configurarla una vez en cada PC con una de estas opciones:
 
 ```bash
 # Opción A: user-secrets (queda fuera del repositorio)

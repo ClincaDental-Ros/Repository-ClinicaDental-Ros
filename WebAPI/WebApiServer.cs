@@ -14,9 +14,13 @@ namespace WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                ?? "Server=localhost;Database=ClinicaOdontologicaDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;";
+            // La cadena de conexión (base en la nube) no se versiona: se toma de
+            // appsettings.Development.json, user-secrets o la variable ConnectionStrings__DefaultConnection.
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException(
+                    "Falta la cadena de conexión 'DefaultConnection'. Configurala en WebAPI/appsettings.Development.json, " +
+                    "con dotnet user-secrets o con la variable de entorno ConnectionStrings__DefaultConnection (ver README).");
 
             builder.Services.AddDbContext<TurnoMolarDbContext>(options =>
             {
