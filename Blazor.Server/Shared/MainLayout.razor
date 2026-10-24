@@ -2,16 +2,12 @@
 @implements IDisposable
 @inject BlazorServerAuthService AuthService
 @inject NavigationManager Navigation
-@inject IConfiguration Configuration
 
 @if (AuthService.IsAuthenticated())
 {
     <div class="app-shell">
         <aside class="app-sidebar @(menuAbierto ? "abierta" : "")">
             <NavMenu OnNavegar="() => menuAbierto = false" OnCerrarSesion="() => mostrarLogout = true" />
-            <div class="api-status">
-                <i class="bi bi-circle-fill text-success me-1" style="font-size: .5rem;"></i>API: @ApiUrl
-            </div>
         </aside>
         <div class="app-backdrop @(menuAbierto ? "visible" : "")" @onclick="() => menuAbierto = false"></div>
 
@@ -61,7 +57,6 @@ else
             return char.ToUpper(texto[0]) + texto[1..];
         }
     }
-    private string ApiUrl => Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5263";
 
     protected override void OnInitialized()
     {

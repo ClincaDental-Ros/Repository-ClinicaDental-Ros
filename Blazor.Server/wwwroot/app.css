@@ -347,13 +347,6 @@ a {
         background-color: var(--color-danger-light);
     }
 
-.api-status {
-    font-size: .72rem;
-    color: var(--color-text-secondary);
-    padding: 8px 12px 0;
-    word-break: break-all;
-}
-
 /* ── Encabezado superior ── */
 .top-header {
     display: flex;
