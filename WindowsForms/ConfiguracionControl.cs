@@ -255,10 +255,10 @@ namespace WindowsForms
                 var capturedTb = tb;
                 var btnEye = new Button
                 {
-                    Text = "👁",
+                    Text = UITheme.IconoVer,
                     Location = new Point(x + tbWidth + 4, dy + 19),
                     Size = new Size(32, 27),
-                    Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                    Font = UITheme.IconFont,
                     FlatStyle = FlatStyle.Flat,
                     Cursor = Cursors.Hand,
                     BackColor = Color.FromArgb(241, 245, 249),
@@ -268,7 +268,7 @@ namespace WindowsForms
                 btnEye.Click += (s, e) =>
                 {
                     capturedTb.UseSystemPasswordChar = !capturedTb.UseSystemPasswordChar;
-                    btnEye.Text = capturedTb.UseSystemPasswordChar ? "👁" : "🙈";
+                    btnEye.Text = capturedTb.UseSystemPasswordChar ? UITheme.IconoVer : UITheme.IconoOcultar;
                 };
 
                 parent.Controls.Add(l);

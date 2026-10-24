@@ -120,7 +120,7 @@ También se puede crear `WebAPI/appsettings.Development.json`, que está en `.gi
 3. **Escritorio (WindowsForms)**: ejecutar el proyecto `WindowsForms` desde Visual Studio.
 
 La URL de la API se configura en `ApiSettings:BaseUrl` de `BlazorUI/appsettings.json` y de `WindowsForms/appsettings.json`.
-En Visual Studio se pueden iniciar varios proyectos a la vez (Solución → Propiedades → Proyectos de inicio múltiples).
+En Visual Studio, elegí en la barra de herramientas el perfil de inicio **"API + Web + Escritorio"** (o "API + Web" / "API + Escritorio"), definido en `DentalClinic.slnLaunch`, para levantar la API junto con las interfaces. Si se inicia solo BlazorUI o WindowsForms, el login muestra "Error de conexión" porque la API no está corriendo.
 
 ### 3. Usuarios de prueba
 

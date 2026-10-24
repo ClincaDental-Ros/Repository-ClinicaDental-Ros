@@ -33,8 +33,16 @@
                 <label class="form-label fw-bold mb-1" style="color: var(--color-text-primary); font-size: 0.9rem;">Contraseña:</label>
                 <div class="input-group">
                     <InputText @bind-Value="loginModel.Password" type="@(showPassword ? "text" : "password")" class="form-control" disabled="@isSubmitting" />
-                    <button type="button" class="btn btn-theme-secondary" @onclick="ToggleShowPassword" tabindex="-1">
-                        @(showPassword ? "🙈" : "👁")
+                    <button type="button" class="btn btn-theme-secondary" @onclick="ToggleShowPassword" tabindex="-1"
+                            title="@(showPassword ? "Ocultar contraseña" : "Mostrar contraseña")">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                            @if (showPassword)
+                            {
+                                <line x1="2" y1="2" x2="22" y2="22" />
+                            }
+                        </svg>
                     </button>
                 </div>
             </div>

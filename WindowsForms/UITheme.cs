@@ -35,6 +35,11 @@ namespace WindowsForms
         public static readonly Font SmallFont = new("Segoe UI", 8.5F, FontStyle.Regular);
         public static readonly Font SmallBold = new("Segoe UI", 8.5F, FontStyle.Bold);
 
+        // Íconos de mostrar/ocultar contraseña (fuente de íconos estándar de Windows)
+        public static readonly Font IconFont = new("Segoe MDL2 Assets", 10F, FontStyle.Regular);
+        public const string IconoVer = "\uE7B3";
+        public const string IconoOcultar = "\uED1A";
+
         public static void StylePrimaryButton(Button btn)
         {
             btn.FlatStyle = FlatStyle.Flat;

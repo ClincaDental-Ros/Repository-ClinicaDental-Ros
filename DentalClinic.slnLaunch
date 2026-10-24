@@ -1,0 +1,24 @@
+[
+  {
+    "Name": "API + Web + Escritorio",
+    "Projects": [
+      { "Path": "WebAPI\\WebAPI.csproj", "Action": "Start" },
+      { "Path": "BlazorUI\\BlazorUI.csproj", "Action": "Start" },
+      { "Path": "WindowsForms\\WindowsForms.csproj", "Action": "Start" }
+    ]
+  },
+  {
+    "Name": "API + Web",
+    "Projects": [
+      { "Path": "WebAPI\\WebAPI.csproj", "Action": "Start" },
+      { "Path": "BlazorUI\\BlazorUI.csproj", "Action": "Start" }
+    ]
+  },
+  {
+    "Name": "API + Escritorio",
+    "Projects": [
+      { "Path": "WebAPI\\WebAPI.csproj", "Action": "Start" },
+      { "Path": "WindowsForms\\WindowsForms.csproj", "Action": "Start" }
+    ]
+  }
+]

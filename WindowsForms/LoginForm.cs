@@ -134,10 +134,10 @@ namespace WindowsForms
 
             btnPassword = new Button
             {
-                Text = "👁",
+                Text = UITheme.IconoVer,
                 Location = new Point(350, y - 1),
                 Size = new Size(35, 27),
-                Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                Font = UITheme.IconFont,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
                 BackColor = Color.FromArgb(241, 245, 249),
@@ -147,7 +147,7 @@ namespace WindowsForms
             btnPassword.Click += (s, e) =>
             {
                 txtPassword.UseSystemPasswordChar = !txtPassword.UseSystemPasswordChar;
-                btnPassword.Text = txtPassword.UseSystemPasswordChar ? "👁" : "🙈";
+                btnPassword.Text = txtPassword.UseSystemPasswordChar ? UITheme.IconoVer : UITheme.IconoOcultar;
             };
 
             pnlCard.Controls.Add(txtPassword);
