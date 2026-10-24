@@ -1,0 +1,21 @@
+@* Encabezado de cada pantalla: ícono, título y descripción. *@
+<div class="page-header">
+    <span class="page-header-icon"><i class="bi @Icono"></i></span>
+    <div class="flex-grow-1">
+        <h4>@Titulo</h4>
+        @if (!string.IsNullOrEmpty(Subtitulo))
+        {
+            <p>@Subtitulo</p>
+        }
+    </div>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Titulo { get; set; } = "";
+    [Parameter] public string? Subtitulo { get; set; }
+    /// <summary>Clase de Bootstrap Icons, por ejemplo "bi-people".</summary>
+    [Parameter] public string Icono { get; set; } = "bi-grid";
+    /// <summary>Contenido opcional a la derecha (botones, filtros).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -3,56 +3,33 @@
 @inject TurnoApiClient ApiClient
 @inject OdontologoApiClient OdontologoClient
 
-<PageTitle>Gestión de Turnos - DentalClinic</PageTitle>
+<PageTitle>Gestión de Turnos - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Gestión de Turnos y Agenda Odontológica</h4>
-        <p class="text-muted small mb-0">Monitoreo de citas, estados de atención, cancelaciones y sala de espera</p>
-    </div>
+    <PageHeader Titulo="Gestión de Turnos y Agenda Odontológica" Subtitulo="Monitoreo de citas, estados de atención, cancelaciones y sala de espera" Icono="bi-calendar2-week" />
 
-    <div class="row g-3 p-3 m-0 bg-light">
-        <div class="col-md-2">
-            <div class="card-stat border-primary">
-                <span class="text-muted small fw-bold">Total Turnos</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@turnos.Count</h3>
-                <small class="text-secondary">En el período</small>
-            </div>
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Total Turnos" Detalle="En el período" Color="primary" Icono="bi-calendar2-week">@turnos.Count</StatCard>
         </div>
-        <div class="col-md-2">
-            <div class="card-stat border-warning">
-                <span class="text-muted small fw-bold">Citados</span>
-                <h3 class="fw-bold my-1 text-warning">@turnos.Count(t => t.EstadoTurno == "Pendiente")</h3>
-                <small class="text-secondary">Por asistir</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Citados" Detalle="Por asistir" Color="warning" Icono="bi-hourglass">@turnos.Count(t => t.EstadoTurno == "Pendiente")</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-info">
-                <span class="text-muted small fw-bold">En Espera</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@turnos.Count(t => t.EstadoTurno == "Presente")</h3>
-                <small class="text-secondary">Llegaron a clínica</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="En Espera" Detalle="Llegaron a clínica" Color="info" Icono="bi-hourglass-split">@turnos.Count(t => t.EstadoTurno == "Presente")</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-success">
-                <span class="text-muted small fw-bold">Atendidos</span>
-                <h3 class="fw-bold my-1 text-success">@turnos.Count(t => t.EstadoTurno == "Atendido")</h3>
-                <small class="text-secondary">Consultas realizadas</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Atendidos" Detalle="Consultas realizadas" Color="success" Icono="bi-check2-circle">@turnos.Count(t => t.EstadoTurno == "Atendido")</StatCard>
         </div>
-        <div class="col-md-2">
-            <div class="card-stat border-danger">
-                <span class="text-muted small fw-bold">Inasistencias</span>
-                <h3 class="fw-bold my-1 text-danger">@turnos.Count(t => t.EstadoTurno == "NoAsistido")</h3>
-                <small class="text-secondary">Multados</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Inasistencias" Detalle="Multados" Color="danger" Icono="bi-person-x">@turnos.Count(t => t.EstadoTurno == "NoAsistido")</StatCard>
         </div>
     </div>
 
     <div class="bg-white p-3 border-top border-bottom">
         <div class="row g-2 align-items-center">
-            <div class="col-md-3 d-flex align-items-center gap-2">
+            <div class="col-md-4 col-xxl-3 d-flex align-items-center gap-2">
                 <div class="form-check me-1">
                     <input class="form-check-input" type="checkbox" id="chkFiltrarFecha"
                            @bind="usarFiltroFecha" @bind:after="CargarTurnos" />
@@ -62,7 +39,7 @@
                        @bind="filtroFecha" @bind:after="CargarTurnos" />
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4 col-xxl-3">
                 <div class="input-group">
                     <span class="input-group-text bg-light fw-bold text-secondary">Estado:</span>
                     <select class="form-select" @bind="filtroEstado" @bind:after="CargarTurnos">
@@ -76,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4 col-xxl-3">
                 <div class="input-group">
                     <span class="input-group-text bg-light fw-bold text-secondary">Odontólogo:</span>
                     <select class="form-select" @bind="filtroOdontologoId" @bind:after="CargarTurnos">
@@ -89,22 +66,22 @@
                 </div>
             </div>
 
-            <div class="col-md-3 d-flex justify-content-end gap-2">
+            <div class="col-12 col-xxl-3 d-flex justify-content-end gap-2 flex-wrap">
                 <button class="btn btn-theme-primary" @onclick="CargarTurnos" disabled="@isLoading">
-                    🔍 Filtrar
+                    <i class="bi bi-search"></i> Filtrar
                 </button>
                 <button class="btn btn-theme-success" @onclick="() => showReservaModal = true">
-                    📅 Agendar Turno
+                    <i class="bi bi-calendar-event"></i> Agendar Turno
                 </button>
                 <button class="btn btn-theme-danger" @onclick="SolicitarCancelarTurno" disabled="@(seleccionado == null)">
-                    ❌ Cancelar Turno
+                    <i class="bi bi-x-circle"></i> Cancelar Turno
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="p-3">
-        <div class="table-responsive bg-white rounded shadow-sm border">
+    <div>
+        <div class="table-responsive panel">
             <table class="table table-hover align-middle mb-0 table-theme">
                 <thead>
                     <tr>
@@ -150,27 +127,7 @@
                                 <td>@t.OdontologoNombre</td>
                                 <td>@t.EspecialidadNombre</td>
                                 <td>
-                                    @switch (t.EstadoTurno)
-                                    {
-                                        case "Pendiente":
-                                            <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border border-warning">⏳ Citado (Pendiente)</span>
-                                            break;
-                                        case "Presente":
-                                            <span class="badge bg-info-subtle text-info fw-bold border border-info">✅ En Sala de Espera</span>
-                                            break;
-                                        case "Atendido":
-                                            <span class="badge bg-success-subtle text-success fw-bold border border-success">🩺 Atendido</span>
-                                            break;
-                                        case "Cancelado":
-                                            <span class="badge bg-secondary-subtle text-secondary fw-bold border border-secondary">🚫 Cancelado</span>
-                                            break;
-                                        case "NoAsistido":
-                                            <span class="badge bg-danger-subtle text-danger fw-bold border border-danger">❌ Ausente (Multado)</span>
-                                            break;
-                                        default:
-                                            <span class="badge bg-light text-dark border">@t.EstadoTurno</span>
-                                            break;
-                                    }
+                                    <EstadoBadge Estado="@t.EstadoTurno" />
                                 </td>
                                 <td><small class="text-muted">@(t.MotivoCancelacion ?? "-")</small></td>
                             </tr>
@@ -209,7 +166,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title fw-bold">⚠️ Atención</h5>
+                    <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle"></i> Atención</h5>
                     <button type="button" class="btn-close" @onclick="() => showAlertModal = false"></button>
                 </div>
                 <div class="modal-body p-4">

@@ -11,7 +11,7 @@
             <div class="modal-content shadow-lg border-0">
 
                 <div class="modal-header btn-theme-primary text-white">
-                    <h5 class="modal-title fw-bold">📅 Agendamiento de Turno Odontológico</h5>
+                    <h5 class="modal-title fw-bold"><i class="bi bi-calendar-event"></i> Agendamiento de Turno Odontológico</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
                 </div>
 
@@ -122,7 +122,7 @@
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
                     <button type="button" class="btn btn-theme-primary" @onclick="ReservarTurno" disabled="@(!pacienteHabilitado || isSaving)">
-                        @(isSaving ? "Agendando..." : "✅ Confirmar Reserva")
+                        @(isSaving ? "Agendando..." : "Confirmar Reserva")
                     </button>
                 </div>
             </div>
@@ -256,7 +256,7 @@
 
         if (!p.EstadoHabilitado)
         {
-            estadoPacienteTexto = "⚠️ PACIENTE INHABILITADO POR MULTAS O DEUDA";
+            estadoPacienteTexto = "PACIENTE INHABILITADO POR MULTAS O DEUDA";
             pacienteHabilitado = false;
             errorMessage = "El paciente no puede agendar turnos hasta regularizar sus deudas.";
             return;
@@ -267,18 +267,18 @@
             var multas = await MultaClient.GetAllAsync(p.Id, soloImpagas: true);
             if (multas.Count > 0)
             {
-                estadoPacienteTexto = $"⚠️ REGISTRA {multas.Count} MULTA(S) IMPAGA(S)";
+                estadoPacienteTexto = $"REGISTRA {multas.Count} MULTA(S) IMPAGA(S)";
                 pacienteHabilitado = false;
                 errorMessage = "El paciente debe saldar sus multas pendientes antes de solicitar un turno.";
                 return;
             }
 
-            estadoPacienteTexto = $"✅ Habilitado - Cobertura: {p.ObraSocialNombre ?? "Particular"}";
+            estadoPacienteTexto = $"Habilitado - Cobertura: {p.ObraSocialNombre ?? "Particular"}";
         }
         catch (Exception ex)
         {
             // La API vuelve a validar multas al reservar; acá solo se informa
-            estadoPacienteTexto = $"⚠️ No se pudieron verificar las multas: {ex.Message}";
+            estadoPacienteTexto = $"No se pudieron verificar las multas: {ex.Message}";
         }
     }
 

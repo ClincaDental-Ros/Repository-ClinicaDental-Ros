@@ -3,116 +3,83 @@
 @inject BlazorServerAuthService AuthService
 @inject NavigationManager Navigation
 
-<PageTitle>Inicio - DentalClinic</PageTitle>
+<PageTitle>Panel principal - Turno Molar</PageTitle>
 
-<div class="container-fluid p-4">
-
-    <div class="bg-white p-4 rounded shadow-sm border mb-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h3 class="fw-bold mb-1" style="color: var(--color-primary);">
-                    ¡Bienvenido/a, @AuthService.GetNombreCompleto()!
-                </h3>
-                <p class="text-muted mb-0">
-                    Sistema MDI Web de Gestión Odontológica Integral | Rol activo:
-                    <span class="badge bg-primary text-uppercase ms-1">@AuthService.GetRol()</span>
-                </p>
-            </div>
-            <div class="text-end">
-                <span class="text-secondary small fw-bold">Fecha actual:</span>
-                <div class="fw-bold text-dark fs-6">@DateTime.Now.ToString("dd/MM/yyyy")</div>
-            </div>
-        </div>
+<div class="hero mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1 small mb-2">@AuthService.GetRol()</span>
+        <h3 class="mb-1">¡Hola, @(AuthService.GetNombreCompleto() ?? AuthService.GetUsername())!</h3>
+        <p class="mb-0 text-white-50">Bienvenido/a al sistema de gestión de la clínica.</p>
     </div>
+    <span class="d-none d-md-inline-flex align-items-center justify-content-center rounded-circle"
+          style="width: 72px; height: 72px; background: rgba(255,255,255,.15);">
+        <LogoDiente Tamanio="38" />
+    </span>
+</div>
 
-    <!-- TARJETAS DE MÓDULOS RECOMENDADOS SEGÚN ROL -->
-    <h5 class="fw-bold mb-3" style="color: var(--color-primary);">Acceso Rápido a Módulos</h5>
+<h6 class="fw-bold text-secondary text-uppercase small mb-3">Accesos rápidos</h6>
 
-    <div class="row g-3">
-        @if (AuthService.IsInRole("Paciente"))
+<div class="row g-3">
+        @if (Ve(Permisos.PortalPaciente))
         {
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="fw-bold" style="color: var(--color-primary);">🏠 Portal del Paciente</h5>
-                            <p class="text-muted small">Consulte sus turnos agendados, solicite nuevas citas médicas y revise sus pagos.</p>
-                        </div>
-                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("portal-paciente")'>Ir al Portal</button>
-                    </div>
-                </div>
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/portal-paciente">
+                    <span class="stat-icon tono-primary"><i class="bi bi-house-heart"></i></span>
+                    <h6>Portal del paciente</h6>
+                    <p>Consultá tus turnos, pedí nuevas citas y revisá tus pagos.</p>
+                </a>
             </div>
         }
-
-        @if (AuthService.IsInRole("Odontologo", "Admin"))
+        @if (Ve(Permisos.Turnos))
         {
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="fw-bold" style="color: var(--color-primary);">💉 Consola Médica</h5>
-                            <p class="text-muted small">Evolución clínica de pacientes en espera, diagnósticos CIE-10 y descuento de insumos.</p>
-                        </div>
-                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("atencion-clinica")'>Abrir Consola</button>
-                    </div>
-                </div>
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/turnos">
+                    <span class="stat-icon tono-primary"><i class="bi bi-calendar2-week"></i></span>
+                    <h6>Gestión de turnos</h6>
+                    <p>Agenda de turnos, estados de atención y cancelaciones.</p>
+                </a>
             </div>
         }
-
-        @if (AuthService.IsInRole("Recepcionista", "Admin"))
+        @if (Ve(Permisos.Admision))
         {
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="fw-bold" style="color: var(--color-primary);">🛎️ Recepción y Admisión</h5>
-                            <p class="text-muted small">Confirmación de presencia en sala de espera y registro de sanciones por inasistencia.</p>
-                        </div>
-                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("admision")'>Ir a Recepción</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="fw-bold" style="color: var(--color-primary);">🧾 Caja y Cobros</h5>
-                            <p class="text-muted small">Emisión de facturas, liquidación de obras sociales y cobro de prestaciones.</p>
-                        </div>
-                        <button class="btn btn-theme-success w-100 mt-3" @onclick='() => NavegarA("cobro")'>Ir a Caja</button>
-                    </div>
-                </div>
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/admision">
+                    <span class="stat-icon tono-info"><i class="bi bi-person-check"></i></span>
+                    <h6>Recepción y sala de espera</h6>
+                    <p>Confirmación de presencia y registro de inasistencias.</p>
+                </a>
             </div>
         }
-
-        @if (AuthService.IsInRole("Admin"))
+        @if (Ve(Permisos.AtencionClinica))
         {
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="fw-bold" style="color: var(--color-primary);">📅 Gestión de Turnos</h5>
-                            <p class="text-muted small">Agenda centralizada de turnos odontológicos y disponibilidad de profesionales.</p>
-                        </div>
-                        <button class="btn btn-theme-primary w-100 mt-3" @onclick='() => NavegarA("turnos")'>Ver Agenda</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="fw-bold" style="color: var(--color-primary);">📊 Reportes y Auditoría</h5>
-                            <p class="text-muted small">Indicadores de ausentismo, facturación consolidada e historial clínico.</p>
-                        </div>
-                        <button class="btn btn-theme-secondary w-100 mt-3" @onclick='() => NavegarA("reportes")'>Ver Auditoría</button>
-                    </div>
-                </div>
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/atencion-clinica">
+                    <span class="stat-icon tono-success"><i class="bi bi-clipboard2-pulse"></i></span>
+                    <h6>Consola médica</h6>
+                    <p>Diagnóstico, tratamiento y consumo de insumos de cada atención.</p>
+                </a>
             </div>
         }
-    </div>
+        @if (Ve(Permisos.Cobro))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/cobro">
+                    <span class="stat-icon tono-warning"><i class="bi bi-receipt"></i></span>
+                    <h6>Cobro y facturación</h6>
+                    <p>Facturas con ítems, descuentos de obra social y cobros.</p>
+                </a>
+            </div>
+        }
+        @if (Ve(Permisos.Reportes))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/reportes">
+                    <span class="stat-icon tono-secondary"><i class="bi bi-bar-chart-line"></i></span>
+                    <h6>Reportes</h6>
+                    <p>Ausentismo, facturación del período e historial clínico.</p>
+                </a>
+            </div>
+        }
 </div>
 
 @code {
@@ -134,5 +101,5 @@
         }
     }
 
-    private void NavegarA(string ruta) => Navigation.NavigateTo(ruta);
+    private bool Ve(string permiso) => Permisos.Puede(AuthService.GetRol(), permiso);
 }

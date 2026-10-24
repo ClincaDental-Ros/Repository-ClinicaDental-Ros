@@ -3,71 +3,52 @@
 @inject TurnoApiClient TurnoClient
 @inject MultaApiClient MultaClient
 
-<PageTitle>Recepción y Admisión - DentalClinic</PageTitle>
+<PageTitle>Recepción y Admisión - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Módulo de Recepción y Admisión Diaria</h4>
-        <p class="text-muted small mb-0">Control de sala de espera, confirmación de presencia y aplicación de sanciones por ausentismo</p>
-    </div>
+    <PageHeader Titulo="Módulo de Recepción y Admisión Diaria" Subtitulo="Control de sala de espera, confirmación de presencia y aplicación de sanciones por ausentismo" Icono="bi-person-check" />
 
-    <div class="row g-3 p-3 m-0 bg-light">
-        <div class="col-md-3">
-            <div class="card-stat border-primary">
-                <span class="text-muted small fw-bold">Turnos Hoy</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@turnos.Count</h3>
-                <small class="text-secondary">@fechaSeleccionada.ToString("dd/MM/yyyy")</small>
-            </div>
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Turnos Hoy" Detalle="@fechaSeleccionada.ToString("dd/MM/yyyy")" Color="primary" Icono="bi-calendar-day">@turnos.Count</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-info">
-                <span class="text-muted small fw-bold">En Sala de Espera</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@turnos.Count(t => t.EstadoTurno == "Presente")</h3>
-                <small class="text-secondary">Listos para atender</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="En Sala de Espera" Detalle="Listos para atender" Color="info" Icono="bi-hourglass-split">@turnos.Count(t => t.EstadoTurno == "Presente")</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-success">
-                <span class="text-muted small fw-bold">Atendidos</span>
-                <h3 class="fw-bold my-1 text-success">@turnos.Count(t => t.EstadoTurno == "Atendido")</h3>
-                <small class="text-secondary">Consultas concluidas</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Atendidos" Detalle="Consultas concluidas" Color="success" Icono="bi-check2-circle">@turnos.Count(t => t.EstadoTurno == "Atendido")</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat @(AusenciasCount > 0 ? "border-danger" : "border-secondary")">
-                <span class="text-muted small fw-bold">Ausencias / Multas</span>
-                <h3 class="fw-bold my-1 @(AusenciasCount > 0 ? "text-danger" : "text-secondary")">@AusenciasCount</h3>
-                <small class="text-secondary">Inasistencias registradas</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Ausencias / Multas" Detalle="Inasistencias registradas" Color="@(AusenciasCount > 0 ? "danger" : "secondary")" Icono="bi-exclamation-octagon">@AusenciasCount</StatCard>
         </div>
     </div>
 
     <div class="bg-white p-3 border-top border-bottom">
         <div class="row g-2 align-items-center">
-            <div class="col-md-3 d-flex align-items-center gap-2">
+            <div class="col-lg-4 col-xxl-3 d-flex align-items-center gap-2">
                 <label class="fw-bold text-secondary text-nowrap">Fecha de Admisión:</label>
                 <input type="date" class="form-control" @bind="fechaSeleccionada" @bind:after="CargarTurnosDelDia" />
             </div>
-            <div class="col-md-9 d-flex justify-content-end gap-2 flex-wrap">
+            <div class="col-lg-8 col-xxl-9 d-flex justify-content-end gap-2 flex-wrap">
                 <button class="btn btn-theme-primary" @onclick="CargarTurnosDelDia" disabled="@isLoading">
-                    🔄 Actualizar
+                    <i class="bi bi-arrow-clockwise"></i> Actualizar
                 </button>
                 <button class="btn btn-theme-success" @onclick="ConfirmarPresencia" disabled="@(seleccionado == null || seleccionado.EstadoTurno != "Pendiente")">
-                    ✅ Confirmar Presencia
+                    <i class="bi bi-check-circle"></i> Confirmar Presencia
                 </button>
                 <button class="btn btn-theme-danger" @onclick="SolicitarAusencia" disabled="@(seleccionado == null || seleccionado.EstadoTurno != "Pendiente")">
-                    ⚠️ Registrar Ausencia (Multa)
+                    <i class="bi bi-exclamation-triangle"></i> Registrar Ausencia (Multa)
                 </button>
                 <button class="btn btn-theme-secondary" @onclick="AbrirModalCobroMultas">
-                    💳 Cobro de Multas
+                    <i class="bi bi-credit-card"></i> Cobro de Multas
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="p-3">
-        <div class="table-responsive bg-white rounded shadow-sm border">
+    <div>
+        <div class="table-responsive panel">
             <table class="table table-hover align-middle mb-0 table-theme">
                 <thead>
                     <tr>
@@ -108,27 +89,7 @@
                                 <td>@t.OdontologoNombre</td>
                                 <td>@t.EspecialidadNombre</td>
                                 <td>
-                                    @switch (t.EstadoTurno)
-                                    {
-                                        case "Pendiente":
-                                            <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border border-warning">⏳ Citado (Pendiente)</span>
-                                            break;
-                                        case "Presente":
-                                            <span class="badge bg-info-subtle text-info fw-bold border border-info">✅ En Sala de Espera</span>
-                                            break;
-                                        case "Atendido":
-                                            <span class="badge bg-success-subtle text-success fw-bold border border-success">🩺 Atendido / En Caja</span>
-                                            break;
-                                        case "NoAsistido":
-                                            <span class="badge bg-danger-subtle text-danger fw-bold border border-danger">❌ Ausente (Multado)</span>
-                                            break;
-                                        case "Cancelado":
-                                            <span class="badge bg-secondary-subtle text-secondary fw-bold border border-secondary">🚫 Cancelado</span>
-                                            break;
-                                        default:
-                                            <span class="badge bg-light text-dark border">@t.EstadoTurno</span>
-                                            break;
-                                    }
+                                    <EstadoBadge Estado="@t.EstadoTurno" />
                                 </td>
                             </tr>
                         }
@@ -154,7 +115,7 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header btn-theme-primary text-white">
-                    <h5 class="modal-title fw-bold">💳 Liquidación y Cobro de Multas por Inasistencia</h5>
+                    <h5 class="modal-title fw-bold"><i class="bi bi-credit-card"></i> Liquidación y Cobro de Multas por Inasistencia</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="() => showMultasModal = false"></button>
                 </div>
                 <div class="modal-body p-0">
@@ -187,7 +148,7 @@
                                             <td><small class="text-muted">@m.Motivo</small></td>
                                             <td>
                                                 <button class="btn btn-theme-success btn-sm" @onclick="() => CobrarMulta(m)">
-                                                    💳 Cobrar
+                                                    <i class="bi bi-credit-card"></i> Cobrar
                                                 </button>
                                             </td>
                                         </tr>
@@ -258,7 +219,7 @@
         try
         {
             await TurnoClient.ConfirmarPresenciaAsync(seleccionado.Id);
-            lblEstado = $"✅ Llegada confirmada. El paciente {seleccionado.PacienteNombre} pasa a sala de espera.";
+            lblEstado = $"Llegada confirmada. El paciente {seleccionado.PacienteNombre} pasa a sala de espera.";
             await CargarTurnosDelDia();
         }
         catch (Exception ex)

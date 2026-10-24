@@ -3,35 +3,32 @@
 @inject ReportesApiClient ReportesClient
 @inject PacienteApiClient PacienteClient
 
-<PageTitle>Reportes y Auditoría - DentalClinic</PageTitle>
+<PageTitle>Reportes y Auditoría - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Módulo de Reportes, Auditoría y Estadísticas</h4>
-        <p class="text-muted small mb-0">Métricas de ausentismo, liquidación a obras sociales, balance financiero e historial médico</p>
-    </div>
+    <PageHeader Titulo="Módulo de Reportes, Auditoría y Estadísticas" Subtitulo="Métricas de ausentismo, liquidación a obras sociales, balance financiero e historial médico" Icono="bi-bar-chart-line" />
 
-    <div class="bg-white border-bottom px-3 pt-2">
+    <div class="mb-3">
         <ul class="nav nav-tabs border-0">
             <li class="nav-item">
                 <button class="nav-link fw-bold @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">
-                    📅 Citas del Día
+                    <i class="bi bi-calendar-event"></i> Citas del Día
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link fw-bold @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">
-                    ⚠️ Tasa de Ausentismo y Multas
+                    <i class="bi bi-exclamation-triangle"></i> Tasa de Ausentismo y Multas
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link fw-bold @(activeTab == 2 ? "active" : "")" @onclick="() => activeTab = 2">
-                    💰 Facturación y Obras Sociales
+                    <i class="bi bi-cash-coin"></i> Facturación y Obras Sociales
                 </button>
             </li>
             <li class="nav-item">
                 <button class="nav-link fw-bold @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">
-                    📋 Historia Clínica
+                    <i class="bi bi-clipboard"></i> Historia Clínica
                 </button>
             </li>
         </ul>
@@ -39,11 +36,11 @@
 
     @if (activeTab == 0)
     {
-        <div class="p-3">
+        <div>
             <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3">
                 <label class="fw-bold text-secondary">Fecha:</label>
                 <input type="date" class="form-control" style="width: 180px;" @bind="fechaTurnosDia" @bind:after="CargarReporteTurnos" />
-                <button class="btn btn-theme-primary" @onclick="CargarReporteTurnos">🔄 Consultar</button>
+                <button class="btn btn-theme-primary" @onclick="CargarReporteTurnos"><i class="bi bi-arrow-clockwise"></i> Consultar</button>
             </div>
 
             @if (!string.IsNullOrEmpty(errorTurnos))
@@ -54,7 +51,7 @@
             @if (reporteTurnos != null)
             {
                 <div class="p-3 rounded mb-3 text-white fw-bold" style="background-color: var(--color-primary);">
-                    📊 Total: @reporteTurnos.TotalTurnos | Pendientes: @reporteTurnos.TurnosPendientes | En Sala: @reporteTurnos.TurnosPresentes | Atendidos: @reporteTurnos.TurnosAtendidos | Ausencias: @reporteTurnos.TurnosAusentes | Cancelados: @reporteTurnos.TurnosCancelados
+                    <i class="bi bi-bar-chart"></i> Total: @reporteTurnos.TotalTurnos | Pendientes: @reporteTurnos.TurnosPendientes | En Sala: @reporteTurnos.TurnosPresentes | Atendidos: @reporteTurnos.TurnosAtendidos | Ausencias: @reporteTurnos.TurnosAusentes | Cancelados: @reporteTurnos.TurnosCancelados
                 </div>
 
                 <div class="mb-3" style="max-width: 560px;">
@@ -68,7 +65,7 @@
                     })" />
                 </div>
 
-                <div class="table-responsive bg-white rounded shadow-sm border">
+                <div class="table-responsive panel">
                     <table class="table table-hover align-middle mb-0 table-theme">
                         <thead>
                             <tr>
@@ -100,13 +97,13 @@
     <!-- CONTENIDO PESTAÑA 1: AUSENTISMO -->
     @if (activeTab == 1)
     {
-        <div class="p-3">
+        <div>
             <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3 flex-wrap">
                 <label class="fw-bold text-secondary">Desde:</label>
                 <input type="date" class="form-control" style="width: 170px;" @bind="ausDesde" />
                 <label class="fw-bold text-secondary">Hasta:</label>
                 <input type="date" class="form-control" style="width: 170px;" @bind="ausHasta" />
-                <button class="btn btn-theme-primary" @onclick="CargarReporteAusentismo">📊 Calcular Métricas</button>
+                <button class="btn btn-theme-primary" @onclick="CargarReporteAusentismo"><i class="bi bi-bar-chart"></i> Calcular Métricas</button>
             </div>
 
             @if (!string.IsNullOrEmpty(errorAusentismo))
@@ -118,7 +115,7 @@
             {
                 <div class="bg-white p-4 rounded shadow-sm border">
                     <h5 class="fw-bold text-danger border-bottom pb-2">
-                        📊 INFORME EJECUTIVO DE AUSENTISMO Y SANCIONES CLÍNICAS
+                        <i class="bi bi-bar-chart"></i> INFORME EJECUTIVO DE AUSENTISMO Y SANCIONES CLÍNICAS
                     </h5>
                     <p class="text-muted small">Período Evaluado: @reporteAusentismo.FechaDesde.ToString("dd/MM/yyyy") al @reporteAusentismo.FechaHasta.ToString("dd/MM/yyyy")</p>
 
@@ -156,13 +153,13 @@
     <!-- CONTENIDO PESTAÑA 2: FACTURACIÓN -->
     @if (activeTab == 2)
     {
-        <div class="p-3">
+        <div>
             <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3 flex-wrap">
                 <label class="fw-bold text-secondary">Desde:</label>
                 <input type="date" class="form-control" style="width: 170px;" @bind="facDesde" />
                 <label class="fw-bold text-secondary">Hasta:</label>
                 <input type="date" class="form-control" style="width: 170px;" @bind="facHasta" />
-                <button class="btn btn-theme-primary" @onclick="CargarReporteFacturacion">📈 Liquidar Período</button>
+                <button class="btn btn-theme-primary" @onclick="CargarReporteFacturacion"><i class="bi bi-graph-up"></i> Liquidar Período</button>
             </div>
 
             @if (!string.IsNullOrEmpty(errorFacturacion))
@@ -173,7 +170,7 @@
             @if (reporteFacturacion != null)
             {
                 <div class="p-3 rounded mb-3 text-white fw-bold" style="background-color: var(--color-primary);">
-                    📈 Total Facturado: @reporteFacturacion.TotalFacturado.ToString("C2") | Cobrado en Caja: @reporteFacturacion.TotalCobradoPacientes.ToString("C2") | Liquidación O.S.: @reporteFacturacion.TotalLiquidadoObrasSociales.ToString("C2") | Consultas: @reporteFacturacion.CantidadConsultasAtendidas
+                    <i class="bi bi-graph-up"></i> Total Facturado: @reporteFacturacion.TotalFacturado.ToString("C2") | Cobrado en Caja: @reporteFacturacion.TotalCobradoPacientes.ToString("C2") | Liquidación O.S.: @reporteFacturacion.TotalLiquidadoObrasSociales.ToString("C2") | Consultas: @reporteFacturacion.CantidadConsultasAtendidas
                 </div>
 
                 <div class="mb-3" style="max-width: 560px;">
@@ -185,7 +182,7 @@
                     })" />
                 </div>
 
-                <div class="table-responsive bg-white rounded shadow-sm border">
+                <div class="table-responsive panel">
                     <table class="table table-hover align-middle mb-0 table-theme">
                         <thead>
                             <tr>
@@ -221,7 +218,7 @@
     <!-- CONTENIDO PESTAÑA 3: HISTORIA CLÍNICA -->
     @if (activeTab == 3)
     {
-        <div class="p-3">
+        <div>
             <div class="bg-white p-3 border rounded shadow-sm mb-3 d-flex align-items-center gap-3 flex-wrap">
                 <label class="fw-bold text-secondary">Paciente:</label>
                 <select class="form-select" style="max-width: 380px;" value="@selectedPacienteHCId" @onchange="OnPacienteHCChanged">
@@ -230,7 +227,7 @@
                         <option value="@p.Id">@p.NombreCompleto</option>
                     }
                 </select>
-                <button class="btn btn-theme-primary" @onclick="CargarHistoriaClinicaPaciente">🔍 Ver Ficha</button>
+                <button class="btn btn-theme-primary" @onclick="CargarHistoriaClinicaPaciente"><i class="bi bi-search"></i> Ver Ficha</button>
             </div>
 
             @if (!string.IsNullOrEmpty(errorHistoria))
@@ -242,13 +239,13 @@
             {
                 <div class="bg-white p-3 border rounded shadow-sm mb-3">
                     <h6 class="fw-bold mb-1" style="color: var(--color-primary);">
-                        📋 Historia Clínica N° @historiaClinica.NumeroHistoriaClinica.ToString("D5") - Paciente: @historiaClinica.PacienteNombre (Alta: @historiaClinica.FechaAlta.ToString("dd/MM/yyyy"))
+                        <i class="bi bi-clipboard"></i> Historia Clínica N° @historiaClinica.NumeroHistoriaClinica.ToString("D5") - Paciente: @historiaClinica.PacienteNombre (Alta: @historiaClinica.FechaAlta.ToString("dd/MM/yyyy"))
                     </h6>
                     <p class="mb-1 small"><strong>• Antecedentes Médicos:</strong> @historiaClinica.AntecedentesMedicos | <strong>Alergias:</strong> @historiaClinica.Alergias</p>
                     <p class="mb-0 small text-muted"><strong>• Observaciones Generales:</strong> @historiaClinica.ObservacionesGenerales</p>
                 </div>
 
-                <div class="table-responsive bg-white rounded shadow-sm border">
+                <div class="table-responsive panel">
                     <table class="table table-hover align-middle mb-0 table-theme">
                         <thead>
                             <tr>

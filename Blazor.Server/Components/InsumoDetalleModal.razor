@@ -9,7 +9,7 @@
                 <!-- HEADER -->
                 <div class="modal-header btn-theme-primary text-white">
                     <h5 class="modal-title fw-bold">
-                        📦 @(IsEditing ? $"Editar Insumo #{Model.Id}" : "Registrar Insumo / Material")
+                        <i class="bi bi-box-seam"></i> @(IsEditing ? $"Editar Insumo #{Model.Id}" : "Registrar Insumo / Material")
                     </h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
                 </div>
@@ -50,7 +50,7 @@
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
                     <button type="button" class="btn btn-theme-primary" @onclick="GuardarInsumo" disabled="@isSaving">
-                        @(isSaving ? "Guardando..." : "💾 Guardar")
+                        @(isSaving ? "Guardando..." : "Guardar")
                     </button>
                 </div>
             </div>

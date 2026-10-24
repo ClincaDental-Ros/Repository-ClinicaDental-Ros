@@ -3,36 +3,21 @@
 @inject OdontologoApiClient ApiClient
 @inject EspecialidadApiClient EspClient
 
-<PageTitle>Cuerpo Médico - DentalClinic</PageTitle>
+<PageTitle>Cuerpo Médico - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Cuerpo Médico Odontológico</h4>
-        <p class="text-muted small mb-0">Plantel de profesionales, matrículas habilitadas y asignación de especialidades</p>
-    </div>
+    <PageHeader Titulo="Cuerpo Médico Odontológico" Subtitulo="Plantel de profesionales, matrículas habilitadas y asignación de especialidades" Icono="bi-person-badge" />
 
-    <div class="row g-3 p-3 m-0 bg-light">
-        <div class="col-md-4">
-            <div class="card-stat border-primary">
-                <span class="text-muted small fw-bold">Odontólogos</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@odontologos.Count</h3>
-                <small class="text-secondary">Profesionales activos</small>
-            </div>
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Odontólogos" Detalle="Profesionales activos" Color="primary" Icono="bi-person-badge">@odontologos.Count</StatCard>
         </div>
-        <div class="col-md-4">
-            <div class="card-stat border-info">
-                <span class="text-muted small fw-bold">Especialidades</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@EspecialidadesCubiertasCount</h3>
-                <small class="text-secondary">Áreas cubiertas</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Especialidades" Detalle="Áreas cubiertas" Color="info" Icono="bi-tag">@EspecialidadesCubiertasCount</StatCard>
         </div>
-        <div class="col-md-4">
-            <div class="card-stat border-success">
-                <span class="text-muted small fw-bold">Atención</span>
-                <h3 class="fw-bold my-1 text-success">Consultorios 1 al 4</h3>
-                <small class="text-secondary">Sede Central Rosario</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Atención" Detalle="Sede Central Rosario" Color="success" Icono="bi-hospital">Consultorios 1 al 4</StatCard>
         </div>
     </div>
 
@@ -51,23 +36,23 @@
             </div>
             <div class="col-md-8 d-flex justify-content-end gap-2 flex-wrap">
                 <button class="btn btn-theme-primary" @onclick="CargarOdontologos" disabled="@isLoading">
-                    🔄 Refrescar
+                    <i class="bi bi-arrow-clockwise"></i> Refrescar
                 </button>
                 <button class="btn btn-theme-success" @onclick="AbrirModalNuevo">
                     + Nuevo Profesional
                 </button>
                 <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">
-                    ✏️ Modificar
+                    <i class="bi bi-pencil-square"></i> Modificar
                 </button>
                 <button class="btn btn-theme-danger" @onclick="EliminarSeleccionado" disabled="@(seleccionado == null)">
-                    🗑 Eliminar
+                    <i class="bi bi-trash"></i> Eliminar
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="p-3">
-        <div class="table-responsive bg-white rounded shadow-sm border">
+    <div>
+        <div class="table-responsive panel">
             <table class="table table-hover align-middle mb-0 table-theme">
                 <thead>
                     <tr>

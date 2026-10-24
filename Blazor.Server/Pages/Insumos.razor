@@ -2,43 +2,24 @@
 @attribute [Authorize(Roles = Permisos.Insumos)]
 @inject InsumoApiClient ApiClient
 
-<PageTitle>Insumos y Stock - DentalClinic</PageTitle>
+<PageTitle>Insumos y Stock - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Control de Insumos, Materiales y Stock Clínico</h4>
-        <p class="text-muted small mb-0">Inventario odontológico, costos unitarios y control de stock crítico</p>
-    </div>
+    <PageHeader Titulo="Control de Insumos, Materiales y Stock Clínico" Subtitulo="Inventario odontológico, costos unitarios y control de stock crítico" Icono="bi-box-seam" />
 
-    <div class="row g-3 p-3 m-0 bg-light">
-        <div class="col-md-3">
-            <div class="card-stat border-primary">
-                <span class="text-muted small fw-bold">Insumos Registrados</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@insumos.Count</h3>
-                <small class="text-secondary">Materiales distintos</small>
-            </div>
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Insumos Registrados" Detalle="Materiales distintos" Color="primary" Icono="bi-box-seam">@insumos.Count</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-success">
-                <span class="text-muted small fw-bold">Stock Total</span>
-                <h3 class="fw-bold my-1 text-success">@insumos.Sum(i => i.Stock) u.</h3>
-                <small class="text-secondary">Unidades físicas</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Stock Total" Detalle="Unidades físicas" Color="success" Icono="bi-boxes">@insumos.Sum(i => i.Stock) u.</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat @(CriticosCount > 0 ? "border-danger" : "border-secondary")">
-                <span class="text-muted small fw-bold">Stock Crítico</span>
-                <h3 class="fw-bold my-1 @(CriticosCount > 0 ? "text-danger" : "text-secondary")">@CriticosCount ítems</h3>
-                <small class="text-secondary">Menor o igual a 10 u.</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Stock Crítico" Detalle="Menor o igual a 10 u." Color="@(CriticosCount > 0 ? "danger" : "secondary")" Icono="bi-exclamation-triangle">@CriticosCount ítems</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-info">
-                <span class="text-muted small fw-bold">Valorizado</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@ValorInventario.ToString("C0")</h3>
-                <small class="text-secondary">Valor en almacén</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Valorizado" Detalle="Valor en almacén" Color="info" Icono="bi-currency-dollar">@ValorInventario.ToString("C0")</StatCard>
         </div>
     </div>
 
@@ -48,16 +29,16 @@
                 + Nuevo Insumo
             </button>
             <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">
-                ✏️ Modificar
+                <i class="bi bi-pencil-square"></i> Modificar
             </button>
             <button class="btn btn-theme-danger" @onclick="SolicitarEliminar" disabled="@(seleccionado == null)">
-                🗑️ Eliminar
+                <i class="bi bi-trash"></i> Eliminar
             </button>
         </div>
     </div>
 
-    <div class="p-3">
-        <div class="table-responsive bg-white rounded shadow-sm border">
+    <div>
+        <div class="table-responsive panel">
             <table class="table table-hover align-middle mb-0 table-theme">
                 <thead>
                     <tr>
@@ -102,7 +83,7 @@
                                     @if (item.Stock <= 10)
                                     {
                                         <span class="badge bg-danger-subtle text-danger fw-bold border border-danger">
-                                            @item.Stock u. ⚠️ (Crítico)
+                                            @item.Stock u. <i class="bi bi-exclamation-triangle"></i> (Crítico)
                                         </span>
                                     }
                                     else

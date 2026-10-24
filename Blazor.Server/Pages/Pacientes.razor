@@ -2,56 +2,37 @@
 @attribute [Authorize(Roles = Permisos.Pacientes)]
 @inject PacienteApiClient ApiClient
 
-<PageTitle>Gestión de Pacientes - DentalClinic</PageTitle>
+<PageTitle>Gestión de Pacientes - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Gestión de Pacientes y Fichas Médicas</h4>
-        <p class="text-muted small mb-0">Padrón general, control de habilitaciones, obras sociales y antecedentes clínicos</p>
-    </div>
+    <PageHeader Titulo="Gestión de Pacientes y Fichas Médicas" Subtitulo="Padrón general, control de habilitaciones, obras sociales y antecedentes clínicos" Icono="bi-people" />
 
-    <div class="row g-3 p-3 m-0 bg-light">
-        <div class="col-md-3">
-            <div class="card-stat border-primary">
-                <span class="text-muted small fw-bold">Total Pacientes</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@pacientes.Count</h3>
-                <small class="text-secondary">Registrados en clínica</small>
-            </div>
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Total Pacientes" Detalle="Registrados en clínica" Color="primary" Icono="bi-people">@pacientes.Count</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-success">
-                <span class="text-muted small fw-bold">Habilitados</span>
-                <h3 class="fw-bold my-1 text-success">@pacientes.Count(p => p.EstadoHabilitado)</h3>
-                <small class="text-secondary">Aptos para turnos</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Habilitados" Detalle="Aptos para turnos" Color="success" Icono="bi-person-check">@pacientes.Count(p => p.EstadoHabilitado)</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-danger">
-                <span class="text-muted small fw-bold">Inhabilitados</span>
-                <h3 class="fw-bold my-1 text-danger">@pacientes.Count(p => !p.EstadoHabilitado)</h3>
-                <small class="text-secondary">Con multas o deudas</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Inhabilitados" Detalle="Con multas o deudas" Color="danger" Icono="bi-person-x">@pacientes.Count(p => !p.EstadoHabilitado)</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-info">
-                <span class="text-muted small fw-bold">Con Obra Social</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@pacientes.Count(p => p.ObraSocialId.HasValue && p.ObraSocialId.Value != 4)</h3>
-                <small class="text-secondary">Prepagas y mutuales</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Con Obra Social" Detalle="Prepagas y mutuales" Color="info" Icono="bi-shield-check">@pacientes.Count(p => p.ObraSocialId.HasValue && p.ObraSocialId.Value != 4)</StatCard>
         </div>
     </div>
 
     <div class="bg-white p-3 border-top border-bottom">
         <div class="row g-2 align-items-center">
-            <div class="col-md-3">
+            <div class="col-lg-5 col-xxl-3">
                 <div class="input-group">
                     <span class="input-group-text bg-light fw-bold text-secondary">Buscar:</span>
                     <input type="text" class="form-control" placeholder="Nombre, Apellido, DNI o Email..."
                            @bind="textoBuscar" @bind:event="oninput" @onkeyup="HandleKeyUp" />
                 </div>
             </div>
-            <div class="col-md-2 d-flex align-items-center">
+            <div class="col-lg-3 col-xxl-2 d-flex align-items-center">
                 <div class="form-check ms-2">
                     <input class="form-check-input" type="checkbox" id="chkSoloHabilitados"
                            @bind="soloHabilitados" @bind:after="CargarPacientes" />
@@ -60,18 +41,18 @@
                     </label>
                 </div>
             </div>
-            <div class="col-md-7 d-flex justify-content-end gap-2 flex-wrap">
-                <button class="btn btn-theme-primary" @onclick="CargarPacientes" disabled="@isLoading">🔍 Buscar</button>
+            <div class="col-12 col-xxl-7 d-flex justify-content-end gap-2 flex-wrap">
+                <button class="btn btn-theme-primary" @onclick="CargarPacientes" disabled="@isLoading"><i class="bi bi-search"></i> Buscar</button>
                 <button class="btn btn-theme-success" @onclick="AbrirModalNuevo">+ Nuevo Paciente</button>
-                <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">✏️ Modificar</button>
-                <button class="btn btn-warning fw-bold text-dark" @onclick="SolicitarToggleHabilitacion" disabled="@(seleccionado == null)">🔒 Cambiar Estado</button>
-                <button class="btn btn-theme-danger" @onclick="SolicitarEliminar" disabled="@(seleccionado == null)">🗑️ Eliminar</button>
+                <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)"><i class="bi bi-pencil-square"></i> Modificar</button>
+                <button class="btn btn-warning fw-bold text-dark" @onclick="SolicitarToggleHabilitacion" disabled="@(seleccionado == null)"><i class="bi bi-lock"></i> Cambiar Estado</button>
+                <button class="btn btn-theme-danger" @onclick="SolicitarEliminar" disabled="@(seleccionado == null)"><i class="bi bi-trash"></i> Eliminar</button>
             </div>
         </div>
     </div>
 
-    <div class="p-3">
-        <div class="table-responsive bg-white rounded shadow-sm border">
+    <div>
+        <div class="table-responsive panel">
             <table class="table table-hover align-middle mb-0 table-theme">
                 <thead>
                     <tr>
@@ -123,11 +104,11 @@
                                 <td>
                                     @if (p.EstadoHabilitado)
                                     {
-                                        <span class="badge bg-success-subtle text-success fw-bold border border-success">✅ Habilitado</span>
+                                        <span class="badge bg-success-subtle text-success fw-bold border border-success"><i class="bi bi-check-circle"></i> Habilitado</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-danger-subtle text-danger fw-bold border border-danger">❌ Inhabilitado</span>
+                                        <span class="badge bg-danger-subtle text-danger fw-bold border border-danger"><i class="bi bi-x-circle"></i> Inhabilitado</span>
                                     }
                                 </td>
                             </tr>
@@ -169,7 +150,7 @@
                 <div class="modal-body p-4">
                     <p class="fw-bold mb-3 text-dark">¡Paciente registrado con éxito!</p>
                     <div class="p-3 bg-light rounded border">
-                        <p class="fw-bold text-primary mb-2">🔑 Credenciales para el Portal del Paciente:</p>
+                        <p class="fw-bold text-primary mb-2"><i class="bi bi-key"></i> Credenciales para el Portal del Paciente:</p>
                         <p class="mb-1"><strong>• Usuario:</strong> <code>@createdUsername</code></p>
                         <p class="mb-0"><strong>• Contraseña:</strong> <code>@createdPassword</code></p>
                     </div>

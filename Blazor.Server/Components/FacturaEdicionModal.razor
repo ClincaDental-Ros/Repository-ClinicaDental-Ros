@@ -1,4 +1,4 @@
-@inject FacturaApiClient FacturaClient
+﻿@inject FacturaApiClient FacturaClient
 @inject PacienteApiClient PacienteClient
 @inject TurnoApiClient TurnoClient
 @inject InsumoApiClient InsumoClient
@@ -14,7 +14,7 @@
 
                 <div class="modal-header btn-theme-primary text-white">
                     <h5 class="modal-title fw-bold">
-                        🧾 @(Factura == null ? "Registrar Factura" : $"Editar Factura #{Factura.Id}")
+                        <i class="bi bi-receipt"></i> @(Factura == null ? "Registrar Factura" : $"Editar Factura #{Factura.Id}")
                     </h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
                 </div>
@@ -72,7 +72,7 @@
                                 <input type="number" min="1" class="form-control" @bind="cantidad" />
                             </div>
                             <div class="col-md-3">
-                                <button type="button" class="btn btn-theme-primary w-100" @onclick="AgregarItem">➕ Agregar</button>
+                                <button type="button" class="btn btn-theme-primary w-100" @onclick="AgregarItem"><i class="bi bi-plus-lg"></i> Agregar</button>
                             </div>
                         </div>
 
@@ -109,7 +109,7 @@
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
                     <button type="button" class="btn btn-theme-success" @onclick="Guardar" disabled="@(isSaving || isLoading)">
-                        @(isSaving ? "Guardando..." : "💾 Guardar")
+                        @(isSaving ? "Guardando..." : "Guardar")
                     </button>
                 </div>
             </div>

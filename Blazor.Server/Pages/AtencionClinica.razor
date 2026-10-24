@@ -4,16 +4,13 @@
 @inject ConsultaApiClient ConsultaClient
 @inject InsumoApiClient InsumoClient
 
-<PageTitle>Consola Médica - DentalClinic</PageTitle>
+<PageTitle>Consola Médica - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Consola Médica Odontológica - Evolución Clínica</h4>
-        <p class="text-muted small mb-0">Diagnóstico (CIE-10), tratamientos realizados, consumo de insumos y derivación automática a facturación</p>
-    </div>
+    <PageHeader Titulo="Consola Médica Odontológica - Evolución Clínica" Subtitulo="Diagnóstico (CIE-10), tratamientos realizados, consumo de insumos y derivación automática a facturación" Icono="bi-clipboard2-pulse" />
 
-    <div class="p-3">
+    <div>
         <div class="card shadow-sm border-0 p-4">
 
             <!-- 1. PACIENTES EN ESPERA -->
@@ -37,20 +34,20 @@
                         }
                     </select>
                     <button class="btn btn-theme-secondary text-nowrap" @onclick="CargarTurnosPresentes" disabled="@isLoading">
-                        🔄 Refrescar Espera
+                        <i class="bi bi-arrow-clockwise"></i> Refrescar Espera
                     </button>
                 </div>
 
                 @if (turnoSeleccionado != null)
                 {
                     <div class="mt-2 p-2 bg-light border rounded text-secondary small fw-bold">
-                        👤 Paciente: @turnoSeleccionado.PacienteNombre | Profesional: @turnoSeleccionado.OdontologoNombre | Especialidad: @turnoSeleccionado.EspecialidadNombre | Turno: @turnoSeleccionado.HorarioTurno
+                        <i class="bi bi-person"></i> Paciente: @turnoSeleccionado.PacienteNombre | Profesional: @turnoSeleccionado.OdontologoNombre | Especialidad: @turnoSeleccionado.EspecialidadNombre | Turno: @turnoSeleccionado.HorarioTurno
                     </div>
                 }
                 else if (turnosPresentes.Count == 0)
                 {
                     <div class="mt-2 text-muted small">
-                        ℹ️ Solicite a Recepción confirmar la presencia del paciente citado para habilitar la atención.
+                        <i class="bi bi-info-circle"></i> Solicite a Recepción confirmar la presencia del paciente citado para habilitar la atención.
                     </div>
                 }
             </div>
@@ -128,7 +125,7 @@
 
             <div>
                 <button class="btn btn-theme-success py-2 px-4 fs-6" @onclick="FinalizarAtencion" disabled="@(selectedTurnoId == 0 || isSaving)">
-                    @(isSaving ? "Registrando..." : "🩺 Finalizar Atención y Enviar Orden a Caja")
+                    @(isSaving ? "Registrando..." : "Finalizar Atención y Enviar Orden a Caja")
                 </button>
             </div>
 
@@ -230,7 +227,7 @@
 
         if (string.IsNullOrWhiteSpace(diagnostico))
         {
-            lblEstado = "⚠️ Debe ingresar un diagnóstico clínico válido.";
+            lblEstado = "Debe ingresar un diagnóstico clínico válido.";
             return;
         }
 
@@ -265,7 +262,7 @@
 
             await ConsultaClient.RegistrarAsync(consultaDto);
 
-            lblEstado = "✅ Atención médica registrada exitosamente. Se emitió la orden a Caja y se actualizó el stock.";
+            lblEstado = "Atención médica registrada exitosamente. Se emitió la orden a Caja y se actualizó el stock.";
             selectedTurnoId = 0;
             turnoSeleccionado = null;
             await CargarTurnosPresentes();

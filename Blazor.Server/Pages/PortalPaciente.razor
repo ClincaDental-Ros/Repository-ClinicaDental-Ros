@@ -6,24 +6,24 @@
 @inject MultaApiClient MultaClient
 @inject PacienteApiClient PacienteClient
 
-<PageTitle>Portal del Paciente - DentalClinic</PageTitle>
+<PageTitle>Portal del Paciente - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Portal del Paciente - Clínica Odontológica Rosario</h4>
-        <p class="text-muted small mb-0">Autogestión de citas, descarga de comprobantes, historial clínico y estado de cuenta</p>
-    </div>
+    <PageHeader Titulo="Portal del Paciente" Subtitulo="Tus turnos, tu historial clínico, tus pagos y tu cobertura" Icono="bi-house-heart" />
 
-    <ul class="nav nav-tabs px-3 pt-2 bg-white">
-        <li class="nav-item"><button class="nav-link @(activeTab == 0 ? "active fw-bold" : "")" @onclick="() => activeTab = 0">🏠 Inicio / Próximo Turno</button></li>
-        <li class="nav-item"><button class="nav-link @(activeTab == 1 ? "active fw-bold" : "")" @onclick="() => activeTab = 1">📅 Mis Turnos</button></li>
-        <li class="nav-item"><button class="nav-link @(activeTab == 2 ? "active fw-bold" : "")" @onclick="() => activeTab = 2">📋 Mi Historial Clínico</button></li>
-        <li class="nav-item"><button class="nav-link @(activeTab == 3 ? "active fw-bold" : "")" @onclick="() => activeTab = 3">💳 Métodos de Pago y Saldo</button></li>
-        <li class="nav-item"><button class="nav-link @(activeTab == 4 ? "active fw-bold" : "")" @onclick="() => activeTab = 4">🛡️ Mi Obra Social</button></li>
+    <ul class="nav nav-pills gap-2 mb-3 flex-wrap">
+        @foreach (var (indice, icono, texto) in pestanias)
+        {
+            <li class="nav-item">
+                <a class="nav-link rounded-pill fw-semibold @(activeTab == indice ? "active" : "bg-white border text-secondary")" href="/portal-paciente?tab=@indice">
+                    <i class="bi @icono me-1"></i>@texto
+                </a>
+            </li>
+        }
     </ul>
 
-    <div class="p-3">
+    <div>
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
@@ -39,57 +39,75 @@
         }
         else if (activeTab == 0)
         {
-            <h3 class="fw-bold mb-3" style="color: var(--color-primary);">
-                ¡Hola, @(AuthService.GetNombreCompleto() ?? "Paciente")! Bienvenido a tu portal de salud dental.
-            </h3>
-
-            <div class="rounded p-4 mb-3 text-white d-flex justify-content-between align-items-center flex-wrap gap-3"
-                 style="background-color: var(--color-primary); max-width: 760px;">
-                <div>
-                    <div class="small fw-bold" style="color: #c8e1ff;">PRÓXIMO TURNO ODONTOLÓGICO</div>
-                    @if (proximoTurno != null)
-                    {
-                        <div class="fs-4 fw-bold my-1">Profesional: @proximoTurno.OdontologoNombre</div>
-                        <div class="fw-semibold">Fecha y Hora: @proximoTurno.Fecha.ToString("dd/MM/yyyy") a las @proximoTurno.HorarioTurno hs</div>
-                        <div class="small" style="color: #c8e1ff;">Ubicación: Consultorio 3 • Piso 1, Sede Rosario</div>
-                        <div class="small fw-bold mt-1" style="color: #34d399;">ESTADO: @proximoTurno.EstadoTurno.ToUpper()</div>
-                    }
-                    else
-                    {
-                        <div class="fs-5 fw-bold my-1">No tenés turnos próximos agendados.</div>
-                        <div class="small" style="color: #c8e1ff;">Presioná el botón de abajo para solicitar una cita.</div>
-                    }
-                </div>
-                @if (proximoTurno != null)
-                {
-                    <button class="btn btn-theme-success" @onclick="VerTicket">🧾 Ver Ticket Digital</button>
-                }
+            <div class="hero mb-4">
+                <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1 small mb-2">Paciente</span>
+                <h3 class="mb-1">¡Hola, @(AuthService.GetNombreCompleto() ?? "Paciente")!</h3>
+                <p class="mb-0 text-white-50">Bienvenido/a a tu portal de salud dental.</p>
             </div>
 
-            <button class="btn btn-theme-primary mb-4" @onclick="() => showReservaModal = true">
-                📅 + Solicitar y Agendar Nuevo Turno
-            </button>
+            <div class="row g-3 mb-4">
+                <div class="col-lg-8">
+                    <div class="panel p-4 h-100">
+                        <div class="stat-titulo mb-3">Próximo turno</div>
+                        @if (proximoTurno != null)
+                        {
+                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                <div class="text-center rounded-4 tono-primary px-3 py-2" style="min-width: 76px;">
+                                    <div class="fs-3 fw-bold lh-1">@proximoTurno.Fecha.Day</div>
+                                    <div class="small fw-semibold text-uppercase">@proximoTurno.Fecha.ToString("MMM", new System.Globalization.CultureInfo("es-AR"))</div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold fs-5">@proximoTurno.EspecialidadNombre</div>
+                                    <div class="text-secondary"><i class="bi bi-person-badge me-1"></i>@proximoTurno.OdontologoNombre</div>
+                                    <div class="text-secondary"><i class="bi bi-clock me-1"></i>@proximoTurno.Fecha.ToString("dd/MM/yyyy") a las @proximoTurno.HorarioTurno hs</div>
+                                    <div class="mt-2"><EstadoBadge Estado="@proximoTurno.EstadoTurno" /></div>
+                                </div>
+                                <button class="btn btn-theme-secondary" @onclick="VerTicket"><i class="bi bi-receipt me-1"></i>Ver comprobante</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center text-secondary py-3">
+                                <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                                No tenés turnos próximos agendados.
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="panel p-4 h-100 d-flex flex-column justify-content-center text-center">
+                        <span class="stat-icon tono-success mx-auto mb-2"><i class="bi bi-calendar-plus"></i></span>
+                        <div class="fw-bold mb-1">¿Necesitás un turno?</div>
+                        <p class="small text-secondary">Elegí especialidad, profesional y horario.</p>
+                        <button class="btn btn-theme-primary" @onclick="() => showReservaModal = true">
+                            <i class="bi bi-plus-lg me-1"></i>Solicitar turno
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-            <h6 class="fw-bold">Nuestras Especialidades de Atención:</h6>
-            <div class="d-flex flex-wrap gap-3">
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3">Nuestras especialidades</h6>
+            <div class="row g-3">
                 @foreach (var (icono, nombre) in especialidades)
                 {
-                    <div class="bg-white border rounded p-3" style="width: 165px;">
-                        <div class="fs-4">@icono</div>
-                        <div class="fw-bold mt-1" style="color: var(--color-primary);">@nombre</div>
+                    <div class="col-6 col-md-3">
+                        <div class="panel p-3 text-center h-100">
+                            <span class="stat-icon tono-primary mx-auto mb-2"><i class="bi @icono"></i></span>
+                            <div class="fw-semibold">@nombre</div>
+                        </div>
                     </div>
                 }
             </div>
         }
         else if (activeTab == 1)
         {
-            <div class="bg-white p-3 border rounded mb-3 d-flex gap-2">
-                <button class="btn btn-theme-success" @onclick="() => showReservaModal = true">📅 Agendar Turno</button>
-                <button class="btn btn-theme-danger" @onclick="SolicitarCancelarTurno" disabled="@(seleccionado == null)">❌ Cancelar Turno</button>
-                <button class="btn btn-theme-secondary" @onclick="CargarDatos">🔄 Actualizar</button>
+            <div class="bg-white p-3 border rounded mb-3 d-flex gap-2 flex-wrap">
+                <button class="btn btn-theme-success" @onclick="() => showReservaModal = true"><i class="bi bi-calendar-event"></i> Agendar Turno</button>
+                <button class="btn btn-theme-danger" @onclick="SolicitarCancelarTurno" disabled="@(seleccionado == null)"><i class="bi bi-x-circle"></i> Cancelar Turno</button>
+                <button class="btn btn-theme-secondary" @onclick="CargarDatos"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
             </div>
 
-            <div class="table-responsive bg-white rounded shadow-sm border">
+            <div class="table-responsive panel">
                 <table class="table table-hover align-middle mb-0 table-theme">
                     <thead>
                         <tr>
@@ -116,7 +134,7 @@
                                     <td><span class="badge bg-light text-dark border">@t.HorarioTurno</span></td>
                                     <td>@t.OdontologoNombre</td>
                                     <td>@t.EspecialidadNombre</td>
-                                    <td>@t.EstadoTurno</td>
+                                    <td><EstadoBadge Estado="@t.EstadoTurno" /></td>
                                 </tr>
                             }
                         }
@@ -138,14 +156,14 @@
             else
             {
                 <div class="bg-white p-3 border rounded mb-3">
-                    <div class="fw-bold">📋 Historia Clínica N° @historia.NumeroHistoriaClinica.ToString("D5") - @historia.PacienteNombre</div>
+                    <div class="fw-bold"><i class="bi bi-file-earmark-medical text-primary me-1"></i>Historia Clínica N° @historia.NumeroHistoriaClinica.ToString("D5") - @historia.PacienteNombre</div>
                     <div class="small text-muted mt-1">
                         • Antecedentes: @(string.IsNullOrWhiteSpace(historia.AntecedentesMedicos) ? "Sin datos" : historia.AntecedentesMedicos)
                         | Alergias: @(string.IsNullOrWhiteSpace(historia.Alergias) ? "Ninguna registrada" : historia.Alergias)
                     </div>
                 </div>
 
-                <div class="table-responsive bg-white rounded shadow-sm border">
+                <div class="table-responsive panel">
                     <table class="table table-hover align-middle mb-0 table-theme">
                         <thead>
                             <tr>
@@ -182,23 +200,24 @@
         else if (activeTab == 3)
         {
             <!-- TAB PAGOS Y SALDO -->
-            <div class="rounded p-4 mb-3 text-white" style="background-color: var(--color-primary); max-width: 760px;">
-                <div class="small fw-bold" style="color: #c8e1ff;">ESTADO DE CUENTA Y SALDO</div>
-                <div class="fs-3 fw-bold my-1">
-                    Saldo Deudor Pendiente: @(DeudaTotal > 0 ? DeudaTotal.ToString("C2") : "$ 0,00 (Al día)")
+            <div class="panel p-4 mb-3 d-flex align-items-center gap-3 flex-wrap" style="max-width: 760px;">
+                <span class="stat-icon @(DeudaTotal > 0 ? "tono-danger" : "tono-success")"><i class="bi @(DeudaTotal > 0 ? "bi-exclamation-octagon" : "bi-check2-circle")"></i></span>
+                <div class="flex-grow-1">
+                    <div class="stat-titulo">Saldo pendiente</div>
+                    <div class="stat-valor @(DeudaTotal > 0 ? "texto-danger" : "texto-success")">@(DeudaTotal > 0 ? DeudaTotal.ToString("C2") : "$ 0,00")</div>
+                    @if (DeudaTotal > 0)
+                    {
+                        <div class="small fw-semibold texto-danger">Tenés multas impagas: no podés reservar turnos nuevos hasta pagarlas.</div>
+                    }
+                    else
+                    {
+                        <div class="small fw-semibold texto-success">Estás al día y podés reservar turnos.</div>
+                    }
                 </div>
-                @if (DeudaTotal > 0)
-                {
-                    <div class="fw-bold" style="color: #f87171;">ESTADO: INHABILITADO PARA NUEVOS TURNOS (Registra multas impagas)</div>
-                }
-                else
-                {
-                    <div class="fw-bold" style="color: #34d399;">ESTADO: HABILITADO PARA RESERVAS</div>
-                }
             </div>
 
             <h6 class="fw-bold">Detalle de Multas por Inasistencia o Cargos Pendientes:</h6>
-            <div class="table-responsive bg-white rounded shadow-sm border" style="max-width: 760px;">
+            <div class="table-responsive panel" style="max-width: 760px;">
                 <table class="table align-middle mb-0 table-theme">
                     <thead>
                         <tr>
@@ -225,17 +244,17 @@
                                     <td>
                                         @if (m.EstadoPago)
                                         {
-                                            <span class="fw-bold text-success">✅ Pagada</span>
+                                            <span class="estado-badge estado-atendido">Pagada</span>
                                         }
                                         else
                                         {
-                                            <span class="fw-bold text-danger">❌ Impaga</span>
+                                            <span class="estado-badge estado-ausente">Impaga</span>
                                         }
                                     </td>
                                     <td class="text-end">
                                         @if (!m.EstadoPago)
                                         {
-                                            <button class="btn btn-sm btn-theme-success" @onclick="() => SolicitarPago(m)">💳 Pagar</button>
+                                            <button class="btn btn-sm btn-theme-success" @onclick="() => SolicitarPago(m)"><i class="bi bi-credit-card"></i> Pagar</button>
                                         }
                                     </td>
                                 </tr>
@@ -248,18 +267,17 @@
         else
         {
             <!-- TAB OBRA SOCIAL -->
-            <div class="bg-white border rounded p-4" style="max-width: 600px;">
-                <h5 class="fw-bold mb-3" style="color: var(--color-primary);">🛡️ Cobertura Médica y Prepaga Registrada</h5>
-                @if (string.IsNullOrWhiteSpace(pacienteInfo?.ObraSocialNombre))
-                {
-                    <p class="mb-2">No tenés una obra social registrada.</p>
-                }
-                else
-                {
-                    <p class="fw-bold mb-2">Obra Social: @pacienteInfo!.ObraSocialNombre</p>
-                    <p class="mb-2">N° de Afiliado / Credencial: @(pacienteInfo.NumeroAfiliado ?? "S/D")</p>
-                }
-                <p class="small text-muted mb-0">ℹ️ Para actualizar tu obra social o presentar una nueva credencial, presentate en Recepción.</p>
+            <div style="max-width: 460px;">
+                <div class="hero mb-3" style="border-radius: 20px;">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <span class="small fw-bold text-white-50 text-uppercase">Credencial</span>
+                        <i class="bi bi-shield-check fs-3"></i>
+                    </div>
+                    <div class="fs-4 fw-bold">@(string.IsNullOrWhiteSpace(pacienteInfo?.ObraSocialNombre) ? "Particular" : pacienteInfo!.ObraSocialNombre)</div>
+                    <div class="text-white-50 mb-3">@(string.IsNullOrWhiteSpace(pacienteInfo?.ObraSocialNombre) ? "Sin obra social registrada" : "N° de afiliado: " + (pacienteInfo!.NumeroAfiliado ?? "S/D"))</div>
+                    <div class="fw-semibold">@(AuthService.GetNombreCompleto() ?? "Paciente")</div>
+                </div>
+                <p class="small text-muted mb-0"><i class="bi bi-info-circle me-1"></i>Para actualizar tu obra social o presentar una nueva credencial, acercate a Recepción.</p>
             </div>
         }
     </div>
@@ -317,10 +335,19 @@
 
     private readonly (string Icono, string Nombre)[] especialidades =
     {
-        ("🦷", "Odontología Gral."),
-        ("😁", "Ortodoncia"),
-        ("🔬", "Endodoncia"),
-        ("🛠️", "Implantología")
+        ("bi-heart-pulse", "Odontología general"),
+        ("bi-emoji-smile", "Ortodoncia"),
+        ("bi-search", "Endodoncia"),
+        ("bi-tools", "Implantología")
+    };
+
+    private readonly (int Indice, string Icono, string Texto)[] pestanias =
+    {
+        (0, "bi-house-door", "Inicio"),
+        (1, "bi-calendar-check", "Mis turnos"),
+        (2, "bi-file-earmark-medical", "Mi historial clínico"),
+        (3, "bi-wallet2", "Pagos y deudas"),
+        (4, "bi-shield-check", "Mi obra social")
     };
 
     protected override void OnParametersSet()

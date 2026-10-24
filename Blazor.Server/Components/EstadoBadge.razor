@@ -1,0 +1,25 @@
+@* Insignia tipo píldora para el estado de un turno. *@
+<span class="estado-badge @Clase">@Texto</span>
+
+@code {
+    /// <summary>Valor de EstadoTurno: Pendiente, Presente, Atendido, Cancelado o NoAsistido.</summary>
+    [Parameter, EditorRequired] public string Estado { get; set; } = "";
+
+    private string Clase => Estado switch
+    {
+        "Pendiente" => "estado-pendiente",
+        "Presente" => "estado-presente",
+        "Atendido" => "estado-atendido",
+        "NoAsistido" => "estado-ausente",
+        _ => "estado-cancelado"
+    };
+
+    private string Texto => Estado switch
+    {
+        "Pendiente" => "Pendiente",
+        "Presente" => "En sala de espera",
+        "Atendido" => "Atendido",
+        "NoAsistido" => "Ausente (multado)",
+        _ => Estado
+    };
+}

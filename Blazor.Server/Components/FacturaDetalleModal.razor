@@ -9,7 +9,7 @@
                 <!-- HEADER -->
                 <div class="modal-header btn-theme-primary text-white p-3">
                     <div>
-                        <h5 class="modal-title fw-bold mb-0">🧾 Liquidación Fiscal N° @((1000 + Factura.Id).ToString("D6"))</h5>
+                        <h5 class="modal-title fw-bold mb-0"><i class="bi bi-receipt"></i> Liquidación Fiscal N° @((1000 + Factura.Id).ToString("D6"))</h5>
                         <small class="text-white-50">Fecha de Emisión: @Factura.FechaEmision.ToString("dd/MM/yyyy HH:mm")</small>
                     </div>
                     <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
@@ -19,10 +19,10 @@
                 <div class="modal-body p-4">
                     <div class="row g-2 mb-3 pb-3 border-bottom small">
                         <div class="col-md-6">
-                            <strong>👤 Paciente:</strong> @Factura.PacienteNombre
+                            <strong><i class="bi bi-person"></i> Paciente:</strong> @Factura.PacienteNombre
                         </div>
                         <div class="col-md-6">
-                            <strong>🛡️ Obra Social / Prepaga:</strong> @Factura.ObraSocialNombre
+                            <strong><i class="bi bi-shield-check"></i> Obra Social / Prepaga:</strong> @Factura.ObraSocialNombre
                         </div>
                     </div>
 
@@ -106,13 +106,13 @@
                     @if (!Factura.EstadoPago)
                     {
                         <button type="button" class="btn btn-theme-success" @onclick="RegistrarCobro" disabled="@isSaving">
-                            @(isSaving ? "Procesando..." : "💳 Registrar Cobro en Caja")
+                            @(isSaving ? "Procesando..." : "Registrar Cobro en Caja")
                         </button>
                     }
                     else
                     {
                         <span class="badge bg-success-subtle text-success fs-6 border border-success px-3 py-2">
-                            ✅ Factura Pagada (@Factura.MetodoPago)
+                            <i class="bi bi-check-circle"></i> Factura Pagada (@Factura.MetodoPago)
                         </span>
                     }
                 </div>

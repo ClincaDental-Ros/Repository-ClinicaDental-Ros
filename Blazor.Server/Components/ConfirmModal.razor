@@ -1,11 +1,11 @@
 ﻿@if (Show)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15,23,42,.5);" aria-modal="true" role="dialog">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title fw-bold">⚠️ @Titulo</h5>
+                <div class="modal-header border-0" style="background-color: var(--color-warning-light); color: #92400e;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>@Titulo</h5>
                     <button type="button" class="btn-close" @onclick="Cancelar"></button>
                 </div>
 

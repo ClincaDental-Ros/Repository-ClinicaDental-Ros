@@ -2,68 +2,49 @@
 @attribute [Authorize(Roles = Permisos.Cobro)]
 @inject FacturaApiClient ApiClient
 
-<PageTitle>Caja y Facturación - DentalClinic</PageTitle>
+<PageTitle>Caja y Facturación - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--color-primary);">Módulo de Cobro, Caja y Liquidación a Obras Sociales</h4>
-        <p class="text-muted small mb-0">Emisión de comprobantes, liquidación de coseguros, descuentos de obras sociales y pagos recibidos</p>
-    </div>
+    <PageHeader Titulo="Módulo de Cobro, Caja y Liquidación a Obras Sociales" Subtitulo="Emisión de comprobantes, liquidación de coseguros, descuentos de obras sociales y pagos recibidos" Icono="bi-receipt" />
 
-    <div class="row g-3 p-3 m-0 bg-light">
-        <div class="col-md-3">
-            <div class="card-stat border-primary">
-                <span class="text-muted small fw-bold">Total Facturado</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@facturas.Sum(f => f.Total).ToString("C0")</h3>
-                <small class="text-secondary">Consultas + Insumos</small>
-            </div>
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Total Facturado" Detalle="Consultas + Insumos" Color="primary" Icono="bi-receipt">@facturas.Sum(f => f.Total).ToString("C0")</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-success">
-                <span class="text-muted small fw-bold">Cobrado en Caja</span>
-                <h3 class="fw-bold my-1 text-success">@facturas.Where(f => f.EstadoPago).Sum(f => f.MontoAPagarPaciente).ToString("C0")</h3>
-                <small class="text-secondary">Efectivo y Tarjetas</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Cobrado en Caja" Detalle="Efectivo y Tarjetas" Color="success" Icono="bi-cash-stack">@facturas.Where(f => f.EstadoPago).Sum(f => f.MontoAPagarPaciente).ToString("C0")</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat border-info">
-                <span class="text-muted small fw-bold">A Liquidar O.S.</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-accent);">@facturas.Sum(f => f.DescuentoObraSocial).ToString("C0")</h3>
-                <small class="text-secondary">Obras Sociales</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="A Liquidar O.S." Detalle="Obras Sociales" Color="info" Icono="bi-shield-check">@facturas.Sum(f => f.DescuentoObraSocial).ToString("C0")</StatCard>
         </div>
-        <div class="col-md-3">
-            <div class="card-stat @(PendientesCount > 0 ? "border-warning" : "border-secondary")">
-                <span class="text-muted small fw-bold">Pendientes de Cobro</span>
-                <h3 class="fw-bold my-1 @(PendientesCount > 0 ? "text-warning" : "text-secondary")">@PendientesCount</h3>
-                <small class="text-secondary">Órdenes en espera</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Pendientes de Cobro" Detalle="Órdenes en espera" Color="@(PendientesCount > 0 ? "warning" : "secondary")" Icono="bi-clock-history">@PendientesCount</StatCard>
         </div>
     </div>
 
     <div class="bg-white p-3 border-top border-bottom">
         <div class="d-flex gap-2 flex-wrap">
             <button class="btn btn-theme-primary" @onclick="CargarFacturas" disabled="@isLoading">
-                🔄 Actualizar Lista
+                <i class="bi bi-arrow-clockwise"></i> Actualizar Lista
             </button>
             <button class="btn btn-theme-success" @onclick="AbrirDetalleSeleccionado" disabled="@(seleccionado == null)">
-                🧾 Abrir Detalle y Cobrar
+                <i class="bi bi-receipt"></i> Abrir Detalle y Cobrar
             </button>
             <button class="btn btn-theme-primary" @onclick="AbrirNueva">
-                ➕ Nueva Factura
+                <i class="bi bi-plus-lg"></i> Nueva Factura
             </button>
             <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionada" disabled="@(seleccionado == null || seleccionado.EstadoPago)">
-                ✏️ Modificar
+                <i class="bi bi-pencil-square"></i> Modificar
             </button>
             <button class="btn btn-theme-danger" @onclick="PedirEliminar" disabled="@(seleccionado == null || seleccionado.EstadoPago)">
-                🗑️ Eliminar
+                <i class="bi bi-trash"></i> Eliminar
             </button>
         </div>
     </div>
 
-    <div class="p-3">
-        <div class="table-responsive bg-white rounded shadow-sm border">
+    <div>
+        <div class="table-responsive panel">
             <table class="table table-hover align-middle mb-0 table-theme">
                 <thead>
                     <tr>
@@ -114,11 +95,11 @@
                                 <td>
                                     @if (f.EstadoPago)
                                     {
-                                        <span class="badge bg-success-subtle text-success fw-bold border border-success">✅ PAGADO</span>
+                                        <span class="badge bg-success-subtle text-success fw-bold border border-success"><i class="bi bi-check-circle"></i> PAGADO</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border border-warning">⏳ PENDIENTE</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border border-warning"><i class="bi bi-hourglass-split"></i> PENDIENTE</span>
                                     }
                                 </td>
                                 <td><small class="text-muted">@(f.MetodoPago ?? "-")</small></td>

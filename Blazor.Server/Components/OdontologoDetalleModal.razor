@@ -10,7 +10,7 @@
                 <!-- HEADER -->
                 <div class="modal-header btn-theme-primary text-white">
                     <h5 class="modal-title fw-bold">
-                        🩺 @(IsEditing ? $"Editar Odontólogo #{Model.Id}" : "Registrar Odontólogo")
+                        <i class="bi bi-clipboard2-pulse"></i> @(IsEditing ? $"Editar Odontólogo #{Model.Id}" : "Registrar Odontólogo")
                     </h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
                 </div>
@@ -86,7 +86,7 @@
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
                     <button type="button" class="btn btn-theme-primary" @onclick="GuardarOdontologo" disabled="@isSaving">
-                        @(isSaving ? "Guardando..." : "💾 Guardar Profesional")
+                        @(isSaving ? "Guardando..." : "Guardar Profesional")
                     </button>
                 </div>
             </div>

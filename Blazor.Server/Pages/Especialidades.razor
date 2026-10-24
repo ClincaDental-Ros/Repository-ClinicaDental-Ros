@@ -2,29 +2,18 @@
 @attribute [Authorize(Roles = Permisos.Especialidades)]
 @inject EspecialidadApiClient ApiClient
 
-<PageTitle>Especialidades - DentalClinic</PageTitle>
+<PageTitle>Especialidades - Turno Molar</PageTitle>
 
 <div class="container-fluid p-0">
 
-    <div class="bg-white p-3 border-bottom shadow-sm">
-        <h4 class="fw-bold mb-1 style-primary-color" style="color: var(--color-primary);">Especialidades Odontológicas</h4>
-        <p class="text-muted small mb-0">Catálogo de tratamientos, áreas de atención médica y coberturas</p>
-    </div>
+    <PageHeader Titulo="Especialidades Odontológicas" Subtitulo="Catálogo de tratamientos, áreas de atención médica y coberturas" Icono="bi-tag" />
 
-    <div class="row g-3 p-3 m-0 bg-light">
-        <div class="col-md-6">
-            <div class="card-stat border-primary">
-                <span class="text-muted small fw-bold">Especialidades</span>
-                <h3 class="fw-bold my-1" style="color: var(--color-primary);">@especialidades.Count</h3>
-                <small class="text-secondary">Habilitadas en clínica</small>
-            </div>
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Especialidades" Detalle="Habilitadas en clínica" Color="primary" Icono="bi-tag">@especialidades.Count</StatCard>
         </div>
-        <div class="col-md-6">
-            <div class="card-stat border-success">
-                <span class="text-muted small fw-bold">Cobertura</span>
-                <h3 class="fw-bold my-1 text-success">100%</h3>
-                <small class="text-secondary">Integral ambulatoria</small>
-            </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Cobertura" Detalle="Integral ambulatoria" Color="success" Icono="bi-shield-plus">100%</StatCard>
         </div>
     </div>
 
@@ -34,16 +23,16 @@
                 + Nueva Especialidad
             </button>
             <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">
-                ✏️ Modificar
+                <i class="bi bi-pencil-square"></i> Modificar
             </button>
             <button class="btn btn-theme-danger" @onclick="SolicitarEliminar" disabled="@(seleccionado == null)">
-                🗑️ Eliminar
+                <i class="bi bi-trash"></i> Eliminar
             </button>
         </div>
     </div>
 
-    <div class="p-3">
-        <div class="table-responsive bg-white rounded shadow-sm border">
+    <div>
+        <div class="table-responsive panel">
             <table class="table table-hover align-middle mb-0 table-theme">
                 <thead>
                     <tr>

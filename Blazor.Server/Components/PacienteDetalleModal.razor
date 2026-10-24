@@ -9,7 +9,7 @@
                 <!-- HEADER -->
                 <div class="modal-header btn-theme-primary text-white">
                     <h5 class="modal-title fw-bold">
-                        🦷 @(IsEditing ? $"Editar Ficha Médica #{Model.Id}" : "Registrar Nuevo Paciente")
+                        <i class="bi bi-heart-pulse"></i> @(IsEditing ? $"Editar Ficha Médica #{Model.Id}" : "Registrar Nuevo Paciente")
                     </h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
                 </div>
@@ -85,7 +85,7 @@
                         <!-- CREDENCIALES DEL PORTAL -->
                         <div class="col-12 mt-4">
                             <h6 class="fw-bold border-bottom pb-2" style="color: var(--color-primary);">
-                                🔑 Credenciales de Acceso (Portal del Paciente)
+                                <i class="bi bi-key"></i> Credenciales de Acceso (Portal del Paciente)
                             </h6>
                         </div>
                         <div class="col-md-6">
@@ -114,7 +114,7 @@
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
                     <button type="button" class="btn btn-theme-primary" @onclick="GuardarPaciente" disabled="@isSaving">
-                        @(isSaving ? "Guardando..." : "💾 Guardar Paciente")
+                        @(isSaving ? "Guardando..." : "Guardar Paciente")
                     </button>
                 </div>
             </div>

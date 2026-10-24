@@ -42,6 +42,12 @@ namespace API.Auth.Blazor.Server
                     {
                         await ClearSessionAsync();
                     }
+                    else
+                    {
+                        // Al recargar la página (F5) se recupera la sesión guardada:
+                        // hay que avisarle al proveedor de autenticación para que las páginas con [Authorize] la reconozcan.
+                        _authStateProvider.NotifyUserAuthentication(this);
+                    }
                 }
             }
             catch
