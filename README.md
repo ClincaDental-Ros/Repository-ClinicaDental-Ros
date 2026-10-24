@@ -55,8 +55,9 @@ Solución `DentalClinic.sln` (.NET 8, C#) organizada en capas:
 | `WebAPI` | API REST (Minimal API) con autenticación JWT, autorización por rol y Swagger en desarrollo. |
 | `API.Clients` | Clientes HTTP compartidos por las dos interfaces. |
 | `API.Auth.WindowsForms` | Manejo de la sesión en la aplicación de escritorio. |
+| `API.Auth.Blazor.Server` | Manejo de la sesión y de los permisos por rol en la aplicación web. |
 | `WindowsForms` | Interfaz de escritorio (MDI) para el personal de la clínica y el portal del paciente. |
-| `BlazorUI` | Interfaz web (Blazor Server) con las mismas funcionalidades. |
+| `Blazor.Server` | Interfaz web (Blazor Server) con las mismas funcionalidades: `Pages/` (pantallas), `Shared/` (diseño y menú) y `Components/` (modales y componentes reutilizables). |
 | `Application.Services.Tests` | Pruebas unitarias (xUnit) del dominio y de los servicios. |
 
 Base de datos: SQL Server en la nube del equipo (MonsterASP, base `db65098`). Si la base está vacía, la API crea las tablas y los datos de prueba al iniciar (`EnsureCreated`).
@@ -115,11 +116,11 @@ También se puede crear `WebAPI/appsettings.Development.json`, que está en `.gi
 ### 2. Ejecutar
 
 1. **WebAPI** (debe iniciarse primero): `dotnet run --project WebAPI` → `http://localhost:5263` (Swagger en `/swagger`).
-2. **Web (Blazor)**: `dotnet run --project BlazorUI` → `http://localhost:5278`.
+2. **Web (Blazor)**: `dotnet run --project Blazor.Server` → `http://localhost:5278`.
 3. **Escritorio (WindowsForms)**: ejecutar el proyecto `WindowsForms` desde Visual Studio.
 
-La URL de la API se configura en `ApiSettings:BaseUrl` de `BlazorUI/appsettings.json` y de `WindowsForms/appsettings.json`.
-En Visual Studio, elegí en la barra de herramientas el perfil de inicio **"API + Web + Escritorio"** (o "API + Web" / "API + Escritorio"), definido en `DentalClinic.slnLaunch`, para levantar la API junto con las interfaces. Si se inicia solo BlazorUI o WindowsForms, el login muestra "Error de conexión" porque la API no está corriendo.
+La URL de la API se configura en `ApiSettings:BaseUrl` de `Blazor.Server/appsettings.json` y de `WindowsForms/appsettings.json`.
+En Visual Studio, elegí en la barra de herramientas el perfil de inicio **"API + Web + Escritorio"** (o "API + Web" / "API + Escritorio"), definido en `DentalClinic.slnLaunch`, para levantar la API junto con las interfaces. Si se inicia solo Blazor.Server o WindowsForms, el login muestra "Error de conexión" porque la API no está corriendo.
 
 ### 3. Usuarios de prueba
 

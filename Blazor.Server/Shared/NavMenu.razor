@@ -1,0 +1,168 @@
+﻿@implements IDisposable
+@inject BlazorServerAuthService AuthService
+@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm px-3" style="background-color: var(--color-primary-dark);">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold me-4" href="/">🦷 DentalClinic</a>
+
+        <button class="navbar-toggler" type="button" @onclick="ToggleMenuMovil" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        @if (menuAbierto != null)
+        {
+            <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1000;" @onclick="CerrarMenu"></div>
+        }
+
+        <div class="navbar-collapse collapse @(menuMovilAbierto ? "show" : "")" id="navbarMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 position-relative" style="z-index: 1001;">
+
+                <!-- 1. Maestros -->
+                @if (VeAlguno(Permisos.Pacientes, Permisos.Odontologos, Permisos.Especialidades, Permisos.Insumos))
+                {
+                    <li class="nav-item dropdown">
+                        <button type="button" class="nav-link dropdown-toggle text-white fw-semibold bg-transparent border-0" @onclick='() => ToggleMenu("maestros")'>
+                            📁 Maestros
+                        </button>
+                        <ul class="dropdown-menu shadow border-0 @ClaseMenu("maestros")" style="z-index: 1001;">
+                            @if (Ve(Permisos.Pacientes))
+                            {
+                                <li><a class="dropdown-item" href="/pacientes" @onclick="CerrarMenu">👥 Pacientes</a></li>
+                            }
+                            @if (Ve(Permisos.Odontologos))
+                            {
+                                <li><a class="dropdown-item" href="/odontologos" @onclick="CerrarMenu">🩺 Odontólogos</a></li>
+                            }
+                            @if (Ve(Permisos.Especialidades))
+                            {
+                                <li><a class="dropdown-item" href="/especialidades" @onclick="CerrarMenu">🏷️ Especialidades</a></li>
+                            }
+                            @if (Ve(Permisos.Insumos))
+                            {
+                                <li><a class="dropdown-item" href="/insumos" @onclick="CerrarMenu">📦 Insumos y Stock</a></li>
+                            }
+                        </ul>
+                    </li>
+                }
+
+                <!-- 2. Gestión Clínica -->
+                @if (VeAlguno(Permisos.Turnos, Permisos.Admision, Permisos.AtencionClinica))
+                {
+                    <li class="nav-item dropdown">
+                        <button type="button" class="nav-link dropdown-toggle text-white fw-semibold bg-transparent border-0" @onclick='() => ToggleMenu("clinica")'>
+                            🏥 Gestión Clínica
+                        </button>
+                        <ul class="dropdown-menu shadow border-0 @ClaseMenu("clinica")" style="z-index: 1001;">
+                            @if (Ve(Permisos.Turnos))
+                            {
+                                <li><a class="dropdown-item" href="/turnos" @onclick="CerrarMenu">📅 Gestión de Turnos</a></li>
+                            }
+                            @if (Ve(Permisos.Admision))
+                            {
+                                <li><a class="dropdown-item" href="/admision" @onclick="CerrarMenu">🛎️ Recepción / Sala de Espera</a></li>
+                            }
+                            @if (Ve(Permisos.AtencionClinica))
+                            {
+                                <li><a class="dropdown-item" href="/atencion-clinica" @onclick="CerrarMenu">💉 Consola Médica</a></li>
+                            }
+                        </ul>
+                    </li>
+                }
+
+                <!-- 3. Caja y Facturación -->
+                @if (Ve(Permisos.Cobro))
+                {
+                    <li class="nav-item dropdown">
+                        <button type="button" class="nav-link dropdown-toggle text-white fw-semibold bg-transparent border-0" @onclick='() => ToggleMenu("caja")'>
+                            💳 Caja y Facturación
+                        </button>
+                        <ul class="dropdown-menu shadow border-0 @ClaseMenu("caja")" style="z-index: 1001;">
+                            <li><a class="dropdown-item" href="/cobro" @onclick="CerrarMenu">🧾 Cobro, Caja y Liquidación</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- 4. Reportes -->
+                @if (Ve(Permisos.Reportes))
+                {
+                    <li class="nav-item dropdown">
+                        <button type="button" class="nav-link dropdown-toggle text-white fw-semibold bg-transparent border-0" @onclick='() => ToggleMenu("reportes")'>
+                            📊 Reportes
+                        </button>
+                        <ul class="dropdown-menu shadow border-0 @ClaseMenu("reportes")" style="z-index: 1001;">
+                            <li><a class="dropdown-item" href="/reportes" @onclick="CerrarMenu">📈 Reportes y Métricas</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- 5. Portal Paciente (solo el rol Paciente) -->
+                @if (Ve(Permisos.PortalPaciente))
+                {
+                    <li class="nav-item dropdown">
+                        <button type="button" class="nav-link dropdown-toggle text-white fw-semibold bg-transparent border-0" @onclick='() => ToggleMenu("portal")'>
+                            👤 Portal Paciente
+                        </button>
+                        <ul class="dropdown-menu shadow border-0 @ClaseMenu("portal")" style="z-index: 1001;">
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=0" @onclick="CerrarMenu">🏠 Mi Portal del Paciente</a></li>
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=1" @onclick="CerrarMenu">📅 Mis Turnos y Citas</a></li>
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=2" @onclick="CerrarMenu">📋 Mi Historial Clínico</a></li>
+                            <li><a class="dropdown-item" href="/portal-paciente?tab=3" @onclick="CerrarMenu">💳 Mis Pagos y Deudas</a></li>
+                        </ul>
+                    </li>
+                }
+            </ul>
+
+            <!-- Cierre de Sesión -->
+            <button class="btn btn-theme-secondary btn-sm fw-bold" @onclick="CerrarSesion">
+                🚪 Cerrar Sesión
+            </button>
+        </div>
+    </div>
+</nav>
+
+@code {
+    // Sin rol => sin menús 
+    private string Rol => AuthService.GetRol() ?? string.Empty;
+
+    private string? menuAbierto;
+    private bool menuMovilAbierto;
+
+    protected override void OnInitialized()
+    {
+        AuthService.OnAuthenticationStateChanged += HandleAuthStateChanged;
+    }
+
+    private void HandleAuthStateChanged(bool isAuth)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private bool Ve(string permiso) => Permisos.Puede(Rol, permiso);
+
+    private bool VeAlguno(params string[] permisos) => permisos.Any(Ve);
+
+    private void ToggleMenu(string clave) => menuAbierto = menuAbierto == clave ? null : clave;
+
+    private string ClaseMenu(string clave) => menuAbierto == clave ? "show" : "";
+
+    private void ToggleMenuMovil() => menuMovilAbierto = !menuMovilAbierto;
+
+    private void CerrarMenu()
+    {
+        menuAbierto = null;
+        menuMovilAbierto = false;
+    }
+
+    private async Task CerrarSesion()
+    {
+        CerrarMenu();
+        await AuthService.ClearSessionAsync();
+        Navigation.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthenticationStateChanged -= HandleAuthStateChanged;
+    }
+}

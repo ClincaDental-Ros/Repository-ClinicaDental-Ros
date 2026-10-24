@@ -17,9 +17,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.Clients", "API.Clients\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.Auth.WindowsForms", "API.Auth.WindowsForms\API.Auth.WindowsForms.csproj", "{546265BD-9E5C-4754-AAA2-E9A9549ED270}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.Auth.Blazor.Server", "API.Auth.Blazor.Server\API.Auth.Blazor.Server.csproj", "{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsForms", "WindowsForms\WindowsForms.csproj", "{BDA36E0B-C659-4281-AF3E-004E57D3A030}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorUI", "BlazorUI\BlazorUI.csproj", "{6A9C75BD-C436-40E4-8428-8C98D186FFC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Server", "Blazor.Server\Blazor.Server.csproj", "{6A9C75BD-C436-40E4-8428-8C98D186FFC7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Services.Tests", "Application.Services.Tests\Application.Services.Tests.csproj", "{987AC3E0-ED3F-47E7-BEC3-FA9783C60CD7}"
 EndProject
@@ -117,6 +119,18 @@ Global
 		{546265BD-9E5C-4754-AAA2-E9A9549ED270}.Release|x64.Build.0 = Release|Any CPU
 		{546265BD-9E5C-4754-AAA2-E9A9549ED270}.Release|x86.ActiveCfg = Release|Any CPU
 		{546265BD-9E5C-4754-AAA2-E9A9549ED270}.Release|x86.Build.0 = Release|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Debug|x64.Build.0 = Debug|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Debug|x86.Build.0 = Debug|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Release|x64.ActiveCfg = Release|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Release|x64.Build.0 = Release|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Release|x86.ActiveCfg = Release|Any CPU
+		{3E8B6D2A-5C41-4F7B-9A0E-2D6C1B8F4A73}.Release|x86.Build.0 = Release|Any CPU
 		{BDA36E0B-C659-4281-AF3E-004E57D3A030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BDA36E0B-C659-4281-AF3E-004E57D3A030}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDA36E0B-C659-4281-AF3E-004E57D3A030}.Debug|x64.ActiveCfg = Debug|Any CPU

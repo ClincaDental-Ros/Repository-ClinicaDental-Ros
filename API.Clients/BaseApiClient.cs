@@ -29,7 +29,7 @@ namespace API.Clients
             _sharedHttpClient.BaseAddress = new Uri(_baseUrl);
         }
 
-        // BlazorUI: un HttpClient y un IAuthService por usuario, inyectados por DI
+        // Blazor.Server: un HttpClient y un IAuthService por usuario, inyectados por DI
         private readonly HttpClient? _ownHttpClient;
         private readonly IAuthService? _ownAuthService;
 
