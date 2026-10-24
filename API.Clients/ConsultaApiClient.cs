@@ -74,6 +74,16 @@ namespace API.Clients
             return await PostAsync<FacturaDTO, FacturaDTO>("/api/facturas/crear", dto);
         }
 
+        public async Task<FacturaDTO?> ActualizarAsync(FacturaDTO dto)
+        {
+            return await PutAsync<FacturaDTO, FacturaDTO>($"/api/facturas/{dto.Id}", dto);
+        }
+
+        public async Task<bool> EliminarAsync(int id)
+        {
+            return await DeleteAsync($"/api/facturas/{id}");
+        }
+
         public async Task<bool> PagarAsync(int id, string metodoPago)
         {
             return await PostAsync($"/api/facturas/{id}/pagar", new { MetodoPago = metodoPago });

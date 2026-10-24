@@ -173,12 +173,14 @@
             };
             filtroEspecialidades.AddRange(list);
         }
-        catch
+        catch (Exception ex)
         {
+            // Se deja solo la opción "Todas" para que la pantalla siga siendo usable
             filtroEspecialidades = new List<EspecialidadDTO>
             {
                 new EspecialidadDTO { Id = 0, Nombre = "Todas las especialidades" }
             };
+            Console.Error.WriteLine($"No se pudieron cargar las especialidades: {ex.Message}");
         }
     }
 

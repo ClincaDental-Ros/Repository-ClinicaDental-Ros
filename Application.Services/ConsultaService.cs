@@ -21,19 +21,22 @@ namespace Application.Services
         private readonly IInsumoRepository _insumoRepository;
         private readonly IFacturaRepository _facturaRepository;
         private readonly IPacienteRepository _pacienteRepository;
+        private readonly ITransactionManager _transactionManager;
 
         public ConsultaService(
             IConsultaRepository consultaRepository,
             ITurnoRepository turnoRepository,
             IInsumoRepository insumoRepository,
             IFacturaRepository facturaRepository,
-            IPacienteRepository pacienteRepository)
+            IPacienteRepository pacienteRepository,
+            ITransactionManager transactionManager)
         {
             _consultaRepository = consultaRepository;
             _turnoRepository = turnoRepository;
             _insumoRepository = insumoRepository;
             _facturaRepository = facturaRepository;
             _pacienteRepository = pacienteRepository;
+            _transactionManager = transactionManager;
         }
 
         public async Task<ConsultaDTO?> GetAsync(int id)
@@ -60,17 +63,17 @@ namespace Application.Services
             return list.Select(MapToDTO).ToList();
         }
 
+        /// <summary>
+        /// Registra la atención: marca el turno como atendido, guarda la consulta, descuenta el stock
+        /// de los insumos usados y emite la factura. Todo en una sola transacción.
+        /// </summary>
         public async Task<ConsultaDTO> RegistrarConsultaAsync(ConsultaDTO dto)
         {
-            var turno = await _turnoRepository.GetAsync(dto.TurnoId);
-            if (turno == null)
-            {
-                throw new InvalidOperationException("El turno asociado no existe.");
-            }
+            var turno = await _turnoRepository.GetAsync(dto.TurnoId)
+                ?? throw new InvalidOperationException("El turno asociado no existe.");
 
-        
-            turno.Atender();
-            await _turnoRepository.UpdateAsync(turno);
+            if (await _consultaRepository.GetByTurnoIdAsync(dto.TurnoId) != null)
+                throw new InvalidOperationException("El turno ya tiene una atención registrada.");
 
             var consulta = new Consulta(
                 0,
@@ -84,53 +87,43 @@ namespace Application.Services
                 dto.CalificacionEstrellas
             );
 
-            await _consultaRepository.AddAsync(consulta);
-
-          
-            decimal totalInsumos = 0m;
-            var facturaItems = new List<ItemFactura>();
-
-            if (dto.InsumosUtilizados != null && dto.InsumosUtilizados.Any())
+            await _transactionManager.EjecutarEnTransaccionAsync(async () =>
             {
-                foreach (var itemDto in dto.InsumosUtilizados)
+                turno.Atender();
+                await _turnoRepository.UpdateAsync(turno);
+                await _consultaRepository.AddAsync(consulta);
+
+                var facturaItems = new List<ItemFactura>();
+                foreach (var itemDto in dto.InsumosUtilizados ?? new List<ItemFacturaDTO>())
                 {
-                    if (itemDto.InsumoId > 0 && itemDto.CantidadInsumo > 0)
-                    {
-                        var insumo = await _insumoRepository.GetAsync(itemDto.InsumoId);
-                        if (insumo != null)
-                        {
-                            await _insumoRepository.DescontarStockAsync(itemDto.InsumoId, itemDto.CantidadInsumo);
-                            var sub = insumo.Precio * itemDto.CantidadInsumo;
-                            totalInsumos += sub;
-                            facturaItems.Add(new ItemFactura(0, 0, itemDto.InsumoId, itemDto.CantidadInsumo, insumo.Precio));
-                        }
-                    }
+                    if (itemDto.InsumoId <= 0 || itemDto.CantidadInsumo <= 0)
+                        continue;
+
+                    var insumo = await _insumoRepository.GetAsync(itemDto.InsumoId)
+                        ?? throw new InvalidOperationException($"El insumo #{itemDto.InsumoId} no existe.");
+
+                    if (!await _insumoRepository.DescontarStockAsync(insumo.Id, itemDto.CantidadInsumo))
+                        throw new InvalidOperationException($"Stock insuficiente de \"{insumo.Nombre}\" (disponible: {insumo.Stock}).");
+
+                    facturaItems.Add(new ItemFactura(0, 0, insumo.Id, itemDto.CantidadInsumo, insumo.Precio));
                 }
-            }
 
-         
-            var paciente = await _pacienteRepository.GetAsync(turno.PacienteId);
-            decimal honorarios = turno.MontoEstimado > 0 ? turno.MontoEstimado : 12000m;
-            decimal subtotal = honorarios + totalInsumos;
-            decimal coberturaOS = paciente?.ObraSocial?.PorcentajeCobertura ?? 0m;
-            decimal descuento = subtotal * coberturaOS;
-            decimal montoPaciente = subtotal - descuento;
+                var paciente = await _pacienteRepository.GetAsync(turno.PacienteId);
+                var factura = new Factura(
+                    0,
+                    turno.Id,
+                    turno.PacienteId,
+                    $"Atención Odontológica - {dto.Tratamiento} (Diag: {dto.Diagnostico})",
+                    0m, 0m, 0m, 0m,
+                    false,
+                    "Pendiente de Pago"
+                );
+                factura.SetItems(facturaItems);
+                factura.CalcularMontos(FacturaService.CalcularHonorarios(turno), paciente?.ObraSocial?.PorcentajeCobertura ?? 0m);
 
-            var factura = new Factura(
-                0,
-                turno.Id,
-                turno.PacienteId,
-                $"Atención Odontológica - {dto.Tratamiento} (Diag: {dto.Diagnostico})",
-                subtotal,
-                descuento,
-                subtotal,
-                montoPaciente,
-                false,
-                "Pendiente de Pago"
-            );
-            factura.SetItems(facturaItems);
-
-            await _facturaRepository.AddAsync(factura);
+                await _facturaRepository.AddAsync(factura);
+                return true;
+            });
 
             dto.Id = consulta.Id;
             return dto;

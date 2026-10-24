@@ -2,9 +2,7 @@ using API.Auth.WindowsForms;
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.IO;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -188,14 +186,14 @@ namespace WindowsForms
                 parent.Controls.Add(tb);
             }
 
-            AddField(pnlDatosCard, "Nombre *:", ref txtNombre, 20, 215, "Juan");
-            AddField(pnlDatosCard, "Apellido *:", ref txtApellido, 250, 215, "Pérez");
-            AddField(pnlDatosCard, "DNI / Documento:", ref txtDni, 480, 215, "34567890", enabled: false);
+            AddField(pnlDatosCard, "Nombre *:", ref txtNombre, 20, 215, "");
+            AddField(pnlDatosCard, "Apellido *:", ref txtApellido, 250, 215, "");
+            AddField(pnlDatosCard, "DNI / Documento:", ref txtDni, 480, 215, "", enabled: false);
 
             dy += 65;
-            AddField(pnlDatosCard, "Correo Electrónico *:", ref txtMail, 20, 215, "juan.perez@email.com");
-            AddField(pnlDatosCard, "Teléfono Móvil *:", ref txtTelefono, 250, 215, "+54 341 555-1234");
-            AddField(pnlDatosCard, "Domicilio:", ref txtDomicilio, 480, 215, "Av. Pellegrini 1234");
+            AddField(pnlDatosCard, "Correo Electrónico *:", ref txtMail, 20, 215, "");
+            AddField(pnlDatosCard, "Teléfono Móvil *:", ref txtTelefono, 250, 215, "");
+            AddField(pnlDatosCard, "Domicilio:", ref txtDomicilio, 480, 215, "");
 
             pnlBody.Controls.Add(pnlDatosCard);
             y += 225;
@@ -217,19 +215,14 @@ namespace WindowsForms
             cbObraSocial = new ComboBox { Location = new Point(20, 70), Width = 320, DropDownStyle = ComboBoxStyle.DropDownList, Font = UITheme.RegularFont };
             cbObraSocial.Items.AddRange(new object[] {
                 "Particular (Sin Obra Social)",
-                "OSDE (Plan 210 / 310 / 410)",
+                "OSDE (Plan 210 / 310)",
                 "Swiss Medical",
-                "IOMA",
-                "IAPOS",
-                "Sancor Salud",
-                "Federada Salud",
-                "Jerárquicos Salud",
-                "Galeno"
+                "IOMA"
             });
             cbObraSocial.SelectedIndex = 1;
 
             var lblAf = new Label { Text = "N° de Afiliado / Credencial:", Location = new Point(360, 48), AutoSize = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-            txtAfiliado = new TextBox { Location = new Point(360, 70), Width = 340, Font = UITheme.RegularFont, Text = "987456321" };
+            txtAfiliado = new TextBox { Location = new Point(360, 70), Width = 340, Font = UITheme.RegularFont };
 
             pnlOSCard.Controls.Add(lblOS);
             pnlOSCard.Controls.Add(cbObraSocial);
@@ -384,10 +377,17 @@ namespace WindowsForms
                     lblAvatarIniciales.Visible = true;
                 }
 
-                var pacientes = await _pacienteClient.GetAllAsync();
-                _pacienteActual = pacientes.FirstOrDefault(p => p.Mail.Contains(username, StringComparison.OrdinalIgnoreCase) || p.Nombre.Contains("Juan", StringComparison.OrdinalIgnoreCase)) ?? pacientes.FirstOrDefault();
+                // Solo el rol Paciente tiene ficha propia; se busca por el EntidadId del token
+                var entidadId = _authService.GetEntidadId();
+                _pacienteActual = _authService.GetRol() == "Paciente" && entidadId.HasValue
+                    ? await _pacienteClient.GetByIdAsync(entidadId.Value)
+                    : null;
 
-                if (_pacienteActual != null)
+                if (_pacienteActual == null)
+                {
+                    MostrarPerfilPersonal();
+                }
+                else
                 {
                     txtNombre.Text = _pacienteActual.Nombre;
                     txtApellido.Text = _pacienteActual.Apellido;
@@ -411,7 +411,27 @@ namespace WindowsForms
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblFeedback.ForeColor = UITheme.Danger;
+                lblFeedback.Text = $"No se pudieron cargar los datos del perfil: {ex.Message}";
+            }
+        }
+
+        /// <summary>El personal no tiene ficha de paciente: solo puede cambiar su foto y su contraseña.</summary>
+        private void MostrarPerfilPersonal()
+        {
+            var nombre = (_authService.GetNombreCompleto() ?? _authService.GetUsername() ?? "").Trim();
+            var partes = nombre.Split(' ', 2);
+            txtNombre.Text = partes[0];
+            txtApellido.Text = partes.Length > 1 ? partes[1] : "";
+            foreach (var tb in new[] { txtDni, txtMail, txtTelefono, txtDomicilio, txtAfiliado })
+                tb.Text = "";
+
+            foreach (Control c in new Control[] { txtNombre, txtApellido, txtDni, txtMail, txtTelefono, txtDomicilio, txtAfiliado, cbObraSocial })
+                c.Enabled = false;
+
+            lblAvatarIniciales.Text = nombre.Length > 0 ? nombre[0].ToString().ToUpper() : "U";
         }
 
         private void BtnCambiarFoto_Click(object? sender, EventArgs e)
@@ -423,7 +443,7 @@ namespace WindowsForms
                 Multiselect = false
             };
 
-            if (ofd.ShowDialog() == DialogResult.OK)
+            if (ofd.ShowDialog(FindForm()) == DialogResult.OK)
             {
                 try
                 {
@@ -466,15 +486,15 @@ namespace WindowsForms
                     _fotoModificada = false;
                     _fotoEliminada = false;
                 }
-                if (string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtApellido.Text) || string.IsNullOrWhiteSpace(txtMail.Text))
-                {
-                    lblFeedback.ForeColor = UITheme.Danger;
-                    lblFeedback.Text = "Por favor, complete los campos obligatorios (*).";
-                    return;
-                }
-
                 if (_pacienteActual != null)
                 {
+                    if (string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtApellido.Text) || string.IsNullOrWhiteSpace(txtMail.Text))
+                    {
+                        lblFeedback.ForeColor = UITheme.Danger;
+                        lblFeedback.Text = "Por favor, complete los campos obligatorios (*).";
+                        return;
+                    }
+
                     _pacienteActual.Nombre = txtNombre.Text.Trim();
                     _pacienteActual.Apellido = txtApellido.Text.Trim();
                     _pacienteActual.Mail = txtMail.Text.Trim();
@@ -491,58 +511,58 @@ namespace WindowsForms
                     };
 
                     await _pacienteClient.UpdateAsync(_pacienteActual);
+                }
 
-                    // Cambio de contraseña si se completó el campo Nueva Contraseña
-                    bool passCambiado = false;
-                    if (!string.IsNullOrWhiteSpace(txtPassNueva.Text))
+                // Cambio de contraseña si se completó el campo Nueva Contraseña
+                bool passCambiado = false;
+                if (!string.IsNullOrWhiteSpace(txtPassNueva.Text))
+                {
+                    if (string.IsNullOrWhiteSpace(txtPassActual.Text))
                     {
-                        if (string.IsNullOrWhiteSpace(txtPassActual.Text))
-                        {
-                            lblFeedback.ForeColor = UITheme.Danger;
-                            lblFeedback.Text = "Por favor, ingrese su contraseña actual para confirmar el cambio.";
-                            return;
-                        }
-
-                        if (txtPassNueva.Text.Trim() != txtPassConfirmar.Text.Trim())
-                        {
-                            lblFeedback.ForeColor = UITheme.Danger;
-                            lblFeedback.Text = "La nueva contraseña y su confirmación no coinciden.";
-                            return;
-                        }
-
-                        if (txtPassNueva.Text.Trim().Length < 4)
-                        {
-                            lblFeedback.ForeColor = UITheme.Danger;
-                            lblFeedback.Text = "La nueva contraseña debe tener al menos 4 caracteres.";
-                            return;
-                        }
-
-                        var userId = _authService.GetUserId();
-                        if (userId.HasValue)
-                        {
-                            var (passOk, passMsg) = await _authClient.CambiarPasswordAsync(userId.Value, txtPassActual.Text.Trim(), txtPassNueva.Text.Trim());
-                            if (!passOk)
-                            {
-                                lblFeedback.ForeColor = UITheme.Danger;
-                                lblFeedback.Text = passMsg;
-                                return;
-                            }
-                            passCambiado = true;
-                        }
-
-                        txtPassActual.Text = "";
-                        txtPassNueva.Text = "";
-                        txtPassConfirmar.Text = "";
-                        lblPassMatch.Text = "";
+                        lblFeedback.ForeColor = UITheme.Danger;
+                        lblFeedback.Text = "Por favor, ingrese su contraseña actual para confirmar el cambio.";
+                        return;
                     }
 
-                    lblFeedback.ForeColor = UITheme.Success;
-                    lblFeedback.Text = passCambiado
-                        ? "✓ ¡Datos del perfil y contraseña actualizados con éxito!"
-                        : "✓ ¡Datos del perfil actualizados con éxito!";
+                    if (txtPassNueva.Text.Trim() != txtPassConfirmar.Text.Trim())
+                    {
+                        lblFeedback.ForeColor = UITheme.Danger;
+                        lblFeedback.Text = "La nueva contraseña y su confirmación no coinciden.";
+                        return;
+                    }
 
-                    _onPerfilActualizado?.Invoke();
+                    if (txtPassNueva.Text.Trim().Length < 4)
+                    {
+                        lblFeedback.ForeColor = UITheme.Danger;
+                        lblFeedback.Text = "La nueva contraseña debe tener al menos 4 caracteres.";
+                        return;
+                    }
+
+                    var userId = _authService.GetUserId();
+                    if (userId.HasValue)
+                    {
+                        var (passOk, passMsg) = await _authClient.CambiarPasswordAsync(userId.Value, txtPassActual.Text.Trim(), txtPassNueva.Text.Trim());
+                        if (!passOk)
+                        {
+                            lblFeedback.ForeColor = UITheme.Danger;
+                            lblFeedback.Text = passMsg;
+                            return;
+                        }
+                        passCambiado = true;
+                    }
+
+                    txtPassActual.Text = "";
+                    txtPassNueva.Text = "";
+                    txtPassConfirmar.Text = "";
+                    lblPassMatch.Text = "";
                 }
+
+                lblFeedback.ForeColor = UITheme.Success;
+                lblFeedback.Text = passCambiado
+                    ? "✓ ¡Datos del perfil y contraseña actualizados con éxito!"
+                    : "✓ ¡Datos del perfil actualizados con éxito!";
+
+                _onPerfilActualizado?.Invoke();
             }
             catch (Exception ex)
             {

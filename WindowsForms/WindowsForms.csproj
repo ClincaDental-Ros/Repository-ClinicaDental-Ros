@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\API.Auth.WindowsForms\API.Auth.WindowsForms.csproj" />
     <ProjectReference Include="..\API.Clients\API.Clients.csproj" />
     <ProjectReference Include="..\DTOs\DTOs.csproj" />

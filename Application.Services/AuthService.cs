@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Data;
 using Domain.Model;
@@ -42,18 +41,8 @@ namespace Application.Services
             if (user == null || !user.Activo)
                 return null;
 
-            // Soporta tanto passwords hasheados como texto plano (compatibilidad con seed data)
-            if (!VerifyPassword(request.Password, user.PasswordHash))
-            {
+            if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
                 return null;
-            }
-
-            // Si la password está en texto plano, migrarla a hash
-            if (!user.PasswordHash.Contains(':'))
-            {
-                user.SetPasswordHash(HashPassword(request.Password));
-                await _usuarioRepository.UpdateAsync(user);
-            }
 
             return GenerateTokenResponse(user);
         }
@@ -121,7 +110,7 @@ namespace Application.Services
             var user = new Usuario(
                 0,
                 dto.Username,
-                HashPassword(password),
+                PasswordHasher.Hash(password),
                 dto.Rol,
                 dto.NombreCompleto,
                 dto.Email,
@@ -140,10 +129,10 @@ namespace Application.Services
             if (user == null || !user.Activo)
                 return false;
 
-            if (!VerifyPassword(passwordActual, user.PasswordHash))
+            if (!PasswordHasher.Verify(passwordActual, user.PasswordHash))
                 return false;
 
-            user.SetPasswordHash(HashPassword(passwordNueva));
+            user.SetPasswordHash(PasswordHasher.Hash(passwordNueva));
             return await _usuarioRepository.UpdateAsync(user);
         }
 
@@ -183,48 +172,6 @@ namespace Application.Services
                 EntidadId = user.EntidadId,
                 Expiration = expiration
             };
-        }
-
-        /// <summary>
-        /// Genera un hash de la contraseña usando HMACSHA256 con salt aleatorio.
-        /// Formato almacenado: "salt_base64:hash_base64"
-        /// </summary>
-        private static string HashPassword(string password)
-        {
-            var salt = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(salt);
-            }
-
-            using var hmac = new HMACSHA256(salt);
-            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-
-            return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
-        }
-
-        /// <summary>
-        /// Verifica la contraseña contra el hash almacenado.
-        /// Soporta tanto hashes (formato salt:hash) como texto plano para compatibilidad.
-        /// </summary>
-        private static bool VerifyPassword(string password, string storedHash)
-        {
-            // Si no contiene ':', es texto plano (compatibilidad con datos semilla)
-            if (!storedHash.Contains(':'))
-            {
-                return storedHash == password;
-            }
-
-            var parts = storedHash.Split(':');
-            if (parts.Length != 2) return false;
-
-            var salt = Convert.FromBase64String(parts[0]);
-            var expectedHash = Convert.FromBase64String(parts[1]);
-
-            using var hmac = new HMACSHA256(salt);
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-
-            return CryptographicOperations.FixedTimeEquals(computedHash, expectedHash);
         }
     }
 }

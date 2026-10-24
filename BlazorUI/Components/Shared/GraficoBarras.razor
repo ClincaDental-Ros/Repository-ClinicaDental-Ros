@@ -1,0 +1,33 @@
+@* Gráfico de barras horizontales hecho con HTML/CSS (sin librerías externas). *@
+
+<div class="bg-white p-3 border rounded shadow-sm h-100">
+    <h6 class="fw-bold mb-3" style="color: var(--color-primary);">@Titulo</h6>
+
+    @if (Barras.Count == 0)
+    {
+        <div class="small text-muted">Sin datos para el período seleccionado.</div>
+    }
+    else
+    {
+        var maximo = Math.Max(Barras.Max(b => b.Valor), 1m);
+        @foreach (var b in Barras)
+        {
+            var porcentaje = (double)(b.Valor / maximo * 100m);
+            <div class="d-flex align-items-center gap-2 mb-2 small">
+                <div class="fw-bold text-truncate" style="width: 110px;">@b.Etiqueta</div>
+                <div class="flex-grow-1 rounded" style="background-color: var(--color-background); height: 22px;">
+                    <div class="rounded h-100" style="width: @(porcentaje.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%; background-color: @b.Color;"></div>
+                </div>
+                <div class="fw-bold text-end" style="width: 90px;">@b.Valor.ToString(Formato)</div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    public record Barra(string Etiqueta, decimal Valor, string Color);
+
+    [Parameter] public string Titulo { get; set; } = "";
+    [Parameter] public List<Barra> Barras { get; set; } = new();
+    [Parameter] public string Formato { get; set; } = "N0";
+}

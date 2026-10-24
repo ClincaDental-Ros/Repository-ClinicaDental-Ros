@@ -114,5 +114,27 @@ namespace Domain.Model
         public void SetFechaEmision(DateTime fecha) => FechaEmision = fecha;
 
         public void SetItems(List<ItemFactura> items) => Items = items ?? new List<ItemFactura>();
+
+        /// <summary>
+        /// Calcula los montos de la factura a partir de los honorarios y de los ítems cargados:
+        /// subtotal = honorarios + Σ(cantidad × precio unitario); el descuento es la cobertura de la obra social.
+        /// </summary>
+        public void CalcularMontos(decimal honorarios, decimal porcentajeCobertura)
+        {
+            if (honorarios < 0)
+                throw new ArgumentException("Los honorarios no pueden ser negativos.", nameof(honorarios));
+            if (porcentajeCobertura < 0 || porcentajeCobertura > 1)
+                throw new ArgumentOutOfRangeException(nameof(porcentajeCobertura), "El porcentaje de cobertura debe estar entre 0 y 1.");
+
+            var subtotal = honorarios + Items.Sum(i => i.Subtotal);
+            var descuento = Math.Round(subtotal * porcentajeCobertura, 2);
+            SetMontos(subtotal, descuento, subtotal, subtotal - descuento);
+        }
+
+        public void ValidarEditable()
+        {
+            if (EstadoPago)
+                throw new InvalidOperationException("La factura ya fue cobrada y no se puede modificar ni eliminar.");
+        }
     }
 }

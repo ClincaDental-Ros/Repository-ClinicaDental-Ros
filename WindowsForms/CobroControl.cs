@@ -1,7 +1,6 @@
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -137,13 +136,13 @@ namespace WindowsForms
                 var metodo = cbMetodoPago.SelectedItem?.ToString() ?? "Efectivo";
                 await _apiClient.PagarAsync(_factura.Id, metodo);
 
-                MessageBox.Show($"Cobro por {_factura.MontoAPagarPaciente:C2} registrado con éxito.\nMedio: {metodo}\n\nComprobante emitido correctamente.", "Clínica Odontológica - Caja", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(this, $"Cobro por {_factura.MontoAPagarPaciente:C2} registrado con éxito.\nMedio: {metodo}\n\nComprobante emitido correctamente.", "Clínica Odontológica - Caja", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al registrar el cobro: {ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, $"Error al registrar el cobro: {ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnCobrar.Enabled = true;
             }
         }
@@ -232,8 +231,23 @@ namespace WindowsForms
             UITheme.StyleSuccessButton(btnCobrar);
             btnCobrar.Click += (s, e) => AbrirFacturaSeleccionada();
 
+            var btnNueva = new Button { Text = "➕ Nueva Factura", Location = new Point(405, 13), Size = new Size(150, 36) };
+            UITheme.StylePrimaryButton(btnNueva);
+            btnNueva.Click += (s, e) => AbrirEdicion(null);
+
+            var btnModificar = new Button { Text = "✏️ Modificar", Location = new Point(565, 13), Size = new Size(130, 36) };
+            UITheme.StyleSecondaryButton(btnModificar);
+            btnModificar.Click += (s, e) => ModificarSeleccionada();
+
+            var btnEliminar = new Button { Text = "🗑️ Eliminar", Location = new Point(705, 13), Size = new Size(130, 36) };
+            UITheme.StyleDangerButton(btnEliminar);
+            btnEliminar.Click += async (s, e) => await EliminarSeleccionadaAsync();
+
             pnlBar.Controls.Add(btnActualizar);
             pnlBar.Controls.Add(btnCobrar);
+            pnlBar.Controls.Add(btnNueva);
+            pnlBar.Controls.Add(btnModificar);
+            pnlBar.Controls.Add(btnEliminar);
 
             var pnlGrid = new Panel { Dock = DockStyle.Fill, Padding = new Padding(25, 15, 25, 10), BackColor = UITheme.Background };
             gridFacturas = new DataGridView { Dock = DockStyle.Fill };
@@ -353,19 +367,72 @@ namespace WindowsForms
             pnlStats.Controls.Add(UITheme.CreateStatCard("Pendientes de Cobro", pendientes.ToString(), "Órdenes en espera", pendientes > 0 ? UITheme.Warning : UITheme.Secondary));
         }
 
-        private void AbrirFacturaSeleccionada()
+        private FacturaDTO? ObtenerSeleccionada()
         {
             if (gridFacturas.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Seleccione una factura de la grilla.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(FindForm(), "Seleccione una factura de la grilla.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return null;
+            }
+            return (FacturaDTO)gridFacturas.SelectedRows[0].DataBoundItem;
+        }
+
+        private void AbrirFacturaSeleccionada()
+        {
+            var f = ObtenerSeleccionada();
+            if (f == null) return;
+
+            using var form = new FacturaDetalleForm(f);
+            if (form.ShowDialog(FindForm()) == DialogResult.OK)
+            {
+                _ = CargarFacturas();
+            }
+        }
+
+        private void AbrirEdicion(FacturaDTO? factura)
+        {
+            using var form = new FacturaEdicionForm(factura);
+            if (form.ShowDialog(FindForm()) == DialogResult.OK)
+            {
+                _ = CargarFacturas();
+            }
+        }
+
+        private void ModificarSeleccionada()
+        {
+            var f = ObtenerSeleccionada();
+            if (f == null) return;
+
+            if (f.EstadoPago)
+            {
+                MessageBox.Show(FindForm(), "La factura ya fue pagada y no puede modificarse.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            AbrirEdicion(f);
+        }
+
+        private async Task EliminarSeleccionadaAsync()
+        {
+            var f = ObtenerSeleccionada();
+            if (f == null) return;
+
+            if (f.EstadoPago)
+            {
+                MessageBox.Show(FindForm(), "La factura ya fue pagada y no puede eliminarse.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var f = (FacturaDTO)gridFacturas.SelectedRows[0].DataBoundItem;
-            var form = new FacturaDetalleForm(f);
-            if (form.ShowDialog() == DialogResult.OK)
+            var confirmar = MessageBox.Show(FindForm(), $"¿Eliminar la factura N° {f.Id} de {f.PacienteNombre}?", "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirmar != DialogResult.Yes) return;
+
+            try
             {
-                _ = CargarFacturas();
+                await _apiClient.EliminarAsync(f.Id);
+                await CargarFacturas();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(FindForm(), $"No se pudo eliminar la factura: {ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

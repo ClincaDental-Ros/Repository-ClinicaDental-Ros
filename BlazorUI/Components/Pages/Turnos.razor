@@ -259,7 +259,11 @@
         {
             filtroOdontologos = await OdontologoClient.GetAllAsync();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            alertMessage = $"No se pudo cargar el filtro de profesionales: {ex.Message}";
+            showAlertModal = true;
+        }
     }
 
     private async Task CargarTurnos()

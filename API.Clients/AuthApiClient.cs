@@ -1,18 +1,16 @@
 using DTOs;
-using System;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
 
 namespace API.Clients
 {
     public class AuthApiClient : BaseApiClient
     {
-        // Constructor viejo: lo usa WindowsForms (new AuthApiClient())
+        // Usado por WindowsForms (new AuthApiClient())
         public AuthApiClient() : base()
         {
         }
 
-        // Constructor nuevo: lo usa Blazor por inyección de dependencias
+        // Usado por Blazor (inyección de dependencias)
         public AuthApiClient(HttpClient httpClient, IAuthService authService)
             : base(httpClient, authService)
         {

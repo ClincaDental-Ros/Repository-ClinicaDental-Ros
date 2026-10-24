@@ -34,7 +34,7 @@
                             }
                             else
                             {
-                                <select class="form-select" value="@selectedPacienteId" @onchange="OnPacienteChanged">
+                                <select class="form-select" value="@selectedPacienteId" @onchange="OnPacienteChanged" disabled="@(PacienteFijoId.HasValue)">
                                     <option value="0">-- Seleccione un paciente --</option>
                                     @foreach (var p in pacientes)
                                     {
@@ -134,6 +134,8 @@
     [Parameter] public bool Show { get; set; }
     [Parameter] public EventCallback OnClosed { get; set; }
     [Parameter] public EventCallback<TurnoOdontologicoDTO> OnReserved { get; set; }
+    /// <summary>Si se informa (portal del paciente), el turno solo puede reservarse para ese paciente.</summary>
+    [Parameter] public int? PacienteFijoId { get; set; }
 
     private List<PacienteDTO> pacientes = new();
     private List<EspecialidadDTO> especialidades = new();
@@ -174,7 +176,17 @@
         errorMessage = "";
         try
         {
-            pacientes = await PacienteClient.GetAllAsync();
+            if (PacienteFijoId.HasValue)
+            {
+                var propio = await PacienteClient.GetByIdAsync(PacienteFijoId.Value);
+                pacientes = propio != null ? new List<PacienteDTO> { propio } : new();
+                selectedPacienteId = propio?.Id ?? 0;
+            }
+            else
+            {
+                pacientes = await PacienteClient.GetAllAsync();
+            }
+
             especialidades = await EspecialidadClient.GetAllAsync();
             odontologos = await OdontologoClient.GetAllAsync();
 
@@ -183,6 +195,9 @@
                 selectedEspecialidadId = especialidades[0].Id;
                 FiltrarOdontologos();
             }
+
+            if (selectedPacienteId > 0)
+                await ValidarPacienteSeleccionado();
         }
         catch (Exception ex)
         {
@@ -260,9 +275,10 @@
 
             estadoPacienteTexto = $"✅ Habilitado - Cobertura: {p.ObraSocialNombre ?? "Particular"}";
         }
-        catch
+        catch (Exception ex)
         {
-            estadoPacienteTexto = "✅ Habilitado";
+            // La API vuelve a validar multas al reservar; acá solo se informa
+            estadoPacienteTexto = $"⚠️ No se pudieron verificar las multas: {ex.Message}";
         }
     }
 

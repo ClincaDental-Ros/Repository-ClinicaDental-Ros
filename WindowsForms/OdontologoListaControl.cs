@@ -1,7 +1,6 @@
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -415,7 +414,10 @@ namespace WindowsForms
                 cbFiltroEspecialidad.ValueMember = "Id";
                 cbFiltroEspecialidad.SelectedIndex = 0;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblEstado.Text = $"No se pudieron cargar las especialidades: {ex.Message}";
+            }
         }
 
         public async Task CargarOdontologos()
@@ -453,7 +455,7 @@ namespace WindowsForms
         private void AbrirDetalle(OdontologoDTO? odontologo)
         {
             var form = new OdontologoDetalleForm(odontologo);
-            if (form.ShowDialog() == DialogResult.OK)
+            if (form.ShowDialog(FindForm()) == DialogResult.OK)
             {
                 _ = CargarOdontologos();
             }

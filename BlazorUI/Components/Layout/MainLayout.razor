@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject BlazorAuthService AuthService
 @inject NavigationManager Navigation
+@inject IConfiguration Configuration
 
 <div class="d-flex flex-column vh-100" style="background-color: var(--color-background); color: var(--color-text-primary);">
 
@@ -28,7 +29,7 @@
                 <span class="badge" style="background-color: var(--color-accent); color: #ffffff;">@RolUsuario.ToUpper()</span>
             </div>
             <div class="d-flex align-items-center gap-1">
-                <span style="color: var(--color-success-light);">🟢 Conectado a API (localhost:5263)</span>
+                <span style="color: var(--color-success-light);">🟢 Conectado a API (@ApiUrl)</span>
             </div>
         </footer>
     }
@@ -37,6 +38,7 @@
 @code {
     private string NombreUsuario => AuthService.GetNombreCompleto() ?? AuthService.GetUsername() ?? "Usuario";
     private string RolUsuario => AuthService.GetRol() ?? "Admin";
+    private string ApiUrl => Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5263";
 
     protected override void OnInitialized()
     {

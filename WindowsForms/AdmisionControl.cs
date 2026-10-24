@@ -1,7 +1,6 @@
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -340,7 +339,7 @@ namespace WindowsForms
             form.Controls.Add(grid);
             form.Controls.Add(pnlBtns);
             form.Controls.Add(pnlH);
-            form.ShowDialog();
+            form.ShowDialog(FindForm());
         }
     }
 }

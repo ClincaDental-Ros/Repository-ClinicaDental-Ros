@@ -267,6 +267,7 @@
 
 <!-- MODALES (los mismos componentes que usa Turnos.razor) -->
 <TurnoReservaModal Show="showReservaModal"
+                   PacienteFijoId="pacienteId"
                    OnClosed="() => showReservaModal = false"
                    OnReserved="HandleTurnoReservado" />
 
@@ -377,8 +378,8 @@
         {
             historia = await ReportesClient.GetHistoriaClinicaAsync(pacienteId!.Value);
         }
-        catch (HttpRequestException ex) when (ex.Message.Contains("403"))
-        {          
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
             historiaSinPermiso = true;
         }
         catch (Exception ex) { errores.Add($"historia clínica ({ex.Message})"); }

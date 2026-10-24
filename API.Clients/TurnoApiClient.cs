@@ -4,12 +4,12 @@ namespace API.Clients
 {
     public class TurnoApiClient : BaseApiClient
     {
-        // Constructor viejo: lo usa WindowsForms
+        // Usado por WindowsForms
         public TurnoApiClient() : base()
         {
         }
 
-        // Constructor nuevo: lo usa Blazor por inyección de dependencias
+        // Usado por Blazor (inyecciÃ³n de dependencias)
         public TurnoApiClient(HttpClient httpClient, IAuthService authService)
             : base(httpClient, authService)
         {

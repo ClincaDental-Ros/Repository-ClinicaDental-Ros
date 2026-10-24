@@ -50,6 +50,15 @@
             <button class="btn btn-theme-success" @onclick="AbrirDetalleSeleccionado" disabled="@(seleccionado == null)">
                 🧾 Abrir Detalle y Cobrar
             </button>
+            <button class="btn btn-theme-primary" @onclick="AbrirNueva">
+                ➕ Nueva Factura
+            </button>
+            <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionada" disabled="@(seleccionado == null || seleccionado.EstadoPago)">
+                ✏️ Modificar
+            </button>
+            <button class="btn btn-theme-danger" @onclick="PedirEliminar" disabled="@(seleccionado == null || seleccionado.EstadoPago)">
+                🗑️ Eliminar
+            </button>
         </div>
     </div>
 
@@ -132,6 +141,16 @@
                      OnClosed="() => showModal = false"
                      OnPaid="HandleFacturaPagada" />
 
+<FacturaEdicionModal Show="showEdicionModal"
+                     Factura="facturaEdicion"
+                     OnClosed="() => showEdicionModal = false"
+                     OnSaved="HandleFacturaGuardada" />
+
+<ConfirmModal Show="showConfirmModal"
+              Titulo="Confirmar Eliminación"
+              Mensaje="@mensajeConfirmacion"
+              OnResponse="HandleConfirmacionEliminar" />
+
 @code {
     private List<FacturaDTO> facturas = new();
     private FacturaDTO? seleccionado;
@@ -140,6 +159,11 @@
 
     private bool showModal = false;
     private FacturaDTO? modalFactura;
+
+    private bool showEdicionModal = false;
+    private FacturaDTO? facturaEdicion;
+    private bool showConfirmModal = false;
+    private string mensajeConfirmacion = "";
 
     private int PendientesCount => facturas.Count(f => !f.EstadoPago);
 
@@ -187,5 +211,50 @@
     {
         showModal = false;
         await CargarFacturas();
+    }
+
+    private void AbrirNueva()
+    {
+        facturaEdicion = null;
+        showEdicionModal = true;
+    }
+
+    private void ModificarSeleccionada()
+    {
+        if (seleccionado == null || seleccionado.EstadoPago) return;
+        facturaEdicion = seleccionado;
+        showEdicionModal = true;
+    }
+
+    private async Task HandleFacturaGuardada(FacturaDTO guardada)
+    {
+        showEdicionModal = false;
+        await CargarFacturas();
+        seleccionado = facturas.FirstOrDefault(f => f.Id == guardada.Id);
+        lblEstado = $"Factura #{guardada.Id} guardada. Total {guardada.Total:C2}, a pagar por el paciente {guardada.MontoAPagarPaciente:C2}.";
+    }
+
+    private void PedirEliminar()
+    {
+        if (seleccionado == null || seleccionado.EstadoPago) return;
+        mensajeConfirmacion = $"¿Eliminar la factura #{seleccionado.Id} de {seleccionado.PacienteNombre}?";
+        showConfirmModal = true;
+    }
+
+    private async Task HandleConfirmacionEliminar(bool confirmado)
+    {
+        showConfirmModal = false;
+        if (!confirmado || seleccionado == null) return;
+
+        try
+        {
+            await ApiClient.EliminarAsync(seleccionado.Id);
+            seleccionado = null;
+            await CargarFacturas();
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"No se pudo eliminar la factura: {ex.Message}";
+        }
     }
 }

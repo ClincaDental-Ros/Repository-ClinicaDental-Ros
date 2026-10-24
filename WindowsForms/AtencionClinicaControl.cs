@@ -1,7 +1,6 @@
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -209,13 +208,11 @@ namespace WindowsForms
                 {
                     clbInsumos.Items.Add($"{ins.Nombre} - ${ins.Precio:N0} (Stock: {ins.Stock})");
                 }
-                if (clbInsumos.Items.Count > 0)
-                {
-                    clbInsumos.SetItemChecked(0, true);
-                    if (clbInsumos.Items.Count > 1) clbInsumos.SetItemChecked(1, true);
-                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblEstado.Text = $"No se pudieron cargar los insumos: {ex.Message}";
+            }
         }
 
         private async Task CargarTurnosPresentes()

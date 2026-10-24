@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Services;
 using DTOs;
 
@@ -19,8 +20,16 @@ namespace WebAPI
                 int? pacienteId,
                 int? especialidadId,
                 string? estadoTurno,
+                ClaimsPrincipal user,
                 ITurnoOdontologicoService service) =>
             {
+                // Un paciente solo puede consultar sus propios turnos
+                if (!user.EsPersonal())
+                {
+                    pacienteId = user.PacienteId();
+                    if (pacienteId == null) return Results.Forbid();
+                }
+
                 if (fecha.HasValue || fechaDesde.HasValue || fechaHasta.HasValue || odontologoId.HasValue || pacienteId.HasValue || especialidadId.HasValue || !string.IsNullOrWhiteSpace(estadoTurno))
                 {
                     var criteria = new TurnoCriteriaDTO
@@ -45,43 +54,29 @@ namespace WebAPI
             {
                 var list = await service.GetTurnosDelDiaAsync(fecha);
                 return Results.Ok(list);
-            });
+            }).RequireAuthorization("StaffOnly");
 
-            group.MapGet("/{id:int}", async (int id, ITurnoOdontologicoService service) =>
+            group.MapGet("/{id:int}", async (int id, ClaimsPrincipal user, ITurnoOdontologicoService service) =>
             {
                 var turno = await service.GetAsync(id);
-                return turno == null ? Results.NotFound() : Results.Ok(turno);
+                if (turno == null) return Results.NotFound();
+                return user.PuedeAccederAPaciente(turno.PacienteId) ? Results.Ok(turno) : Results.Forbid();
             });
 
-            group.MapPost("/reservar", async (TurnoOdontologicoDTO dto, ITurnoOdontologicoService service) =>
+            group.MapPost("/reservar", async (TurnoOdontologicoDTO dto, ClaimsPrincipal user, ITurnoOdontologicoService service) =>
             {
-                try
-                {
-                    var created = await service.ReservarTurnoAsync(dto);
-                    return Results.Created($"/api/turnos/{created.Id}", created);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { message = ex.Message });
-                }
-                catch (Exception ex)
-                {
-                    return Results.Problem(detail: ex.Message, statusCode: 500);
-                }
+                if (!user.PuedeAccederAPaciente(dto.PacienteId))
+                    return Results.Forbid();
+
+                var created = await service.ReservarTurnoAsync(dto);
+                return Results.Created($"/api/turnos/{created.Id}", created);
             });
 
             group.MapPut("/{id:int}", async (int id, TurnoOdontologicoDTO dto, ITurnoOdontologicoService service) =>
             {
                 dto.Id = id;
-                try
-                {
-                    var updated = await service.UpdateAsync(dto);
-                    return updated ? Results.Ok(dto) : Results.NotFound();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { message = ex.Message });
-                }
+                var updated = await service.UpdateAsync(dto);
+                return updated ? Results.Ok(dto) : Results.NotFound();
             }).RequireAuthorization("AdminOrRecepcionista");
 
             group.MapDelete("/{id:int}", async (int id, ITurnoOdontologicoService service) =>
@@ -90,7 +85,6 @@ namespace WebAPI
                 return deleted ? Results.NoContent() : Results.NotFound();
             }).RequireAuthorization("AdminOnly");
 
-         
             group.MapPost("/{id:int}/confirmar-presencia", async (int id, ITurnoOdontologicoService service) =>
             {
                 var ok = await service.ConfirmarPresenciaAsync(id);
@@ -103,8 +97,12 @@ namespace WebAPI
                 return ok ? Results.Ok(new { message = "Ausencia registrada y multa generada con inhabilitación del paciente." }) : Results.NotFound();
             }).RequireAuthorization("StaffOnly");
 
-            group.MapPost("/{id:int}/cancelar", async (int id, CancelarTurnoRequest request, ITurnoOdontologicoService service) =>
+            group.MapPost("/{id:int}/cancelar", async (int id, CancelarTurnoRequest request, ClaimsPrincipal user, ITurnoOdontologicoService service) =>
             {
+                var turno = await service.GetAsync(id);
+                if (turno == null) return Results.NotFound();
+                if (!user.PuedeAccederAPaciente(turno.PacienteId)) return Results.Forbid();
+
                 var ok = await service.CancelarTurnoAsync(id, request.Motivo);
                 return ok ? Results.Ok(new { message = "Turno cancelado." }) : Results.NotFound();
             });

@@ -1,7 +1,6 @@
 using API.Auth.WindowsForms;
 using API.Clients;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -147,6 +146,7 @@ namespace WindowsForms
             // Aplicar visibilidad y permisos según Rol
             if (rol == "Paciente")
             {
+                itemPacientes.Enabled = false;
                 itemOdontologos.Enabled = false;
                 itemEspecialidades.Enabled = false;
                 itemInsumos.Enabled = false;
@@ -158,24 +158,19 @@ namespace WindowsForms
             {
                 itemEspecialidades.Enabled = false;
                 itemCobro.Enabled = false;
-                menuPortal.Visible = false;
             }
             else if (rol == "Recepcionista")
             {
                 itemAtencion.Enabled = false;
                 itemMetricas.Enabled = false;
-                menuPortal.Visible = false;
-            }
-            else // Admin
-            {
-                menuPortal.Visible = true;
             }
 
             menuMain.Items.Add(menuMaestros);
             menuMain.Items.Add(menuClinica);
             menuMain.Items.Add(menuCaja);
             menuMain.Items.Add(menuReportes);
-            if (rol == "Paciente" || rol == "Admin")
+            // El portal muestra los datos del paciente logueado: solo tiene sentido para ese rol
+            if (rol == "Paciente")
             {
                 menuMain.Items.Add(menuPortal);
             }
@@ -205,7 +200,7 @@ namespace WindowsForms
 
             lblStatusApi = new ToolStripStatusLabel
             {
-                Text = "🟢 Conectado a API (localhost:5263)",
+                Text = $"🟢 Conectado a API ({BaseApiClient.BaseUrl})",
                 ForeColor = Color.FromArgb(52, 211, 153),
                 Margin = new Padding(20, 0, 0, 0)
             };
@@ -273,6 +268,15 @@ namespace WindowsForms
             }
 
             var control = factory();
+            MostrarVentanaMdi(titulo, control);
+        }
+
+        /// <summary>
+        /// Crea la ventana hija MDI centrada en el área cliente del contenedor
+        /// (StartPosition.CenterParent no aplica a hijos MDI).
+        /// </summary>
+        private Form MostrarVentanaMdi(string titulo, UserControl control)
+        {
             control.Dock = DockStyle.Fill;
 
             var mdiChild = new Form
@@ -280,16 +284,23 @@ namespace WindowsForms
                 Text = titulo,
                 MdiParent = this,
                 Size = new Size(1020, 660),
-                StartPosition = FormStartPosition.CenterParent,
+                StartPosition = FormStartPosition.Manual,
                 BackColor = UITheme.Background,
                 Font = UITheme.RegularFont,
                 ShowIcon = false
             };
 
+            var area = this.ClientSize;
+            int alturaBarras = menuMain.Height + statusStrip.Height;
+            mdiChild.Location = new Point(
+                Math.Max(0, (area.Width - mdiChild.Width) / 2),
+                Math.Max(0, (area.Height - alturaBarras - mdiChild.Height) / 2));
+
             mdiChild.FormClosed += (s, e) => ActualizarStatusStrip();
             mdiChild.Controls.Add(control);
             mdiChild.Show();
             ActualizarStatusStrip();
+            return mdiChild;
         }
 
         private void AbrirPortalPacienteTab(int tabIndex)
@@ -308,24 +319,8 @@ namespace WindowsForms
             }
 
             var newPortal = new PacientePortalControl(_authService);
-            newPortal.Dock = DockStyle.Fill;
-
-            var mdiChild = new Form
-            {
-                Text = "🏠 Portal del Paciente",
-                MdiParent = this,
-                Size = new Size(1020, 660),
-                StartPosition = FormStartPosition.CenterParent,
-                BackColor = UITheme.Background,
-                Font = UITheme.RegularFont,
-                ShowIcon = false
-            };
-
-            mdiChild.FormClosed += (s, e) => ActualizarStatusStrip();
-            mdiChild.Controls.Add(newPortal);
-            mdiChild.Show();
+            MostrarVentanaMdi("🏠 Portal del Paciente", newPortal);
             newPortal.SeleccionarPestaña(tabIndex);
-            ActualizarStatusStrip();
         }
 
         private void CerrarTodasLasVentanas()

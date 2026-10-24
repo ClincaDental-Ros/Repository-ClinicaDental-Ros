@@ -34,10 +34,7 @@ namespace Application.Services
             var dto = MapToDTO(paciente);
             var usuario = await _usuarioRepository.GetByEntidadIdAsync(id, "Paciente");
             if (usuario != null)
-            {
                 dto.Username = usuario.Username;
-                dto.PasswordDefault = usuario.PasswordHash;
-            }
             return dto;
         }
 
@@ -57,10 +54,7 @@ namespace Application.Services
                 {
                     var u = userLookup[dto.Id].FirstOrDefault();
                     if (u != null)
-                    {
                         dto.Username = u.Username;
-                        dto.PasswordDefault = u.PasswordHash;
-                    }
                 }
             }
             catch
@@ -88,10 +82,7 @@ namespace Application.Services
                 {
                     var u = userLookup[dto.Id].FirstOrDefault();
                     if (u != null)
-                    {
                         dto.Username = u.Username;
-                        dto.PasswordDefault = u.PasswordHash;
-                    }
                 }
             }
             catch
@@ -150,7 +141,7 @@ namespace Application.Services
                 var usuario = new Usuario(
                     0,
                     username,
-                    defaultPassword, 
+                    PasswordHasher.Hash(defaultPassword),
                     "Paciente",
                     $"{dto.Nombre} {dto.Apellido}",
                     dto.Mail ?? $"{username}@turnomolar.com",

@@ -36,15 +36,8 @@ namespace WebAPI
 
             group.MapPost("/registrar", async (ConsultaDTO dto, IConsultaService service) =>
             {
-                try
-                {
-                    var created = await service.RegistrarConsultaAsync(dto);
-                    return Results.Created($"/api/consultas/{created.Id}", created);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { message = ex.Message });
-                }
+                var created = await service.RegistrarConsultaAsync(dto);
+                return Results.Created($"/api/consultas/{created.Id}", created);
             }).RequireAuthorization("AdminOrOdontologo");
 
             group.MapPost("/{id:int}/valorar", async (int id, ValoracionRequest request, IConsultaService service) =>

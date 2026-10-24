@@ -1,7 +1,4 @@
-using System;
-using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 
 namespace WindowsForms
 {
@@ -35,40 +32,32 @@ namespace WindowsForms
                 {
                     byte[] bytes = File.ReadAllBytes(path);
                     using var ms = new MemoryStream(bytes);
-                    return new Bitmap(ms);
+                    using var original = new Bitmap(ms);
+                    // Copia independiente del stream: GDI+ necesita que el stream siga abierto mientras viva el Bitmap
+                    return new Bitmap(original);
                 }
             }
-            catch
+            catch (Exception ex) when (ex is IOException or ArgumentException or UnauthorizedAccessException)
             {
+                // Archivo dañado o inaccesible: se muestran las iniciales en lugar de la foto
             }
             return null;
         }
 
+        // Save y Delete propagan los errores para que la pantalla de perfil los informe
         public static void SaveAvatar(string username, Image image)
         {
-            try
-            {
-                var path = GetAvatarPath(username);
-                using var bmp = new Bitmap(image);
-                bmp.Save(path, ImageFormat.Png);
-            }
-            catch
-            {
-            }
+            var path = GetAvatarPath(username);
+            using var bmp = new Bitmap(image);
+            bmp.Save(path, ImageFormat.Png);
         }
 
         public static void DeleteAvatar(string username)
         {
-            try
+            var path = GetAvatarPath(username);
+            if (File.Exists(path))
             {
-                var path = GetAvatarPath(username);
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-            }
-            catch
-            {
+                File.Delete(path);
             }
         }
     }

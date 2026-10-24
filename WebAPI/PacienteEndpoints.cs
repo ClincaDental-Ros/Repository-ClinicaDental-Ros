@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Services;
 using DTOs;
 
@@ -21,40 +22,41 @@ namespace WebAPI
                 }
                 var list = await service.GetAllAsync();
                 return Results.Ok(list);
-            });
+            }).RequireAuthorization("StaffOnly");
 
-            group.MapGet("/{id:int}", async (int id, IPacienteService service) =>
+            group.MapGet("/{id:int}", async (int id, ClaimsPrincipal user, IPacienteService service) =>
             {
+                if (!user.PuedeAccederAPaciente(id))
+                    return Results.Forbid();
+
                 var paciente = await service.GetAsync(id);
                 return paciente == null ? Results.NotFound() : Results.Ok(paciente);
             });
 
             group.MapPost("/", async (PacienteDTO dto, IPacienteService service) =>
             {
-                try
-                {
-                    var created = await service.AddAsync(dto);
-                    return Results.Created($"/api/pacientes/{created.Id}", created);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { message = ex.Message });
-                }
+                var created = await service.AddAsync(dto);
+                return Results.Created($"/api/pacientes/{created.Id}", created);
             }).RequireAuthorization("AdminOrRecepcionista");
 
-            group.MapPut("/{id:int}", async (int id, PacienteDTO dto, IPacienteService service) =>
+            // El personal edita cualquier ficha; un paciente solo sus datos de contacto (no su habilitación).
+            group.MapPut("/{id:int}", async (int id, PacienteDTO dto, ClaimsPrincipal user, IPacienteService service) =>
             {
+                var esAdminORecepcion = user.IsInRole("Admin") || user.IsInRole("Recepcionista");
+                if (!esAdminORecepcion && user.PacienteId() != id)
+                    return Results.Forbid();
+
                 dto.Id = id;
-                try
+                if (!esAdminORecepcion)
                 {
-                    var updated = await service.UpdateAsync(dto);
-                    return updated ? Results.Ok(dto) : Results.NotFound();
+                    var actual = await service.GetAsync(id);
+                    if (actual == null) return Results.NotFound();
+                    dto.EstadoHabilitado = actual.EstadoHabilitado;
                 }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { message = ex.Message });
-                }
-            }).RequireAuthorization("AdminOrRecepcionista");
+
+                var updated = await service.UpdateAsync(dto);
+                return updated ? Results.Ok(dto) : Results.NotFound();
+            });
 
             group.MapDelete("/{id:int}", async (int id, IPacienteService service) =>
             {

@@ -11,6 +11,8 @@ namespace Application.Services
         Task<IEnumerable<FacturaDTO>> GetAllAsync();
         Task<IEnumerable<FacturaDTO>> GetByPacienteIdAsync(int pacienteId);
         Task<FacturaDTO> CrearFacturaAsync(FacturaDTO dto);
+        Task<bool> ActualizarFacturaAsync(FacturaDTO dto);
+        Task<bool> EliminarFacturaAsync(int id);
         Task<bool> RegistrarPagoAsync(int id, string metodoPago);
     }
 
@@ -18,12 +20,24 @@ namespace Application.Services
     {
         private readonly IFacturaRepository _facturaRepository;
         private readonly IPacienteRepository _pacienteRepository;
+        private readonly ITurnoRepository _turnoRepository;
+        private readonly IInsumoRepository _insumoRepository;
 
-        public FacturaService(IFacturaRepository facturaRepository, IPacienteRepository pacienteRepository)
+        public FacturaService(
+            IFacturaRepository facturaRepository,
+            IPacienteRepository pacienteRepository,
+            ITurnoRepository turnoRepository,
+            IInsumoRepository insumoRepository)
         {
             _facturaRepository = facturaRepository;
             _pacienteRepository = pacienteRepository;
+            _turnoRepository = turnoRepository;
+            _insumoRepository = insumoRepository;
         }
+
+        /// <summary>Honorarios del profesional: el monto estimado del turno (o el arancel base si no tiene).</summary>
+        public static decimal CalcularHonorarios(TurnoOdontologico? turno) =>
+            turno == null ? 0m : (turno.MontoEstimado > 0 ? turno.MontoEstimado : 12000m);
 
         public async Task<FacturaDTO?> GetAsync(int id)
         {
@@ -49,33 +63,76 @@ namespace Application.Services
             return list.Select(MapToDTO).ToList();
         }
 
+        /// <summary>
+        /// Alta de factura (maestro) con sus ítems (detalle). Los precios y montos se calculan en el servidor:
+        /// precio unitario = precio actual del insumo; honorarios = monto del turno; descuento = cobertura de la obra social.
+        /// </summary>
         public async Task<FacturaDTO> CrearFacturaAsync(FacturaDTO dto)
         {
-            var paciente = await _pacienteRepository.GetAsync(dto.PacienteId);
-            decimal cobertura = paciente?.ObraSocial?.PorcentajeCobertura ?? 0m;
-            decimal descuento = dto.Subtotal * cobertura;
-            decimal montoPaciente = dto.Subtotal - descuento;
+            var factura = await ConstruirFacturaAsync(0, dto);
+            await _facturaRepository.AddAsync(factura);
 
-            var factura = new Factura(
-                0,
-                dto.TurnoId,
-                dto.PacienteId,
-                dto.Descripcion,
-                dto.Subtotal,
-                descuento,
-                dto.Subtotal,
-                montoPaciente,
-                dto.EstadoPago,
-                dto.MetodoPago
-            );
+            var creada = await _facturaRepository.GetAsync(factura.Id);
+            return MapToDTO(creada ?? factura);
+        }
 
-            if (dto.Items != null && dto.Items.Any())
+        public async Task<bool> ActualizarFacturaAsync(FacturaDTO dto)
+        {
+            var existente = await _facturaRepository.GetAsync(dto.Id);
+            if (existente == null) return false;
+            existente.ValidarEditable();
+
+            var datos = await ConstruirFacturaAsync(dto.Id, dto);
+            return await _facturaRepository.UpdateConItemsAsync(datos);
+        }
+
+        public async Task<bool> EliminarFacturaAsync(int id)
+        {
+            var existente = await _facturaRepository.GetAsync(id);
+            if (existente == null) return false;
+            existente.ValidarEditable();
+
+            return await _facturaRepository.DeleteAsync(id);
+        }
+
+        private async Task<Factura> ConstruirFacturaAsync(int id, FacturaDTO dto)
+        {
+            var paciente = await _pacienteRepository.GetAsync(dto.PacienteId)
+                ?? throw new InvalidOperationException("El paciente seleccionado no existe.");
+
+            TurnoOdontologico? turno = null;
+            if (dto.TurnoId.HasValue && dto.TurnoId.Value > 0)
             {
-                factura.SetItems(dto.Items.Select(i => new ItemFactura(0, 0, i.InsumoId, i.CantidadInsumo, i.PrecioUnitario)).ToList());
+                turno = await _turnoRepository.GetAsync(dto.TurnoId.Value)
+                    ?? throw new InvalidOperationException("El turno seleccionado no existe.");
+
+                if (turno.PacienteId != dto.PacienteId)
+                    throw new InvalidOperationException("El turno seleccionado no corresponde al paciente.");
+
+                var facturaDelTurno = await _facturaRepository.GetByTurnoIdAsync(turno.Id);
+                if (facturaDelTurno != null && facturaDelTurno.Id != id)
+                    throw new InvalidOperationException($"El turno ya tiene la factura N° {facturaDelTurno.Id}.");
             }
 
-            await _facturaRepository.AddAsync(factura);
-            return MapToDTO(factura);
+            var items = new List<ItemFactura>();
+            foreach (var itemDto in dto.Items ?? new List<ItemFacturaDTO>())
+            {
+                var insumo = await _insumoRepository.GetAsync(itemDto.InsumoId)
+                    ?? throw new InvalidOperationException($"El insumo #{itemDto.InsumoId} no existe.");
+                items.Add(new ItemFactura(0, 0, insumo.Id, itemDto.CantidadInsumo, insumo.Precio));
+            }
+
+            if (turno == null && items.Count == 0)
+                throw new InvalidOperationException("La factura debe estar asociada a un turno o tener al menos un ítem.");
+
+            var descripcion = string.IsNullOrWhiteSpace(dto.Descripcion)
+                ? (turno != null ? $"Atención Odontológica - Turno N° {turno.Id}" : "Venta de insumos")
+                : dto.Descripcion.Trim();
+
+            var factura = new Factura(id, turno?.Id, paciente.Id, descripcion, 0m, 0m, 0m, 0m, false, "Pendiente de Pago");
+            factura.SetItems(items);
+            factura.CalcularMontos(CalcularHonorarios(turno), paciente.ObraSocial?.PorcentajeCobertura ?? 0m);
+            return factura;
         }
 
         public async Task<bool> RegistrarPagoAsync(int id, string metodoPago)
@@ -83,6 +140,7 @@ namespace Application.Services
             var factura = await _facturaRepository.GetAsync(id);
             if (factura == null) return false;
 
+            factura.ValidarEditable();
             factura.SetEstadoPago(true);
             factura.SetMetodoPago(string.IsNullOrWhiteSpace(metodoPago) ? "Efectivo" : metodoPago);
 
@@ -106,6 +164,7 @@ namespace Application.Services
                 EstadoPago = f.EstadoPago,
                 MetodoPago = f.MetodoPago,
                 FechaEmision = f.FechaEmision,
+                Honorarios = f.Subtotal - (f.Items?.Sum(i => i.Subtotal) ?? 0m),
                 Items = f.Items?.Select(i => new ItemFacturaDTO
                 {
                     Id = i.Id,

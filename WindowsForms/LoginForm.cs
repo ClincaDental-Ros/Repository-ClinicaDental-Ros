@@ -1,7 +1,6 @@
 using API.Auth.WindowsForms;
 using API.Clients;
 using DTOs;
-using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Net.Http;

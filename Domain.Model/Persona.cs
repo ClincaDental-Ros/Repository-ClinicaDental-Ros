@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Domain.Model
 {
     public abstract class Persona
@@ -34,6 +36,18 @@ namespace Domain.Model
 
             if (!string.IsNullOrWhiteSpace(Mail) && !Mail.Contains("@"))
                 throw new ArgumentException("El formato del correo electrónico es inválido.", nameof(Mail));
+
+            if (!TelefonoValido(Telefono))
+                throw new ArgumentException(MensajeTelefonoInvalido, nameof(Telefono));
+        }
+
+        private const string MensajeTelefonoInvalido = "El teléfono solo puede tener números, espacios, guiones, paréntesis y '+', con al menos 6 dígitos.";
+
+        /// <summary>El teléfono es opcional; si se carga, admite prefijos y separadores pero no letras.</summary>
+        public static bool TelefonoValido(string? telefono)
+        {
+            if (string.IsNullOrWhiteSpace(telefono)) return true;
+            return Regex.IsMatch(telefono.Trim(), @"^\+?[0-9\s\-()]+$") && telefono.Count(char.IsDigit) >= 6;
         }
 
         public void SetNom(string nombre)
@@ -61,7 +75,9 @@ namespace Domain.Model
 
         public void SetTel(string telefono)
         {
-            Telefono = telefono ?? string.Empty;
+            if (!TelefonoValido(telefono))
+                throw new ArgumentException(MensajeTelefonoInvalido, nameof(telefono));
+            Telefono = telefono?.Trim() ?? string.Empty;
         }
         public void SetTelefono(string telefono) => SetTel(telefono);
 

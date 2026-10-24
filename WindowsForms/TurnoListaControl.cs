@@ -1,7 +1,6 @@
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -30,9 +29,12 @@ namespace WindowsForms
         private List<PacienteDTO> _pacientes = new();
         private List<OdontologoDTO> _odontologos = new();
         private List<EspecialidadDTO> _especialidades = new();
+        private readonly int? _pacienteFijoId;
 
-        public TurnoReservaForm()
+        /// <param name="pacienteFijoId">Si se indica (portal del paciente), solo se puede reservar para ese paciente.</param>
+        public TurnoReservaForm(int? pacienteFijoId = null)
         {
+            _pacienteFijoId = pacienteFijoId;
             InitializeComponent();
             BuildUI();
             this.Load += OnFormLoad;
@@ -191,7 +193,16 @@ namespace WindowsForms
         {
             try
             {
-                _pacientes = await _pacienteClient.GetAllAsync();
+                if (_pacienteFijoId.HasValue)
+                {
+                    var propio = await _pacienteClient.GetByIdAsync(_pacienteFijoId.Value);
+                    _pacientes = propio != null ? new List<PacienteDTO> { propio } : new List<PacienteDTO>();
+                    cbPaciente.Enabled = false;
+                }
+                else
+                {
+                    _pacientes = await _pacienteClient.GetAllAsync();
+                }
                 cbPaciente.DataSource = _pacientes;
                 cbPaciente.DisplayMember = "NombreCompleto";
                 cbPaciente.ValueMember = "Id";
@@ -258,10 +269,11 @@ namespace WindowsForms
                 lblEstadoPaciente.Text = $"✅ Habilitado - Cobertura: {p.ObraSocialNombre}";
                 lblEstadoPaciente.ForeColor = UITheme.Success;
             }
-            catch
+            catch (Exception ex)
             {
-                lblEstadoPaciente.Text = "✅ Habilitado";
-                lblEstadoPaciente.ForeColor = UITheme.Success;
+                // La API vuelve a validar multas al reservar; acá solo se informa
+                lblEstadoPaciente.Text = $"⚠️ No se pudieron verificar las multas: {ex.Message}";
+                lblEstadoPaciente.ForeColor = UITheme.Warning;
             }
         }
 
@@ -371,7 +383,7 @@ namespace WindowsForms
 
             formTicket.Controls.Add(pnlBody);
             formTicket.Controls.Add(pnlH);
-            formTicket.ShowDialog();
+            formTicket.ShowDialog(FindForm());
         }
     }
 
@@ -631,7 +643,10 @@ namespace WindowsForms
                 cbFiltroOdontologo.ValueMember = "Id";
                 cbFiltroOdontologo.SelectedIndex = 0;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblEstado.Text = $"No se pudieron cargar los profesionales: {ex.Message}";
+            }
         }
 
         public async Task CargarTurnos()
@@ -687,7 +702,7 @@ namespace WindowsForms
         private void AbrirReserva()
         {
             var form = new TurnoReservaForm();
-            if (form.ShowDialog() == DialogResult.OK)
+            if (form.ShowDialog(FindForm()) == DialogResult.OK)
             {
                 _ = CargarTurnos();
             }

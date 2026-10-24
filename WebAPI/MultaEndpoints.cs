@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Services;
 using DTOs;
 
@@ -11,8 +12,15 @@ namespace WebAPI
                 .WithTags("Multas y Sanciones")
                 .RequireAuthorization();
 
-            group.MapGet("/", async (int? pacienteId, bool? soloImpagas, IMultaService service) =>
+            group.MapGet("/", async (int? pacienteId, bool? soloImpagas, ClaimsPrincipal user, IMultaService service) =>
             {
+                // Un paciente solo ve sus propias multas
+                if (!user.EsPersonal())
+                {
+                    pacienteId = user.PacienteId();
+                    if (pacienteId == null) return Results.Forbid();
+                }
+
                 if (pacienteId.HasValue && pacienteId.Value > 0)
                 {
                     if (soloImpagas.HasValue && soloImpagas.Value)
@@ -28,10 +36,11 @@ namespace WebAPI
                 return Results.Ok(all);
             });
 
-            group.MapGet("/{id:int}", async (int id, IMultaService service) =>
+            group.MapGet("/{id:int}", async (int id, ClaimsPrincipal user, IMultaService service) =>
             {
                 var multa = await service.GetAsync(id);
-                return multa == null ? Results.NotFound() : Results.Ok(multa);
+                if (multa == null) return Results.NotFound();
+                return user.PuedeAccederAPaciente(multa.PacienteId) ? Results.Ok(multa) : Results.Forbid();
             });
 
             group.MapPost("/", async (MultaDTO dto, IMultaService service) =>
@@ -40,11 +49,18 @@ namespace WebAPI
                 return Results.Created($"/api/multas/{created.Id}", created);
             }).RequireAuthorization("StaffOnly");
 
-            group.MapPost("/{id:int}/pagar", async (int id, IMultaService service) =>
+            // Paga la recepción o el propio paciente desde su portal
+            group.MapPost("/{id:int}/pagar", async (int id, ClaimsPrincipal user, IMultaService service) =>
             {
-                var ok = await service.PagarMultaAsync(id);
-                return ok ? Results.Ok(new { message = "Multa saldada y paciente rehabilitado si no registra más deudas." }) : Results.NotFound();
-            }).RequireAuthorization("AdminOrRecepcionista");
+                var multa = await service.GetAsync(id);
+                if (multa == null) return Results.NotFound();
+
+                var puedePagar = user.IsInRole("Admin") || user.IsInRole("Recepcionista") || user.PacienteId() == multa.PacienteId;
+                if (!puedePagar) return Results.Forbid();
+
+                await service.PagarMultaAsync(id);
+                return Results.Ok(new { message = "Multa saldada y paciente rehabilitado si no registra más deudas." });
+            });
         }
     }
 }

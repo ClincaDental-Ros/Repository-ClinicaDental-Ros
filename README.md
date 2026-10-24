@@ -44,15 +44,22 @@ Optimizar la gestión operativa y clínica del consultorio mediante:
 
 ## Arquitectura y stack tecnológico
 
-El proyecto se desarrolla bajo arquitectura MVC.
+Solución `DentalClinic.sln` (.NET 8, C#) organizada en capas:
 
-| Capa | Tecnología |
+| Proyecto | Responsabilidad |
 | :--- | :--- |
-| **Backend** | C# sobre .NET |
-| **ORM / Acceso a Datos** | Entity Framework |
-| **Frontend** | Windows Forms |
-| **Base de datos** | SQL Server Express 2022 |
+| `Domain.Model` | Entidades y reglas de negocio (validaciones, cálculo de facturas). |
+| `Data` | `TurnoMolarDbContext` (Entity Framework Core 8 + SQL Server), repositorios y datos de prueba (seed). La búsqueda de pacientes por criterio usa ADO.NET. |
+| `DTOs` | Objetos de transferencia entre la API y los clientes. |
+| `Application.Services` | Servicios de aplicación (pacientes, turnos, consultas, facturación, reportes, autenticación JWT). |
+| `WebAPI` | API REST (Minimal API) con autenticación JWT, autorización por rol y Swagger en desarrollo. |
+| `API.Clients` | Clientes HTTP compartidos por las dos interfaces. |
+| `API.Auth.WindowsForms` | Manejo de la sesión en la aplicación de escritorio. |
+| `WindowsForms` | Interfaz de escritorio (MDI) para el personal de la clínica y el portal del paciente. |
+| `BlazorUI` | Interfaz web (Blazor Server) con las mismas funcionalidades. |
+| `Application.Services.Tests` | Pruebas unitarias (xUnit) del dominio y de los servicios. |
 
+Base de datos: SQL Server (local `.\SQLEXPRESS` o la base en la nube del equipo). La base se crea sola al iniciar la API (`EnsureCreated`) con datos de prueba.
 
 ---
 
@@ -89,7 +96,48 @@ El proyecto sigue un enfoque en cascada, con documentación formal versionada en
 
 ## Instalación y uso
 
-Próximamente.
+Requisitos: .NET 8 SDK, Visual Studio 2022 (para la aplicación de escritorio) y acceso a un SQL Server.
+
+### 1. Configurar la base de datos
+
+Por defecto la API usa `Server=.\SQLEXPRESS;Database=ClinicaOdontologicaDb` (archivo `WebAPI/appsettings.json`).
+Para usar otra base (por ejemplo, la de la nube) **no se escribe la contraseña en archivos versionados**; se usa una de estas opciones:
+
+```bash
+# Opción A: user-secrets (queda fuera del repositorio)
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<cadena de conexión>" --project WebAPI
+
+# Opción B: variable de entorno (PowerShell)
+$env:ConnectionStrings__DefaultConnection = "<cadena de conexión>"
+```
+
+También se puede crear `WebAPI/appsettings.Development.json`, que está en `.gitignore`.
+
+### 2. Ejecutar
+
+1. **WebAPI** (debe iniciarse primero): `dotnet run --project WebAPI` → `http://localhost:5263` (Swagger en `/swagger`).
+2. **Web (Blazor)**: `dotnet run --project BlazorUI` → `http://localhost:5278`.
+3. **Escritorio (WindowsForms)**: ejecutar el proyecto `WindowsForms` desde Visual Studio.
+
+La URL de la API se configura en `ApiSettings:BaseUrl` de `BlazorUI/appsettings.json` y de `WindowsForms/appsettings.json`.
+En Visual Studio se pueden iniciar varios proyectos a la vez (Solución → Propiedades → Proyectos de inicio múltiples).
+
+### 3. Usuarios de prueba
+
+| Usuario | Clave | Rol |
+| :--- | :--- | :--- |
+| `admin` | `admin123` | Admin |
+| `recepcion` | `recepcion123` | Recepcionista |
+| `doctor1` / `doctor2` | `doc123` | Odontólogo |
+| `paciente1` / `paciente2` | `paciente123` | Paciente |
+
+Las claves se guardan con hash (HMAC-SHA256 con salt). Al dar de alta un paciente, su usuario del portal se crea con la clave inicial `paciente123`.
+
+### 4. Pruebas
+
+```bash
+dotnet test Application.Services.Tests
+```
 
 ---
 

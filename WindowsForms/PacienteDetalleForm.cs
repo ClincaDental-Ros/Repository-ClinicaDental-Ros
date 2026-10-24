@@ -1,6 +1,5 @@
 using API.Clients;
 using DTOs;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -177,7 +176,7 @@ namespace WindowsForms
             {
                 ReadOnly = true,
                 BackColor = Color.FromArgb(240, 243, 246),
-                Text = _pacienteExistente == null ? "paciente123" : (_pacienteExistente.PasswordDefault ?? "paciente123")
+                Text = _pacienteExistente == null ? "paciente123" : "(oculta: se informó al crear el paciente)"
             };
             AddRow("Clave Inicial:", txtPassword);
 
@@ -239,7 +238,6 @@ namespace WindowsForms
             chkHabilitado.Checked = _pacienteExistente.EstadoHabilitado;
             txtAfiliado.Text = _pacienteExistente.NumeroAfiliado ?? "";
             txtUsuario.Text = _pacienteExistente.Username ?? "N/A";
-            txtPassword.Text = _pacienteExistente.PasswordDefault ?? "paciente123";
 
             if (_pacienteExistente.ObraSocialId.HasValue)
             {

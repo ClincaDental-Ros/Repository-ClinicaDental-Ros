@@ -30,29 +30,15 @@ namespace WebAPI
 
             group.MapPost("/", async (OdontologoDTO dto, IOdontologoService service) =>
             {
-                try
-                {
-                    var created = await service.AddAsync(dto);
-                    return Results.Created($"/api/odontologos/{created.Id}", created);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { message = ex.Message });
-                }
+                var created = await service.AddAsync(dto);
+                return Results.Created($"/api/odontologos/{created.Id}", created);
             }).RequireAuthorization("AdminOnly");
 
             group.MapPut("/{id:int}", async (int id, OdontologoDTO dto, IOdontologoService service) =>
             {
                 dto.Id = id;
-                try
-                {
-                    var updated = await service.UpdateAsync(dto);
-                    return updated ? Results.Ok(dto) : Results.NotFound();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { message = ex.Message });
-                }
+                var updated = await service.UpdateAsync(dto);
+                return updated ? Results.Ok(dto) : Results.NotFound();
             }).RequireAuthorization("AdminOnly");
 
             group.MapDelete("/{id:int}", async (int id, IOdontologoService service) =>

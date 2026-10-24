@@ -2,7 +2,6 @@ using API.Auth.WindowsForms;
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -46,7 +45,7 @@ namespace WindowsForms
         private Label lblOSAfiliado = null!;
         private Label lblOSEstado = null!;
 
-        private int _pacienteId = 1; // Default
+        private int _pacienteId;
         private PacienteDTO? _pacienteInfo;
         private List<TurnoOdontologicoDTO> _misTurnos = new();
         private List<MultaDTO> _misMultas = new();
@@ -485,7 +484,7 @@ namespace WindowsForms
 
             formModal.Controls.Add(pnlB);
             formModal.Controls.Add(pnlH);
-            formModal.ShowDialog();
+            formModal.ShowDialog(FindForm());
         }
 
         private TabPage CrearTabSeguro()
@@ -525,14 +524,19 @@ namespace WindowsForms
         {
             try
             {
-                var username = _authService.GetUsername() ?? "paciente1";
-                var pacientes = await _pacienteClient.GetAllAsync();
-                _pacienteInfo = pacientes.FirstOrDefault(p => p.Mail.Contains(username, StringComparison.OrdinalIgnoreCase) || p.Nombre.Contains("Juan", StringComparison.OrdinalIgnoreCase)) ?? pacientes.FirstOrDefault();
+                // El paciente se identifica por el EntidadId de su token, nunca por búsqueda en la lista
+                var entidadId = _authService.GetEntidadId();
+                if (entidadId == null)
+                {
+                    lblProxDoctor.Text = "Este usuario no tiene un paciente asociado.";
+                    return;
+                }
+
+                _pacienteId = entidadId.Value;
+                _pacienteInfo = await _pacienteClient.GetByIdAsync(_pacienteId);
 
                 if (_pacienteInfo != null)
                 {
-                    _pacienteId = _pacienteInfo.Id;
-
                     lblOSNombre.Text = $"Obra Social: {_pacienteInfo.ObraSocialNombre}";
                     lblOSAfiliado.Text = $"N° de Afiliado / Credencial: {_pacienteInfo.NumeroAfiliado ?? "S/D"}";
                 }
@@ -592,13 +596,16 @@ namespace WindowsForms
                     btnPagarDeuda.Visible = false;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                MessageBox.Show(FindForm(), $"No se pudieron cargar tus datos: {ex.Message}", "Portal del Paciente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void AbrirReservaTurno()
         {
-            var form = new TurnoReservaForm();
-            if (form.ShowDialog() == DialogResult.OK)
+            using var form = new TurnoReservaForm(_pacienteId);
+            if (form.ShowDialog(FindForm()) == DialogResult.OK)
             {
                 _ = CargarDatos();
             }
@@ -653,7 +660,7 @@ namespace WindowsForms
 
             formTicket.Controls.Add(pnlBody);
             formTicket.Controls.Add(pnlH);
-            formTicket.ShowDialog();
+            formTicket.ShowDialog(FindForm());
         }
 
         private async void BtnCancelarTurno_Click(object? sender, EventArgs e)

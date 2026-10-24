@@ -15,6 +15,7 @@ namespace DTOs
         public bool EstadoPago { get; set; }
         public string MetodoPago { get; set; } = "Efectivo";
         public DateTime FechaEmision { get; set; } = DateTime.Now;
+        public decimal Honorarios { get; set; }
         public List<ItemFacturaDTO> Items { get; set; } = new();
     }
 

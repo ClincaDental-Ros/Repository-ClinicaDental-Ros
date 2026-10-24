@@ -1,27 +1,22 @@
 using API.Auth.WindowsForms;
 using API.Clients;
-using System;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Text.Json;
 
 namespace WindowsForms
 {
     internal static class Program
     {
-      
+        private const string ApiUrlPorDefecto = "http://localhost:5263";
+
         [STAThread]
         static void Main()
         {
             ApplicationConfiguration.Initialize();
 
-           
             var authService = new WindowsFormsAuthService();
             AuthServiceProvider.Current = authService;
 
-          
-            BaseApiClient.BaseUrl = "http://localhost:5263";
+            BaseApiClient.BaseUrl = LeerUrlApi();
 
             BaseApiClient.OnUnauthorized += () =>
             {
@@ -47,6 +42,34 @@ namespace WindowsForms
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Lee ApiSettings:BaseUrl de appsettings.json (junto al ejecutable), igual que BlazorUI.
+        /// Si el archivo no existe o no tiene la clave, usa la URL local por defecto.
+        /// </summary>
+        private static string LeerUrlApi()
+        {
+            var ruta = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+            if (!File.Exists(ruta))
+                return ApiUrlPorDefecto;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(ruta));
+                if (doc.RootElement.TryGetProperty("ApiSettings", out var api) &&
+                    api.TryGetProperty("BaseUrl", out var url) &&
+                    !string.IsNullOrWhiteSpace(url.GetString()))
+                {
+                    return url.GetString()!;
+                }
+            }
+            catch (JsonException)
+            {
+                MessageBox.Show($"El archivo {ruta} no es un JSON válido. Se usará {ApiUrlPorDefecto}.", "Configuración", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
+            return ApiUrlPorDefecto;
         }
     }
 }

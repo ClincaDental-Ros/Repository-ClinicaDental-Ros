@@ -2,12 +2,7 @@ using System.Text;
 using Application.Services;
 using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -34,7 +29,7 @@ namespace WebAPI
                 });
             });
 
-            
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
@@ -93,7 +88,7 @@ namespace WebAPI
                     policy.RequireAuthenticatedUser());
             });
 
-         
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -129,7 +124,7 @@ namespace WebAPI
                 });
             });
 
-           
+
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<IPacienteRepository, PacienteRepository>();
             builder.Services.AddScoped<IOdontologoRepository, OdontologoRepository>();
@@ -141,9 +136,10 @@ namespace WebAPI
             builder.Services.AddScoped<IMultaRepository, MultaRepository>();
             builder.Services.AddScoped<IObraSocialRepository, ObraSocialRepository>();
             builder.Services.AddScoped<IHistoriaClinicaRepository, HistoriaClinicaRepository>();
+            builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
-     
-            builder.Services.AddScoped<Application.Services.IAuthService, AuthService>();
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IPacienteService, PacienteService>();
             builder.Services.AddScoped<IOdontologoService, OdontologoService>();
             builder.Services.AddScoped<IEspecialidadService, EspecialidadService>();
@@ -154,7 +150,12 @@ namespace WebAPI
             builder.Services.AddScoped<IMultaService, MultaService>();
             builder.Services.AddScoped<IReportesService, ReportesService>();
 
+            builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+            builder.Services.AddProblemDetails();
+
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             using (var scope = app.Services.CreateScope())
             {
@@ -164,25 +165,25 @@ namespace WebAPI
                     var created = context.Database.EnsureCreated();
                     if (created)
                     {
-                        Console.WriteLine("✅ Base de datos 'ClinicaOdontologicaDb' creada y configurada con éxito en SQL Server.");
+                        Console.WriteLine("✅ Base de datos creada y cargada con datos de prueba.");
                     }
                     else
                     {
-                        Console.WriteLine("ℹ️ Conexión establecida con la base de datos 'ClinicaOdontologicaDb' existente en SQL Server.");
+                        Console.WriteLine("ℹ️ Conexión establecida con la base de datos existente.");
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine($"⚠️ [AVISO CONEXIÓN BD]: No se pudo conectar a la instancia de SQL Server local ({ex.Message}).");
-                    Console.WriteLine("ℹ️ Verifique que el servicio 'SQL Server (SQLEXPRESS)' esté iniciado en Windows Services.");
+                    Console.WriteLine($"⚠️ [AVISO CONEXIÓN BD]: No se pudo conectar a SQL Server ({ex.Message}).");
+                    Console.WriteLine("ℹ️ Verifique la cadena de conexión 'DefaultConnection' y que el servidor SQL esté disponible.");
                     Console.ResetColor();
                 }
             }
 
             app.UseCors("AllowAll");
 
-            if (app.Environment.IsDevelopment() || true)
+            if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
@@ -208,12 +209,6 @@ namespace WebAPI
             app.MapReportesEndpoints();
 
             return app;
-        }
-
-        public static Task StartAsync(string[] args)
-        {
-            var app = CreateApp(args);
-            return app.RunAsync();
         }
     }
 }

@@ -145,12 +145,16 @@ namespace Data
                 new Insumo(7, "Conos de Gutapercha Endodoncia", "Obturación de conductos radiculares", 4500m, 30)
             );
 
+            // Contraseñas de prueba ya hasheadas (HMACSHA256 + salt, formato "salt:hash").
+            // admin/admin123 · recepcion/recepcion123 · doctor1, doctor2/doc123 · paciente1, paciente2/paciente123
+            const string hashPaciente = "6NGdkrFvvvtVJXHGkxf/tg==:Q1ApExO/Ylk7A2dOMQFTNPlalbZyHv/LUt4fxtPuGFk=";
             modelBuilder.Entity<Usuario>().HasData(
-                new Usuario(1, "admin", "admin123", "Admin", "Administrador Principal", "admin@turnomolar.com", true),
-                new Usuario(2, "recepcion", "recepcion123", "Recepcionista", "María López", "recepcion@turnomolar.com", true),
-                new Usuario(3, "doctor1", "doc123", "Odontologo", "Dr. Martín Gómez", "mgomez@turnomolar.com", true, 1),
-                new Usuario(4, "doctor2", "doc123", "Odontologo", "Dra. Laura Rossi", "lrossi@turnomolar.com", true, 2),
-                new Usuario(5, "paciente1", "paciente123", "Paciente", "Juan Pérez", "juan.perez@gmail.com", true, 1)
+                new Usuario(1, "admin", "NPkpeBTo0wkB7eYFk4zbEw==:wVTuP29U7cxd5EwL3XjiD7yrS+cYH6ITXhRNQKz+9co=", "Admin", "Administrador Principal", "admin@turnomolar.com", true),
+                new Usuario(2, "recepcion", "V5CM2JRusBY1Znz61ZofcA==:w3oRRcVTZp8xsZ5MHAvSRSZqso/TIar5wdECOT0ipZg=", "Recepcionista", "María López", "recepcion@turnomolar.com", true),
+                new Usuario(3, "doctor1", "i+G4S+SVZsrbJ2V+LNZCXA==:8nPTqwt1p3/mryU4eWyeopK3eP1vZFIGUwFqbBnz/TI=", "Odontologo", "Dr. Martín Gómez", "mgomez@turnomolar.com", true, 1),
+                new Usuario(4, "doctor2", "MrFW8TT/b9p3nggRcvNuKA==:AXCxyJQo+QI6XAhzErdOXHF+B3ivgkT3P+9WaDxLSEg=", "Odontologo", "Dra. Laura Rossi", "lrossi@turnomolar.com", true, 2),
+                new Usuario(5, "paciente1", hashPaciente, "Paciente", "Juan Pérez", "juan.perez@gmail.com", true, 1),
+                new Usuario(6, "paciente2", hashPaciente, "Paciente", "Ana Martínez", "ana.martinez@hotmail.com", true, 2)
             );
 
             modelBuilder.Entity<Odontologo>().HasData(
@@ -163,26 +167,73 @@ namespace Data
                 new Paciente(1, "Juan", "Pérez", 35123456, "11-2345-6789", "juan.perez@gmail.com", "Belgrano 450, Quilmes", true, 1, "OSDE-987654"),
                 new Paciente(2, "Ana", "Martínez", 38765432, "11-3456-7890", "ana.martinez@hotmail.com", "Mitre 780, Avellaneda", true, 2, "SM-543210"),
                 new Paciente(3, "Carlos", "Sánchez", 27987654, "11-4567-8901", "csanchez@yahoo.com", "Rivadavia 1200, Lanús", true, 4, null),
-                new Paciente(4, "Sofía", "Rodríguez", 40123987, "11-5678-1234", "sofia.rodriguez@gmail.com", "San Martín 320, Bernal", false, 3, "IOMA-334455") // Inhabilitada por deuda/multa
+                new Paciente(4, "Sofía", "Rodríguez", 40123987, "11-5678-1234", "sofia.rodriguez@gmail.com", "San Martín 320, Bernal", false, 3, "IOMA-334455"), // Inhabilitada por deuda/multa
+                new Paciente(5, "Lucía", "Fernández", 42345678, "341-555-1020", "lucia.fernandez@gmail.com", "Córdoba 1550, Rosario", true, 4, null),
+                new Paciente(6, "Martín", "Acosta", 33456123, "341-555-3344", "martin.acosta@outlook.com", "Pellegrini 980, Rosario", true, 1, "OSDE-112233")
             );
 
             modelBuilder.Entity<Multa>().HasData(
-                new Multa(1, 4, 3500m, false, null, "Ausencia no justificada a turno programado el 10/08/2026")
+                new Multa(1, 4, 3500m, false, null, "Inasistencia sin aviso a turno odontológico"),
+                new Multa(2, 5, 3500m, true, DateTime.Today.AddDays(-10), "Inasistencia sin aviso a turno odontológico")
             );
 
             modelBuilder.Entity<HistoriaClinica>().HasData(
                 new HistoriaClinica(1, 1001, 1, new DateTime(2025, 1, 15), "Hipertensión leve controlada", "Penicilina", "Paciente con buena salud bucal previa"),
                 new HistoriaClinica(2, 1002, 2, new DateTime(2025, 3, 20), "Ninguno", "Ninguna", "Tratamiento de ortodoncia en curso"),
                 new HistoriaClinica(3, 1003, 3, new DateTime(2025, 5, 10), "Diabetes Tipo 2", "Aspirina", "Higiene regular"),
-                new HistoriaClinica(4, 1004, 4, new DateTime(2025, 6, 01), "Ninguno", "Ninguna", "Inhabilitado por inasistencia sin aviso")
+                new HistoriaClinica(4, 1004, 4, new DateTime(2025, 6, 01), "Ninguno", "Ninguna", "Inhabilitado por inasistencia sin aviso"),
+                new HistoriaClinica(5, 1005, 5, new DateTime(2025, 8, 12), "Ninguno", "Ibuprofeno", "Sensibilidad dental al frío"),
+                new HistoriaClinica(6, 1006, 6, new DateTime(2025, 9, 3), "Asma leve", "Ninguna", "Control semestral")
             );
 
+            var hoy = DateTime.Today;
             modelBuilder.Entity<TurnoOdontologico>().HasData(
-                new TurnoOdontologico(1, DateTime.Today.AddHours(9), new TimeOnly(9, 0), TurnoOdontologico.EstadoTurnoEnum.Pendiente, null, 1, 1, 1, 12000m),
-                new TurnoOdontologico(2, DateTime.Today.AddHours(10), new TimeOnly(10, 0), TurnoOdontologico.EstadoTurnoEnum.Presente, null, 2, 2, 2, 25000m),
-                new TurnoOdontologico(3, DateTime.Today.AddHours(11), new TimeOnly(11, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 3, 1, 1, 15000m),
-                new TurnoOdontologico(4, DateTime.Today.AddDays(1).AddHours(14), new TimeOnly(14, 0), TurnoOdontologico.EstadoTurnoEnum.Pendiente, null, 1, 3, 3, 18000m)
+                new TurnoOdontologico(1, hoy.AddHours(9), new TimeOnly(9, 0), TurnoOdontologico.EstadoTurnoEnum.Pendiente, null, 1, 1, 1, 12000m),
+                new TurnoOdontologico(2, hoy.AddHours(10), new TimeOnly(10, 0), TurnoOdontologico.EstadoTurnoEnum.Presente, null, 2, 2, 2, 25000m),
+                new TurnoOdontologico(3, hoy.AddHours(11), new TimeOnly(11, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 3, 1, 1, 15000m),
+                new TurnoOdontologico(4, hoy.AddDays(1).AddHours(14), new TimeOnly(14, 0), TurnoOdontologico.EstadoTurnoEnum.Pendiente, null, 1, 3, 3, 18000m),
+                new TurnoOdontologico(5, hoy.AddDays(-7).AddHours(10), new TimeOnly(10, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 1, 1, 1, 12000m),
+                new TurnoOdontologico(6, hoy.AddDays(-5).AddHours(11), new TimeOnly(11, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 2, 2, 2, 25000m),
+                new TurnoOdontologico(7, hoy.AddDays(-3).AddHours(9).AddMinutes(30), new TimeOnly(9, 30), TurnoOdontologico.EstadoTurnoEnum.NoAsistido, "Ausencia registrada en recepción", 4, 1, 1, 12000m),
+                new TurnoOdontologico(8, hoy.AddDays(-2).AddHours(15), new TimeOnly(15, 0), TurnoOdontologico.EstadoTurnoEnum.Cancelado, "Viaje laboral del paciente", 5, 3, 3, 18000m),
+                new TurnoOdontologico(9, hoy.AddDays(-1).AddHours(16), new TimeOnly(16, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 6, 3, 3, 18000m),
+                new TurnoOdontologico(10, hoy.AddDays(2).AddHours(10).AddMinutes(30), new TimeOnly(10, 30), TurnoOdontologico.EstadoTurnoEnum.Pendiente, null, 2, 1, 1, 12000m)
             );
+
+            modelBuilder.Entity<Consulta>().HasData(
+                ConConsultaFecha(new Consulta(1, 5, "Caries superficial en pieza 36", "Restauración con resina", "Control en 6 meses", true, false, "Excelente atención", 5), hoy.AddDays(-7).AddHours(10)),
+                ConConsultaFecha(new Consulta(2, 6, "Necrosis pulpar pieza 21", "Tratamiento de conducto", "Requiere corona posterior", true, true, "Muy profesional", 5), hoy.AddDays(-5).AddHours(11)),
+                ConConsultaFecha(new Consulta(3, 3, "Pieza 46 con fractura parcial", "Reconstrucción con resina", "Evitar alimentos duros 48 h"), hoy.AddHours(11)),
+                ConConsultaFecha(new Consulta(4, 9, "Apiñamiento dental leve", "Evaluación para ortodoncia", "Se solicitan radiografías", false, true, "Buena atención, algo de demora", 4), hoy.AddDays(-1).AddHours(16))
+            );
+
+            modelBuilder.Entity<Factura>().HasData(
+                ConFacturaFecha(new Factura(1, 5, 1, "Atención Odontológica - Restauración con resina", 15300m, 10710m, 15300m, 4590m, true, "Efectivo"), hoy.AddDays(-7).AddHours(10).AddMinutes(45)),
+                ConFacturaFecha(new Factura(2, 6, 2, "Atención Odontológica - Tratamiento de conducto", 36500m, 23725m, 36500m, 12775m, true, "Tarjeta de Débito"), hoy.AddDays(-5).AddHours(12)),
+                ConFacturaFecha(new Factura(3, 3, 3, "Atención Odontológica - Reconstrucción con resina", 21800m, 0m, 21800m, 21800m, false, "Pendiente de Pago"), hoy.AddHours(11).AddMinutes(40)),
+                ConFacturaFecha(new Factura(4, 9, 6, "Atención Odontológica - Evaluación para ortodoncia", 21000m, 14700m, 21000m, 6300m, false, "Pendiente de Pago"), hoy.AddDays(-1).AddHours(16).AddMinutes(30))
+            );
+
+            modelBuilder.Entity<ItemFactura>().HasData(
+                new ItemFactura(1, 1, 1, 1, 2500m),
+                new ItemFactura(2, 1, 4, 2, 400m),
+                new ItemFactura(3, 2, 7, 2, 4500m),
+                new ItemFactura(4, 2, 1, 1, 2500m),
+                new ItemFactura(5, 3, 2, 1, 6800m),
+                new ItemFactura(6, 4, 3, 2, 1500m)
+            );
+        }
+
+        private static Consulta ConConsultaFecha(Consulta consulta, DateTime fecha)
+        {
+            consulta.SetFecha(fecha);
+            return consulta;
+        }
+
+        private static Factura ConFacturaFecha(Factura factura, DateTime fecha)
+        {
+            factura.SetFechaEmision(fecha);
+            return factura;
         }
     }
 }

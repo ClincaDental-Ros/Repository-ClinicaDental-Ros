@@ -12,6 +12,8 @@ namespace Data
         Task<IEnumerable<Factura>> GetByRangoFechasAsync(DateTime fechaDesde, DateTime fechaHasta);
         Task<Factura> AddAsync(Factura factura);
         Task<bool> UpdateAsync(Factura factura);
+        Task<bool> UpdateConItemsAsync(Factura datos);
+        Task<bool> DeleteAsync(int id);
     }
 
     public class FacturaRepository : IFacturaRepository
@@ -102,6 +104,41 @@ namespace Data
             existing.SetEstadoPago(factura.EstadoPago);
             existing.SetMetodoPago(factura.MetodoPago);
 
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        /// <summary>Actualiza la cabecera y reemplaza el detalle (ítems) de la factura.</summary>
+        public async Task<bool> UpdateConItemsAsync(Factura datos)
+        {
+            var existing = await _context.Facturas
+                .Include(f => f.Items)
+                .FirstOrDefaultAsync(f => f.Id == datos.Id);
+            if (existing == null)
+                return false;
+
+            existing.SetPacienteId(datos.PacienteId);
+            existing.SetTurnoId(datos.TurnoId);
+            existing.SetDescripcion(datos.Descripcion);
+            existing.SetMetodoPago(datos.MetodoPago);
+            existing.SetMontos(datos.Subtotal, datos.DescuentoObraSocial, datos.Total, datos.MontoAPagarPaciente);
+
+            _context.ItemsFactura.RemoveRange(existing.Items);
+            existing.SetItems(datos.Items
+                .Select(i => new ItemFactura(0, existing.Id, i.InsumoId, i.CantidadInsumo, i.PrecioUnitario))
+                .ToList());
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var factura = await _context.Facturas.FindAsync(id);
+            if (factura == null)
+                return false;
+
+            _context.Facturas.Remove(factura);
             await _context.SaveChangesAsync();
             return true;
         }

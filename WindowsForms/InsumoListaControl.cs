@@ -1,7 +1,6 @@
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -303,7 +302,7 @@ namespace WindowsForms
         private void AbrirDetalle(InsumoDTO? dto)
         {
             var form = new InsumoDetalleForm(dto);
-            if (form.ShowDialog() == DialogResult.OK)
+            if (form.ShowDialog(FindForm()) == DialogResult.OK)
             {
                 _ = CargarInsumos();
             }

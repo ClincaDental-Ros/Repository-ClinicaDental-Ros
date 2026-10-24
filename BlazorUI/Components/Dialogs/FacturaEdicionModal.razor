@@ -1,0 +1,277 @@
+@inject FacturaApiClient FacturaClient
+@inject PacienteApiClient PacienteClient
+@inject TurnoApiClient TurnoClient
+@inject InsumoApiClient InsumoClient
+
+@* Alta y modificación de factura (maestro) con sus ítems de insumos (detalle).
+   Los precios, honorarios y el descuento de obra social los calcula la API al guardar. *@
+
+@if (Show)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow-lg border-0">
+
+                <div class="modal-header btn-theme-primary text-white">
+                    <h5 class="modal-title fw-bold">
+                        🧾 @(Factura == null ? "Registrar Factura" : $"Editar Factura #{Factura.Id}")
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger py-2 small" role="alert">@errorMessage</div>
+                    }
+
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Paciente *:</label>
+                                <select class="form-select" value="@pacienteId" @onchange="OnPacienteChanged" disabled="@(Factura != null)">
+                                    <option value="0">-- Seleccione un paciente --</option>
+                                    @foreach (var p in pacientes)
+                                    {
+                                        <option value="@p.Id">@p.NombreCompleto</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Turno:</label>
+                                <select class="form-select" @bind="turnoId">
+                                    <option value="0">(Sin turno: solo insumos)</option>
+                                    @foreach (var t in turnos)
+                                    {
+                                        <option value="@t.Id">N° @t.Id - @t.Fecha.ToString("dd/MM/yyyy") @t.HorarioTurno.ToString("HH:mm") - @t.EspecialidadNombre (@t.EstadoTurno)</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Descripción:</label>
+                                <input type="text" class="form-control" @bind="descripcion" placeholder="Opcional: si queda vacía se genera automáticamente" />
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold mt-4" style="color: var(--color-primary);">Ítems (insumos)</h6>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-7">
+                                <select class="form-select" @bind="insumoSeleccionadoId">
+                                    @foreach (var i in insumos)
+                                    {
+                                        <option value="@i.Id">@i.Nombre (@i.Precio.ToString("C2"))</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" min="1" class="form-control" @bind="cantidad" />
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-theme-primary w-100" @onclick="AgregarItem">➕ Agregar</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mt-2 border rounded">
+                            <table class="table table-sm align-middle mb-0 table-theme">
+                                <thead>
+                                    <tr><th>Insumo</th><th>Cant.</th><th>P. Unitario</th><th>Subtotal</th><th></th></tr>
+                                </thead>
+                                <tbody>
+                                    @if (items.Count == 0)
+                                    {
+                                        <tr><td colspan="5" class="text-center text-muted py-2">Sin ítems.</td></tr>
+                                    }
+                                    @foreach (var item in items)
+                                    {
+                                        <tr>
+                                            <td>@item.InsumoNombre</td>
+                                            <td>@item.CantidadInsumo</td>
+                                            <td>@item.PrecioUnitario.ToString("C2")</td>
+                                            <td>@item.Subtotal.ToString("C2")</td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-sm btn-theme-danger" @onclick="() => items.Remove(item)">Quitar</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2 fw-bold">Total insumos: @items.Sum(i => i.Subtotal).ToString("C2")</div>
+                        <div class="small text-muted">Los honorarios del turno y el descuento de la obra social se calculan al guardar.</div>
+                    }
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
+                    <button type="button" class="btn btn-theme-success" @onclick="Guardar" disabled="@(isSaving || isLoading)">
+                        @(isSaving ? "Guardando..." : "💾 Guardar")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    /// <summary>Null para una factura nueva; la factura a modificar en otro caso.</summary>
+    [Parameter] public FacturaDTO? Factura { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
+    [Parameter] public EventCallback<FacturaDTO> OnSaved { get; set; }
+
+    private List<PacienteDTO> pacientes = new();
+    private List<TurnoOdontologicoDTO> turnos = new();
+    private List<InsumoDTO> insumos = new();
+    private List<ItemFacturaDTO> items = new();
+
+    private int pacienteId;
+    private int turnoId;
+    private string descripcion = "";
+    private int insumoSeleccionadoId;
+    private int cantidad = 1;
+
+    private bool isLoading;
+    private bool isSaving;
+    private bool cargado;
+    private string errorMessage = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Show)
+        {
+            cargado = false;
+            return;
+        }
+        if (cargado) return;
+        cargado = true;
+
+        isLoading = true;
+        errorMessage = "";
+        try
+        {
+            pacientes = await PacienteClient.GetAllAsync();
+            insumos = await InsumoClient.GetAllAsync();
+            insumoSeleccionadoId = insumos.FirstOrDefault()?.Id ?? 0;
+
+            pacienteId = Factura?.PacienteId ?? 0;
+            turnoId = Factura?.TurnoId ?? 0;
+            descripcion = Factura?.Descripcion ?? "";
+            items = Factura?.Items.Select(i => new ItemFacturaDTO
+            {
+                InsumoId = i.InsumoId,
+                InsumoNombre = i.InsumoNombre,
+                CantidadInsumo = i.CantidadInsumo,
+                PrecioUnitario = i.PrecioUnitario
+            }).ToList() ?? new();
+
+            await CargarTurnos();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"No se pudieron cargar los datos: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnPacienteChanged(ChangeEventArgs e)
+    {
+        pacienteId = int.TryParse(e.Value?.ToString(), out var id) ? id : 0;
+        turnoId = 0;
+        await CargarTurnos();
+    }
+
+    private async Task CargarTurnos()
+    {
+        turnos = pacienteId > 0
+            ? (await TurnoClient.GetByCriteriaAsync(new TurnoCriteriaDTO { PacienteId = pacienteId }))
+                .Where(t => t.EstadoTurno != "Cancelado")
+                .OrderByDescending(t => t.Fecha)
+                .ToList()
+            : new();
+    }
+
+    private void AgregarItem()
+    {
+        errorMessage = "";
+        var insumo = insumos.FirstOrDefault(i => i.Id == insumoSeleccionadoId);
+        if (insumo == null) return;
+        if (cantidad < 1)
+        {
+            errorMessage = "La cantidad debe ser al menos 1.";
+            return;
+        }
+
+        var existente = items.FirstOrDefault(i => i.InsumoId == insumo.Id);
+        if (existente != null)
+        {
+            existente.CantidadInsumo += cantidad;
+        }
+        else
+        {
+            items.Add(new ItemFacturaDTO
+            {
+                InsumoId = insumo.Id,
+                InsumoNombre = insumo.Nombre,
+                CantidadInsumo = cantidad,
+                PrecioUnitario = insumo.Precio
+            });
+        }
+        cantidad = 1;
+    }
+
+    private async Task Guardar()
+    {
+        errorMessage = "";
+        if (pacienteId <= 0)
+        {
+            errorMessage = "Seleccione un paciente.";
+            return;
+        }
+        if (turnoId <= 0 && items.Count == 0)
+        {
+            errorMessage = "La factura debe estar asociada a un turno o tener al menos un ítem.";
+            return;
+        }
+
+        var dto = new FacturaDTO
+        {
+            Id = Factura?.Id ?? 0,
+            PacienteId = pacienteId,
+            TurnoId = turnoId > 0 ? turnoId : null,
+            Descripcion = descripcion.Trim(),
+            Items = items.Select(i => new ItemFacturaDTO { InsumoId = i.InsumoId, CantidadInsumo = i.CantidadInsumo }).ToList()
+        };
+
+        isSaving = true;
+        try
+        {
+            var guardada = Factura == null
+                ? await FacturaClient.CrearAsync(dto)
+                : await FacturaClient.ActualizarAsync(dto);
+
+            if (guardada != null)
+                await OnSaved.InvokeAsync(guardada);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        await OnClosed.InvokeAsync();
+    }
+}

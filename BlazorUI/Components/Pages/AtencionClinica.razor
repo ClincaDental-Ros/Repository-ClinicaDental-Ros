@@ -171,13 +171,11 @@
         try
         {
             insumosDisponibles = await InsumoClient.GetAllAsync();
-            if (insumosDisponibles.Count > 0)
-            {
-                insumosSeleccionadosIds.Add(insumosDisponibles[0].Id);
-                if (insumosDisponibles.Count > 1) insumosSeleccionadosIds.Add(insumosDisponibles[1].Id);
-            }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            lblEstado = $"No se pudieron cargar los insumos: {ex.Message}";
+        }
     }
 
     private async Task CargarTurnosPresentes()

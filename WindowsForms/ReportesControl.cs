@@ -1,7 +1,5 @@
 using API.Clients;
-using DTOs;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -17,6 +15,8 @@ namespace WindowsForms
         private DateTimePicker dtpTurnosDia = null!;
         private Label lblStatsTurnos = null!;
         private DataGridView gridTurnosDia = null!;
+        private GraficoBarras graficoTurnos = null!;
+        private GraficoBarras graficoFacturacion = null!;
 
         // Tab Ausentismo
         private DateTimePicker dtpAusDesde = null!;
@@ -122,7 +122,10 @@ namespace WindowsForms
             gridTurnosDia.Columns.Add(new DataGridViewTextBoxColumn { Name = "Estado", HeaderText = "Estado", Width = 150, DataPropertyName = "EstadoTurno" });
             pnlGrid.Controls.Add(gridTurnosDia);
 
+            graficoTurnos = new GraficoBarras { Dock = DockStyle.Right, Width = 340, Titulo = "Citas del día por estado" };
+
             tab.Controls.Add(pnlGrid);
+            tab.Controls.Add(graficoTurnos);
             tab.Controls.Add(lblStatsTurnos);
             tab.Controls.Add(pnlBar);
             return tab;
@@ -209,7 +212,10 @@ namespace WindowsForms
             gridFacturacion.Columns.Add(new DataGridViewTextBoxColumn { Name = "Cobrado", HeaderText = "Cobrado Paciente", Width = 140, DataPropertyName = "MontoAPagarPaciente" });
             pnlGrid.Controls.Add(gridFacturacion);
 
+            graficoFacturacion = new GraficoBarras { Dock = DockStyle.Right, Width = 360, Titulo = "Facturación del período" };
+
             tab.Controls.Add(pnlGrid);
+            tab.Controls.Add(graficoFacturacion);
             tab.Controls.Add(lblFacResumen);
             tab.Controls.Add(pnlBar);
             return tab;
@@ -308,9 +314,20 @@ namespace WindowsForms
                 {
                     lblStatsTurnos.Text = $"📊 Total: {rep.TotalTurnos} | Pendientes: {rep.TurnosPendientes} | En Sala: {rep.TurnosPresentes} | Atendidos: {rep.TurnosAtendidos} | Ausencias: {rep.TurnosAusentes} | Cancelados: {rep.TurnosCancelados}";
                     gridTurnosDia.DataSource = rep.DetalleTurnos;
+                    graficoTurnos.SetDatos(new[]
+                    {
+                        ("Pendientes", (decimal)rep.TurnosPendientes, UITheme.Warning),
+                        ("En sala", (decimal)rep.TurnosPresentes, UITheme.Accent),
+                        ("Atendidos", (decimal)rep.TurnosAtendidos, UITheme.Success),
+                        ("Ausentes", (decimal)rep.TurnosAusentes, UITheme.Danger),
+                        ("Cancelados", (decimal)rep.TurnosCancelados, UITheme.Secondary)
+                    });
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblStatsTurnos.Text = $"No se pudo cargar el reporte de citas: {ex.Message}";
+            }
         }
 
         private async Task CargarReporteAusentismo()
@@ -333,7 +350,10 @@ Período Evaluado: {rep.FechaDesde:dd/MM/yyyy} al {rep.FechaHasta:dd/MM/yyyy}
 • Saldo Pendiente de Cobro por Multas: {(rep.TotalMultasGeneradas - rep.TotalMultasCobradas):C2}";
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblAusResumen.Text = $"No se pudo calcular el ausentismo: {ex.Message}";
+            }
         }
 
         private async Task CargarReporteFacturacion()
@@ -345,9 +365,18 @@ Período Evaluado: {rep.FechaDesde:dd/MM/yyyy} al {rep.FechaHasta:dd/MM/yyyy}
                 {
                     lblFacResumen.Text = $"📈 Total Facturado: {rep.TotalFacturado:C2} | Cobrado en Caja: {rep.TotalCobradoPacientes:C2} | Liquidación O.S.: {rep.TotalLiquidadoObrasSociales:C2} | Consultas: {rep.CantidadConsultasAtendidas}";
                     gridFacturacion.DataSource = rep.Facturas;
+                    graficoFacturacion.SetDatos(new[]
+                    {
+                        ("Facturado", rep.TotalFacturado, UITheme.Primary),
+                        ("Cobrado caja", rep.TotalCobradoPacientes, UITheme.Success),
+                        ("Liq. O.S.", rep.TotalLiquidadoObrasSociales, UITheme.Accent)
+                    }, "C0");
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblFacResumen.Text = $"No se pudo cargar la facturación: {ex.Message}";
+            }
         }
 
         private async Task CargarPacientesHC()
@@ -363,7 +392,10 @@ Período Evaluado: {rep.FechaDesde:dd/MM/yyyy} al {rep.FechaHasta:dd/MM/yyyy}
                     await CargarHistoriaClinicaPaciente();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblHCDetalle.Text = $"No se pudo cargar la lista de pacientes: {ex.Message}";
+            }
         }
 
         private async Task CargarHistoriaClinicaPaciente()
@@ -382,7 +414,10 @@ Período Evaluado: {rep.FechaDesde:dd/MM/yyyy} al {rep.FechaHasta:dd/MM/yyyy}
                     gridConsultasHC.DataSource = hc.ConsultasPrevias;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                lblHCDetalle.Text = $"No se pudo cargar la historia clínica: {ex.Message}";
+            }
         }
     }
 }

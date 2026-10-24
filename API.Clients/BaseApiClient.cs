@@ -6,7 +6,7 @@ namespace API.Clients
 {
     public abstract class BaseApiClient
     {
-        // ---------- MODO VIEJO (WindowsForms): HttpClient compartido + AuthServiceProvider ----------
+        // WindowsForms: HttpClient compartido + AuthServiceProvider (sesión única de escritorio)
         private static string _baseUrl = "http://localhost:5263";
         private static readonly HttpClient _sharedHttpClient = new();
         private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -29,16 +29,16 @@ namespace API.Clients
             _sharedHttpClient.BaseAddress = new Uri(_baseUrl);
         }
 
-        // ---------- MODO NUEVO (Blazor): un HttpClient y un IAuthService por usuario ----------
+        // BlazorUI: un HttpClient y un IAuthService por usuario, inyectados por DI
         private readonly HttpClient? _ownHttpClient;
         private readonly IAuthService? _ownAuthService;
 
-        // Constructor viejo: lo sigue usando WindowsForms (new AuthApiClient())
+        // Usado por WindowsForms (new AuthApiClient())
         protected BaseApiClient()
         {
         }
 
-        // Constructor nuevo: lo usa el contenedor de DI de Blazor
+        // Usado por el contenedor de DI de Blazor
         protected BaseApiClient(HttpClient httpClient, IAuthService authService)
         {
             _ownHttpClient = httpClient;
@@ -49,7 +49,7 @@ namespace API.Clients
 
         protected Task<HttpClient> GetConfiguredClientAsync()
         {
-            // Si vino por el constructor nuevo usa lo propio; si no, el comportamiento de siempre
+            // Blazor usa su cliente y sesión propios; WindowsForms, los compartidos
             var client = _ownHttpClient ?? _sharedHttpClient;
             var auth = _ownAuthService ?? (AuthServiceProvider.IsInitialized ? AuthServiceProvider.Current : null);
 
@@ -67,22 +67,50 @@ namespace API.Clients
             return Task.FromResult(client);
         }
 
-        protected async Task<T?> GetAsync<T>(string endpoint)
+        /// <summary>
+        /// Lanza una excepción si la respuesta no fue exitosa. Usa el campo "message" que devuelve
+        /// la API (ValidationExceptionHandler) para mostrar un mensaje legible al usuario.
+        /// </summary>
+        private static async Task VerificarRespuestaAsync(HttpResponseMessage response)
         {
-            var client = await GetConfiguredClientAsync();
-            var response = await client.GetAsync(endpoint);
-
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
                 OnUnauthorized?.Invoke();
                 throw new UnauthorizedAccessException("Sesión expirada o no autorizada.");
             }
 
-            if (!response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
+                return;
+
+            var cuerpo = await response.Content.ReadAsStringAsync();
+            string mensaje = response.StatusCode == System.Net.HttpStatusCode.Forbidden
+                ? "No tiene permisos para realizar esta acción."
+                : $"Error HTTP {(int)response.StatusCode}";
+
+            try
             {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Error HTTP {(int)response.StatusCode}: {error}");
+                using var doc = JsonDocument.Parse(cuerpo);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                    doc.RootElement.TryGetProperty("message", out var msg) &&
+                    msg.ValueKind == JsonValueKind.String)
+                {
+                    mensaje = msg.GetString()!;
+                }
             }
+            catch (JsonException)
+            {
+                if (!string.IsNullOrWhiteSpace(cuerpo)) mensaje += $": {cuerpo}";
+            }
+
+            throw new HttpRequestException(mensaje, null, response.StatusCode);
+        }
+
+        protected async Task<T?> GetAsync<T>(string endpoint)
+        {
+            var client = await GetConfiguredClientAsync();
+            var response = await client.GetAsync(endpoint);
+
+            await VerificarRespuestaAsync(response);
 
             return await response.Content.ReadFromJsonAsync<T>(_jsonOptions);
         }
@@ -92,17 +120,7 @@ namespace API.Clients
             var client = await GetConfiguredClientAsync();
             var response = await client.PostAsJsonAsync(endpoint, data, _jsonOptions);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                OnUnauthorized?.Invoke();
-                throw new UnauthorizedAccessException("Sesión expirada o no autorizada.");
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Error HTTP {(int)response.StatusCode}: {error}");
-            }
+            await VerificarRespuestaAsync(response);
 
             if (response.Content.Headers.ContentLength == 0)
                 return default;
@@ -115,19 +133,9 @@ namespace API.Clients
             var client = await GetConfiguredClientAsync();
             var response = await client.PostAsJsonAsync(endpoint, data, _jsonOptions);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                OnUnauthorized?.Invoke();
-                throw new UnauthorizedAccessException("Sesión expirada o no autorizada.");
-            }
+            await VerificarRespuestaAsync(response);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Error HTTP {(int)response.StatusCode}: {error}");
-            }
-
-            return response.IsSuccessStatusCode;
+            return true;
         }
 
         protected async Task<TResponse?> PutAsync<TRequest, TResponse>(string endpoint, TRequest data)
@@ -135,17 +143,7 @@ namespace API.Clients
             var client = await GetConfiguredClientAsync();
             var response = await client.PutAsJsonAsync(endpoint, data, _jsonOptions);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                OnUnauthorized?.Invoke();
-                throw new UnauthorizedAccessException("Sesión expirada o no autorizada.");
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Error HTTP {(int)response.StatusCode}: {error}");
-            }
+            await VerificarRespuestaAsync(response);
 
             return await response.Content.ReadFromJsonAsync<TResponse>(_jsonOptions);
         }
@@ -155,19 +153,9 @@ namespace API.Clients
             var client = await GetConfiguredClientAsync();
             var response = await client.DeleteAsync(endpoint);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                OnUnauthorized?.Invoke();
-                throw new UnauthorizedAccessException("Sesión expirada o no autorizada.");
-            }
+            await VerificarRespuestaAsync(response);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Error HTTP {(int)response.StatusCode}: {error}");
-            }
-
-            return response.IsSuccessStatusCode;
+            return true;
         }
     }
 }

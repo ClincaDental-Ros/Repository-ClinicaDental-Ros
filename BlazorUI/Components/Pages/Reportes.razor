@@ -46,10 +46,26 @@
                 <button class="btn btn-theme-primary" @onclick="CargarReporteTurnos">🔄 Consultar</button>
             </div>
 
+            @if (!string.IsNullOrEmpty(errorTurnos))
+            {
+                <div class="alert alert-danger py-2 small">@errorTurnos</div>
+            }
+
             @if (reporteTurnos != null)
             {
                 <div class="p-3 rounded mb-3 text-white fw-bold" style="background-color: var(--color-primary);">
                     📊 Total: @reporteTurnos.TotalTurnos | Pendientes: @reporteTurnos.TurnosPendientes | En Sala: @reporteTurnos.TurnosPresentes | Atendidos: @reporteTurnos.TurnosAtendidos | Ausencias: @reporteTurnos.TurnosAusentes | Cancelados: @reporteTurnos.TurnosCancelados
+                </div>
+
+                <div class="mb-3" style="max-width: 560px;">
+                    <GraficoBarras Titulo="Citas del día por estado" Barras="@(new List<GraficoBarras.Barra>
+                    {
+                        new("Pendientes", reporteTurnos.TurnosPendientes, "var(--color-warning)"),
+                        new("En sala", reporteTurnos.TurnosPresentes, "var(--color-accent)"),
+                        new("Atendidos", reporteTurnos.TurnosAtendidos, "var(--color-success)"),
+                        new("Ausentes", reporteTurnos.TurnosAusentes, "var(--color-danger)"),
+                        new("Cancelados", reporteTurnos.TurnosCancelados, "var(--color-secondary)")
+                    })" />
                 </div>
 
                 <div class="table-responsive bg-white rounded shadow-sm border">
@@ -92,6 +108,11 @@
                 <input type="date" class="form-control" style="width: 170px;" @bind="ausHasta" />
                 <button class="btn btn-theme-primary" @onclick="CargarReporteAusentismo">📊 Calcular Métricas</button>
             </div>
+
+            @if (!string.IsNullOrEmpty(errorAusentismo))
+            {
+                <div class="alert alert-danger py-2 small">@errorAusentismo</div>
+            }
 
             @if (reporteAusentismo != null)
             {
@@ -144,10 +165,24 @@
                 <button class="btn btn-theme-primary" @onclick="CargarReporteFacturacion">📈 Liquidar Período</button>
             </div>
 
+            @if (!string.IsNullOrEmpty(errorFacturacion))
+            {
+                <div class="alert alert-danger py-2 small">@errorFacturacion</div>
+            }
+
             @if (reporteFacturacion != null)
             {
                 <div class="p-3 rounded mb-3 text-white fw-bold" style="background-color: var(--color-primary);">
                     📈 Total Facturado: @reporteFacturacion.TotalFacturado.ToString("C2") | Cobrado en Caja: @reporteFacturacion.TotalCobradoPacientes.ToString("C2") | Liquidación O.S.: @reporteFacturacion.TotalLiquidadoObrasSociales.ToString("C2") | Consultas: @reporteFacturacion.CantidadConsultasAtendidas
+                </div>
+
+                <div class="mb-3" style="max-width: 560px;">
+                    <GraficoBarras Titulo="Facturación del período" Formato="C0" Barras="@(new List<GraficoBarras.Barra>
+                    {
+                        new("Facturado", reporteFacturacion.TotalFacturado, "var(--color-primary)"),
+                        new("Cobrado caja", reporteFacturacion.TotalCobradoPacientes, "var(--color-success)"),
+                        new("Liq. O.S.", reporteFacturacion.TotalLiquidadoObrasSociales, "var(--color-accent)")
+                    })" />
                 </div>
 
                 <div class="table-responsive bg-white rounded shadow-sm border">
@@ -197,6 +232,11 @@
                 </select>
                 <button class="btn btn-theme-primary" @onclick="CargarHistoriaClinicaPaciente">🔍 Ver Ficha</button>
             </div>
+
+            @if (!string.IsNullOrEmpty(errorHistoria))
+            {
+                <div class="alert alert-danger py-2 small">@errorHistoria</div>
+            }
 
             @if (historiaClinica != null)
             {
@@ -253,6 +293,10 @@
     // Tab 0
     private DateTime fechaTurnosDia = DateTime.Today;
     private ReporteTurnosDiaDTO? reporteTurnos;
+    private string errorTurnos = "";
+    private string errorAusentismo = "";
+    private string errorFacturacion = "";
+    private string errorHistoria = "";
 
     // Tab 1
     private DateTime ausDesde = DateTime.Today.AddDays(-30);
@@ -279,17 +323,23 @@
 
     private async Task CargarReporteTurnos()
     {
-        try { reporteTurnos = await ReportesClient.GetTurnosDiaAsync(fechaTurnosDia.Date); } catch { }
+        errorTurnos = "";
+        try { reporteTurnos = await ReportesClient.GetTurnosDiaAsync(fechaTurnosDia.Date); }
+        catch (Exception ex) { errorTurnos = $"No se pudo cargar el reporte de citas: {ex.Message}"; }
     }
 
     private async Task CargarReporteAusentismo()
     {
-        try { reporteAusentismo = await ReportesClient.GetAusentismoAsync(ausDesde.Date, ausHasta.Date); } catch { }
+        errorAusentismo = "";
+        try { reporteAusentismo = await ReportesClient.GetAusentismoAsync(ausDesde.Date, ausHasta.Date); }
+        catch (Exception ex) { errorAusentismo = $"No se pudo calcular el ausentismo: {ex.Message}"; }
     }
 
     private async Task CargarReporteFacturacion()
     {
-        try { reporteFacturacion = await ReportesClient.GetFacturacionAsync(facDesde.Date, facHasta.Date); } catch { }
+        errorFacturacion = "";
+        try { reporteFacturacion = await ReportesClient.GetFacturacionAsync(facDesde.Date, facHasta.Date); }
+        catch (Exception ex) { errorFacturacion = $"No se pudo cargar la facturación: {ex.Message}"; }
     }
 
     private async Task CargarPacientesHC()
@@ -303,7 +353,7 @@
                 await CargarHistoriaClinicaPaciente();
             }
         }
-        catch { }
+        catch (Exception ex) { errorHistoria = $"No se pudo cargar la lista de pacientes: {ex.Message}"; }
     }
 
     private async Task OnPacienteHCChanged(ChangeEventArgs e)
@@ -318,6 +368,8 @@
     private async Task CargarHistoriaClinicaPaciente()
     {
         if (selectedPacienteHCId <= 0) return;
-        try { historiaClinica = await ReportesClient.GetHistoriaClinicaAsync(selectedPacienteHCId); } catch { }
+        errorHistoria = "";
+        try { historiaClinica = await ReportesClient.GetHistoriaClinicaAsync(selectedPacienteHCId); }
+        catch (Exception ex) { errorHistoria = $"No se pudo cargar la historia clínica: {ex.Message}"; }
     }
 }

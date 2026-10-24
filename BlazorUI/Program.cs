@@ -4,12 +4,11 @@ using BlazorUI.Components;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.AspNetCore.Authorization.Policy;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configuración de Blazor
+// 1. ConfiguraciÃ³n de Blazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -25,7 +24,7 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredServ
 builder.Services.AddScoped<BlazorAuthService>();
 builder.Services.AddScoped<IAuthService>(sp => sp.GetRequiredService<BlazorAuthService>());
 
-// 4. Configuración de la API Base URL
+// 4. ConfiguraciÃ³n de la API Base URL
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5263";
 BaseApiClient.BaseUrl = apiBaseUrl;
 
