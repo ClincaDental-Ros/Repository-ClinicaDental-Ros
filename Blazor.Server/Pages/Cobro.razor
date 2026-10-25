@@ -95,11 +95,11 @@
                                 <td>
                                     @if (f.EstadoPago)
                                     {
-                                        <span class="badge bg-success-subtle text-success fw-bold border border-success"><i class="bi bi-check-circle"></i> PAGADO</span>
+                                        <span class="estado-badge estado-atendido">Pagado</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border border-warning"><i class="bi bi-hourglass-split"></i> PENDIENTE</span>
+                                        <span class="estado-badge estado-pendiente">Pendiente</span>
                                     }
                                 </td>
                                 <td><small class="text-muted">@(f.MetodoPago ?? "-")</small></td>
@@ -108,6 +108,71 @@
                     }
                 </tbody>
             </table>
+        </div>
+
+        <!-- DETALLE (maestro/detalle): ítems de la factura seleccionada -->
+        <div class="panel p-3 mt-3">
+            <h6 class="fw-bold mb-3" style="color: var(--color-primary);">
+                <i class="bi bi-list-ul"></i>
+                @if (seleccionado == null)
+                {
+                    <span>Detalle de la factura</span>
+                }
+                else
+                {
+                    <span>Detalle de la factura #@seleccionado.Id · @seleccionado.PacienteNombre</span>
+                }
+            </h6>
+            @if (seleccionado == null)
+            {
+                <div class="text-muted small">Seleccioná una factura de la lista para ver sus ítems.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 table-theme">
+                        <thead>
+                            <tr>
+                                <th>Concepto / Insumo</th>
+                                <th class="text-end">Cantidad</th>
+                                <th class="text-end">Precio unitario</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Honorarios profesionales@(string.IsNullOrWhiteSpace(seleccionado.Descripcion) ? "" : $" ({seleccionado.Descripcion})")</td>
+                                <td class="text-end">1</td>
+                                <td class="text-end">@seleccionado.Honorarios.ToString("C2")</td>
+                                <td class="text-end">@seleccionado.Honorarios.ToString("C2")</td>
+                            </tr>
+                            @foreach (var item in seleccionado.Items)
+                            {
+                                <tr>
+                                    <td>@item.InsumoNombre</td>
+                                    <td class="text-end">@item.CantidadInsumo</td>
+                                    <td class="text-end">@item.PrecioUnitario.ToString("C2")</td>
+                                    <td class="text-end">@item.Subtotal.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Subtotal</th>
+                                <th class="text-end">@seleccionado.Subtotal.ToString("C2")</th>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end text-success">Descuento obra social</td>
+                                <td class="text-end text-success">-@seleccionado.DescuentoObraSocial.ToString("C2")</td>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="text-end">A pagar por el paciente</th>
+                                <th class="text-end">@seleccionado.MontoAPagarPaciente.ToString("C2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
         </div>
 
         <div class="bg-white p-2 mt-2 border rounded text-muted small">

@@ -11,7 +11,16 @@
             <div class="modal-content shadow-lg border-0">
 
                 <div class="modal-header btn-theme-primary text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-calendar-event"></i> Agendamiento de Turno Odontológico</h5>
+                    <h5 class="modal-title fw-bold">
+                        @if (EsEdicion)
+                        {
+                            <span><i class="bi bi-pencil-square"></i> Modificar / Reprogramar Turno #@TurnoAEditar!.Id</span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-calendar-event"></i> Agendamiento de Turno Odontológico</span>
+                        }
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="Cerrar"></button>
                 </div>
 
@@ -34,7 +43,7 @@
                             }
                             else
                             {
-                                <select class="form-select" value="@selectedPacienteId" @onchange="OnPacienteChanged" disabled="@(PacienteFijoId.HasValue)">
+                                <select class="form-select" value="@selectedPacienteId" @onchange="OnPacienteChanged" disabled="@(PacienteFijoId.HasValue || EsEdicion)">
                                     <option value="0">-- Seleccione un paciente --</option>
                                     @foreach (var p in pacientes)
                                     {
@@ -122,7 +131,7 @@
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-theme-secondary" @onclick="Cerrar" disabled="@isSaving">Cancelar</button>
                     <button type="button" class="btn btn-theme-primary" @onclick="ReservarTurno" disabled="@(!pacienteHabilitado || isSaving)">
-                        @(isSaving ? "Agendando..." : "Confirmar Reserva")
+                        @(EsEdicion ? (isSaving ? "Guardando..." : "Guardar Cambios") : (isSaving ? "Agendando..." : "Confirmar Reserva"))
                     </button>
                 </div>
             </div>
@@ -136,6 +145,12 @@
     [Parameter] public EventCallback<TurnoOdontologicoDTO> OnReserved { get; set; }
     /// <summary>Si se informa (portal del paciente), el turno solo puede reservarse para ese paciente.</summary>
     [Parameter] public int? PacienteFijoId { get; set; }
+    /// <summary>Si se informa, el modal modifica (reprograma) ese turno en lugar de crear uno nuevo.</summary>
+    [Parameter] public TurnoOdontologicoDTO? TurnoAEditar { get; set; }
+    [Parameter] public EventCallback<TurnoOdontologicoDTO> OnUpdated { get; set; }
+
+    private bool EsEdicion => TurnoAEditar != null;
+    private int? turnoCargadoId;
 
     private List<PacienteDTO> pacientes = new();
     private List<EspecialidadDTO> especialidades = new();
@@ -164,9 +179,57 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        if (EsEdicion)
+        {
+            if (Show && turnoCargadoId != TurnoAEditar!.Id)
+            {
+                turnoCargadoId = TurnoAEditar.Id;
+                await CargarDatosDelTurno(TurnoAEditar);
+            }
+            else if (!Show)
+            {
+                turnoCargadoId = null;
+            }
+            return;
+        }
+
         if (Show && pacientes.Count == 0)
         {
             await CargarDatosIniciales();
+        }
+    }
+
+    private async Task CargarDatosDelTurno(TurnoOdontologicoDTO t)
+    {
+        isLoadingData = true;
+        errorMessage = "";
+        try
+        {
+            // Al modificar un turno el paciente no cambia
+            var paciente = await PacienteClient.GetByIdAsync(t.PacienteId);
+            pacientes = paciente != null ? new List<PacienteDTO> { paciente } : new();
+            selectedPacienteId = t.PacienteId;
+
+            if (especialidades.Count == 0) especialidades = await EspecialidadClient.GetAllAsync();
+            if (odontologos.Count == 0) odontologos = await OdontologoClient.GetAllAsync();
+
+            selectedEspecialidadId = t.EspecialidadId;
+            FiltrarOdontologos();
+            selectedOdontologoId = t.OdontologoId;
+            fechaCita = t.Fecha.Date < DateTime.Today ? DateTime.Today : t.Fecha.Date;
+            horarioSeleccionado = t.HorarioTurno.ToString("HH:mm");
+            if (!horariosDisponibles.Contains(horarioSeleccionado)) horariosDisponibles.Add(horarioSeleccionado);
+
+            pacienteHabilitado = true;
+            estadoPacienteTexto = $"Turno {t.EstadoTurno} del {t.Fecha:dd/MM/yyyy} a las {horarioSeleccionado} hs";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error cargando datos: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingData = false;
         }
     }
 
@@ -315,6 +378,27 @@
 
         try
         {
+            if (EsEdicion)
+            {
+                var t = TurnoAEditar!;
+                var cambios = new TurnoOdontologicoDTO
+                {
+                    Id = t.Id,
+                    PacienteId = t.PacienteId,
+                    OdontologoId = selectedOdontologoId,
+                    EspecialidadId = selectedEspecialidadId > 0 ? selectedEspecialidadId : t.EspecialidadId,
+                    Fecha = fechaCita.Date,
+                    HorarioTurno = horario,
+                    EstadoTurno = t.EstadoTurno,
+                    MotivoCancelacion = t.MotivoCancelacion,
+                    MontoEstimado = t.MontoEstimado
+                };
+
+                await TurnoClient.UpdateAsync(cambios);
+                await OnUpdated.InvokeAsync(cambios);
+                return;
+            }
+
             var dto = new TurnoOdontologicoDTO
             {
                 PacienteId = selectedPacienteId,

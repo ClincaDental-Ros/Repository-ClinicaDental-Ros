@@ -73,6 +73,9 @@
                 <button class="btn btn-theme-success" @onclick="() => showReservaModal = true">
                     <i class="bi bi-calendar-event"></i> Agendar Turno
                 </button>
+                <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">
+                    <i class="bi bi-pencil-square"></i> Modificar
+                </button>
                 <button class="btn btn-theme-danger" @onclick="SolicitarCancelarTurno" disabled="@(seleccionado == null)">
                     <i class="bi bi-x-circle"></i> Cancelar Turno
                 </button>
@@ -148,6 +151,12 @@
                    OnClosed="() => showReservaModal = false"
                    OnReserved="HandleTurnoReservado" />
 
+<!-- MODAL DE MODIFICACIÓN / REPROGRAMACIÓN -->
+<TurnoReservaModal Show="showModificarModal"
+                   TurnoAEditar="turnoAEditar"
+                   OnClosed="() => showModificarModal = false"
+                   OnUpdated="HandleTurnoModificado" />
+
 <!-- MODAL COMPROBANTE TICKET DIGITAL -->
 <TurnoTicketModal Show="showTicketModal"
                   Turno="turnoCreadoTicket"
@@ -195,6 +204,8 @@
 
     // Modales
     private bool showReservaModal = false;
+    private bool showModificarModal = false;
+    private TurnoOdontologicoDTO? turnoAEditar;
     private bool showTicketModal = false;
     private TurnoOdontologicoDTO? turnoCreadoTicket;
 
@@ -257,6 +268,28 @@
         {
             isLoading = false;
         }
+    }
+
+    private void ModificarSeleccionado()
+    {
+        if (seleccionado == null) return;
+
+        if (seleccionado.EstadoTurno != "Pendiente")
+        {
+            alertMessage = $"Solo se pueden modificar turnos pendientes. Este turno está {seleccionado.EstadoTurno}.";
+            showAlertModal = true;
+            return;
+        }
+
+        turnoAEditar = seleccionado;
+        showModificarModal = true;
+    }
+
+    private async Task HandleTurnoModificado(TurnoOdontologicoDTO modificado)
+    {
+        showModificarModal = false;
+        await CargarTurnos();
+        lblEstado = $"Turno #{modificado.Id} reprogramado para el {modificado.Fecha:dd/MM/yyyy} a las {modificado.HorarioTurno:HH:mm} hs.";
     }
 
     private async Task HandleTurnoReservado(TurnoOdontologicoDTO creado)

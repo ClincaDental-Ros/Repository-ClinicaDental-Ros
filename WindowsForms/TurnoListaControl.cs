@@ -30,11 +30,15 @@ namespace WindowsForms
         private List<OdontologoDTO> _odontologos = new();
         private List<EspecialidadDTO> _especialidades = new();
         private readonly int? _pacienteFijoId;
+        private readonly TurnoOdontologicoDTO? _turnoAEditar;
+        private bool EsEdicion => _turnoAEditar != null;
 
         /// <param name="pacienteFijoId">Si se indica (portal del paciente), solo se puede reservar para ese paciente.</param>
-        public TurnoReservaForm(int? pacienteFijoId = null)
+        /// <param name="turnoAEditar">Si se indica, el formulario modifica (reprograma) ese turno en lugar de crear uno nuevo.</param>
+        public TurnoReservaForm(int? pacienteFijoId = null, TurnoOdontologicoDTO? turnoAEditar = null)
         {
             _pacienteFijoId = pacienteFijoId;
+            _turnoAEditar = turnoAEditar;
             InitializeComponent();
             BuildUI();
             this.Load += OnFormLoad;
@@ -50,7 +54,7 @@ namespace WindowsForms
 
         private void BuildUI()
         {
-            this.Text = "Agendar Turno Odontológico - Clínica Dental";
+            this.Text = EsEdicion ? "Modificar Turno Odontológico - Clínica Dental" : "Agendar Turno Odontológico - Clínica Dental";
             this.Size = new Size(620, 680);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -65,7 +69,7 @@ namespace WindowsForms
 
             var lblHeader = new Label
             {
-                Text = "📅 Agendamiento de Turno Odontológico",
+                Text = EsEdicion ? $"✏️ Modificar / Reprogramar Turno #{_turnoAEditar!.Id}" : "📅 Agendamiento de Turno Odontológico",
                 Font = UITheme.LargeTitleFont,
                 ForeColor = UITheme.Primary,
                 Location = new Point(x, y),
@@ -161,7 +165,7 @@ namespace WindowsForms
             y += 40;
 
             var pnlActions = new Panel { Location = new Point(x + labelWidth, y), Size = new Size(inputWidth, 45) };
-            btnReservar = new Button { Text = "✅ Confirmar Reserva", Location = new Point(0, 0), Size = new Size(190, 40) };
+            btnReservar = new Button { Text = EsEdicion ? "💾 Guardar Cambios" : "✅ Confirmar Reserva", Location = new Point(0, 0), Size = new Size(190, 40) };
             UITheme.StylePrimaryButton(btnReservar);
             btnReservar.Click += BtnReservar_Click;
 
@@ -193,9 +197,10 @@ namespace WindowsForms
         {
             try
             {
-                if (_pacienteFijoId.HasValue)
+                if (_pacienteFijoId.HasValue || EsEdicion)
                 {
-                    var propio = await _pacienteClient.GetByIdAsync(_pacienteFijoId.Value);
+                    // Al modificar un turno el paciente no cambia
+                    var propio = await _pacienteClient.GetByIdAsync(_turnoAEditar?.PacienteId ?? _pacienteFijoId!.Value);
                     _pacientes = propio != null ? new List<PacienteDTO> { propio } : new List<PacienteDTO>();
                     cbPaciente.Enabled = false;
                 }
@@ -213,6 +218,13 @@ namespace WindowsForms
                 cbEspecialidad.ValueMember = "Id";
 
                 _odontologos = await _odontologoClient.GetAllAsync();
+
+                if (EsEdicion)
+                {
+                    CargarDatosDelTurno(_turnoAEditar!);
+                    return;
+                }
+
                 FiltrarOdontologosPorEspecialidad();
 
                 await ValidarPacienteSeleccionado();
@@ -221,6 +233,21 @@ namespace WindowsForms
             {
                 lblError.Text = $"Error cargando datos: {ex.Message}";
             }
+        }
+
+        private void CargarDatosDelTurno(TurnoOdontologicoDTO t)
+        {
+            cbEspecialidad.SelectedValue = t.EspecialidadId;
+            FiltrarOdontologosPorEspecialidad();
+            cbOdontologo.SelectedValue = t.OdontologoId;
+            dtpFecha.Value = t.Fecha.Date < DateTime.Today ? DateTime.Today : t.Fecha.Date;
+
+            var hora = t.HorarioTurno.ToString("HH:mm");
+            if (!cbHorario.Items.Contains(hora)) cbHorario.Items.Add(hora);
+            cbHorario.SelectedItem = hora;
+
+            lblEstadoPaciente.Text = $"Turno {t.EstadoTurno} del {t.Fecha:dd/MM/yyyy} a las {hora} hs";
+            lblEstadoPaciente.ForeColor = UITheme.TextSecondary;
         }
 
         private void FiltrarOdontologosPorEspecialidad()
@@ -240,6 +267,8 @@ namespace WindowsForms
 
         private async Task ValidarPacienteSeleccionado()
         {
+            // Al modificar no se crea un turno nuevo, así que no se revalida al paciente
+            if (EsEdicion) return;
             if (cbPaciente.SelectedItem is not PacienteDTO p) return;
 
             lblError.Text = "";
@@ -307,6 +336,29 @@ namespace WindowsForms
 
             try
             {
+                if (EsEdicion)
+                {
+                    var t = _turnoAEditar!;
+                    var cambios = new TurnoOdontologicoDTO
+                    {
+                        Id = t.Id,
+                        PacienteId = t.PacienteId,
+                        OdontologoId = odontologoId,
+                        EspecialidadId = especialidadId,
+                        Fecha = dtpFecha.Value.Date,
+                        HorarioTurno = horario,
+                        EstadoTurno = t.EstadoTurno,
+                        MotivoCancelacion = t.MotivoCancelacion,
+                        MontoEstimado = t.MontoEstimado
+                    };
+
+                    await _turnoClient.UpdateAsync(cambios);
+                    MessageBox.Show($"Turno #{t.Id} reprogramado para el {cambios.Fecha:dd/MM/yyyy} a las {horarioStr} hs.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.DialogResult = DialogResult.OK;
+                    this.Close();
+                    return;
+                }
+
                 var dto = new TurnoOdontologicoDTO
                 {
                     PacienteId = pacienteId,
@@ -399,6 +451,7 @@ namespace WindowsForms
         private Button btnBuscar = null!;
         private Button btnReservar = null!;
         private Button btnCancelarTurno = null!;
+        private Button btnModificarTurno = null!;
         private DataGridView gridTurnos = null!;
         private Label lblEstado = null!;
         private FlowLayoutPanel pnlStats = null!;
@@ -498,7 +551,11 @@ namespace WindowsForms
             UITheme.StyleSuccessButton(btnReservar);
             btnReservar.Click += (s, e) => AbrirReserva();
 
-            btnCancelarTurno = new Button { Text = "❌ Cancelar Turno", Location = new Point(1070, 13), Size = new Size(140, 36) };
+            btnModificarTurno = new Button { Text = "✏️ Modificar", Location = new Point(1070, 13), Size = new Size(120, 36) };
+            UITheme.StyleSecondaryButton(btnModificarTurno);
+            btnModificarTurno.Click += (s, e) => ModificarTurnoSeleccionado();
+
+            btnCancelarTurno = new Button { Text = "❌ Cancelar Turno", Location = new Point(1200, 13), Size = new Size(140, 36) };
             UITheme.StyleDangerButton(btnCancelarTurno);
             btnCancelarTurno.Click += BtnCancelarTurno_Click;
 
@@ -510,6 +567,7 @@ namespace WindowsForms
             pnlFilters.Controls.Add(cbFiltroOdontologo);
             pnlFilters.Controls.Add(btnBuscar);
             pnlFilters.Controls.Add(btnReservar);
+            pnlFilters.Controls.Add(btnModificarTurno);
             pnlFilters.Controls.Add(btnCancelarTurno);
 
             var pnlGrid = new Panel
@@ -702,6 +760,24 @@ namespace WindowsForms
         private void AbrirReserva()
         {
             var form = new TurnoReservaForm();
+            if (form.ShowDialog(FindForm()) == DialogResult.OK)
+            {
+                _ = CargarTurnos();
+            }
+        }
+
+        private void ModificarTurnoSeleccionado()
+        {
+            if (gridTurnos.SelectedRows.Count == 0) return;
+
+            var turno = (TurnoOdontologicoDTO)gridTurnos.SelectedRows[0].DataBoundItem;
+            if (turno.EstadoTurno != "Pendiente")
+            {
+                MessageBox.Show($"Solo se pueden modificar turnos pendientes. Este turno está {turno.EstadoTurno}.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var form = new TurnoReservaForm(turnoAEditar: turno);
             if (form.ShowDialog(FindForm()) == DialogResult.OK)
             {
                 _ = CargarTurnos();
