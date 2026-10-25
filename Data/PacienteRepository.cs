@@ -39,7 +39,7 @@ namespace Data
                     var sql = @"
                         SELECT p.Id, p.Nombre, p.Apellido, p.Dni, p.Telefono, p.Mail, p.Domicilio, 
                                p.EstadoHabilitado, p.ObraSocialId, p.NumeroAfiliado,
-                               o.Nombre AS ObraSocialNombre, o.[Plan] AS ObraSocialPlan, o.PorcentajeCobertura
+                               o.Nombre AS ObraSocialNombre, o.Descripcion AS ObraSocialPlan, o.PorcentajeCobertura
                         FROM Pacientes p
                         LEFT JOIN ObrasSociales o ON p.ObraSocialId = o.Id
                         WHERE 1 = 1";
