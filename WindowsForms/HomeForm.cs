@@ -9,10 +9,6 @@ namespace WindowsForms
     {
         private readonly WindowsFormsAuthService _authService;
         private MenuStrip menuMain = null!;
-        private StatusStrip statusStrip = null!;
-        private ToolStripStatusLabel lblStatusUsuario = null!;
-        private ToolStripStatusLabel lblStatusApi = null!;
-        private ToolStripStatusLabel lblStatusVentanas = null!;
 
         public HomeForm(WindowsFormsAuthService authService)
         {
@@ -21,7 +17,6 @@ namespace WindowsForms
             if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
             {
                 BuildUI();
-                this.Shown += OnFormShown;
             }
         }
 
@@ -54,10 +49,8 @@ namespace WindowsForms
             }
 
             BuildMenuStrip();
-            BuildStatusStrip();
 
             this.MainMenuStrip = menuMain;
-            this.Controls.Add(statusStrip);
             this.Controls.Add(menuMain);
         }
 
@@ -81,7 +74,7 @@ namespace WindowsForms
             var itemEspecialidades = new ToolStripMenuItem("🏷️ Especialidades", null, (s, e) => AbrirModuloMdi("🏷️ Especialidades", () => new EspecialidadListaControl()));
             var itemInsumos = new ToolStripMenuItem("📦 Insumos y Stock", null, (s, e) => AbrirModuloMdi("📦 Insumos y Stock", () => new InsumoListaControl()));
 
-            var itemConfig = new ToolStripMenuItem("⚙️ Configuración de Perfil", null, (s, e) => AbrirModuloMdi("⚙️ Configuración", () => new ConfiguracionControl(_authService, ActualizarStatusStrip)));
+            var itemConfig = new ToolStripMenuItem("⚙️ Configuración de Perfil", null, (s, e) => AbrirModuloMdi("⚙️ Configuración", () => new ConfiguracionControl(_authService)));
             var itemLogout = new ToolStripMenuItem("🚪 Cerrar Sesión", null, (s, e) => CerrarSesion());
             var itemSalir = new ToolStripMenuItem("❌ Salir", null, (s, e) => Application.Exit());
 
@@ -128,21 +121,6 @@ namespace WindowsForms
             menuPortal.DropDownItems.Add(itemPortalHistoria);
             menuPortal.DropDownItems.Add(itemPortalPagos);
 
-            // 6. Menú Ventanas (Organización MDI)
-            var menuVentanas = new ToolStripMenuItem("🪟 Ventanas") { ForeColor = Color.White };
-            var itemCascada = new ToolStripMenuItem("📐 Organizar en Cascada", null, (s, e) => this.LayoutMdi(MdiLayout.Cascade));
-            var itemTileHoriz = new ToolStripMenuItem("📑 Mosaico Horizontal", null, (s, e) => this.LayoutMdi(MdiLayout.TileHorizontal));
-            var itemTileVert = new ToolStripMenuItem("📄 Mosaico Vertical", null, (s, e) => this.LayoutMdi(MdiLayout.TileVertical));
-            var itemOrganizar = new ToolStripMenuItem("🗃️ Organizar Iconos", null, (s, e) => this.LayoutMdi(MdiLayout.ArrangeIcons));
-            var itemCerrarTodas = new ToolStripMenuItem("🗑️ Cerrar Todas las Ventanas", null, (s, e) => CerrarTodasLasVentanas());
-
-            menuVentanas.DropDownItems.Add(itemCascada);
-            menuVentanas.DropDownItems.Add(itemTileHoriz);
-            menuVentanas.DropDownItems.Add(itemTileVert);
-            menuVentanas.DropDownItems.Add(itemOrganizar);
-            menuVentanas.DropDownItems.Add(new ToolStripSeparator());
-            menuVentanas.DropDownItems.Add(itemCerrarTodas);
-
             // Aplicar visibilidad y permisos según Rol
             if (rol == "Paciente")
             {
@@ -174,83 +152,12 @@ namespace WindowsForms
             {
                 menuMain.Items.Add(menuPortal);
             }
-            menuMain.Items.Add(menuVentanas);
 
             // Estilar elementos desplegables con colores agradables
             foreach (ToolStripMenuItem item in menuMain.Items)
             {
                 item.DisplayStyle = ToolStripItemDisplayStyle.Text;
             }
-        }
-
-        private void BuildStatusStrip()
-        {
-            statusStrip = new StatusStrip
-            {
-                BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.White,
-                Font = UITheme.SmallFont
-            };
-
-            lblStatusUsuario = new ToolStripStatusLabel
-            {
-                ForeColor = Color.White,
-                Font = UITheme.RegularBold
-            };
-
-            lblStatusApi = new ToolStripStatusLabel
-            {
-                Text = $"🟢 Conectado a API ({BaseApiClient.BaseUrl})",
-                ForeColor = Color.FromArgb(52, 211, 153),
-                Margin = new Padding(20, 0, 0, 0)
-            };
-
-            lblStatusVentanas = new ToolStripStatusLabel
-            {
-                Text = "🪟 Ventanas abiertas: 0",
-                ForeColor = Color.FromArgb(148, 163, 184),
-                Spring = true,
-                TextAlign = ContentAlignment.MiddleRight
-            };
-
-            statusStrip.Items.Add(lblStatusUsuario);
-            statusStrip.Items.Add(lblStatusApi);
-            statusStrip.Items.Add(lblStatusVentanas);
-
-            ActualizarStatusStrip();
-        }
-
-        private void ActualizarStatusStrip()
-        {
-            var nombre = _authService.GetNombreCompleto() ?? _authService.GetUsername() ?? "Usuario";
-            var rol = _authService.GetRol() ?? "Admin";
-            lblStatusUsuario.Text = $"👤 Sesión: {nombre} [{rol.ToUpper()}]";
-            lblStatusVentanas.Text = $"🪟 Ventanas abiertas: {this.MdiChildren.Length}";
-        }
-
-        private void OnFormShown(object? sender, EventArgs e)
-        {
-            // Abrir automáticamente el módulo por defecto según el rol en ventana MDI
-            var rol = _authService.GetRol();
-            if (rol == "Paciente")
-            {
-                AbrirPortalPacienteTab(0);
-            }
-            else if (rol == "Odontologo")
-            {
-                AbrirModuloMdi("💉 Consola Médica", () => new AtencionClinicaControl());
-            }
-            else if (rol == "Recepcionista")
-            {
-                AbrirModuloMdi("🛎️ Recepción / Admisión", () => new AdmisionControl());
-            }
-            else // Admin
-            {
-                AbrirModuloMdi("📅 Gestión de Turnos", () => new TurnoListaControl());
-                AbrirModuloMdi("👥 Gestión de Pacientes", () => new PacienteListaControl());
-                this.LayoutMdi(MdiLayout.TileVertical);
-            }
-            ActualizarStatusStrip();
         }
 
         public void AbrirModuloMdi<T>(string titulo, Func<T> factory) where T : UserControl
@@ -291,15 +198,13 @@ namespace WindowsForms
             };
 
             var area = this.ClientSize;
-            int alturaBarras = menuMain.Height + statusStrip.Height;
+            int alturaBarras = menuMain.Height;
             mdiChild.Location = new Point(
                 Math.Max(0, (area.Width - mdiChild.Width) / 2),
                 Math.Max(0, (area.Height - alturaBarras - mdiChild.Height) / 2));
 
-            mdiChild.FormClosed += (s, e) => ActualizarStatusStrip();
             mdiChild.Controls.Add(control);
             mdiChild.Show();
-            ActualizarStatusStrip();
             return mdiChild;
         }
 
@@ -321,15 +226,6 @@ namespace WindowsForms
             var newPortal = new PacientePortalControl(_authService);
             MostrarVentanaMdi("🏠 Portal del Paciente", newPortal);
             newPortal.SeleccionarPestaña(tabIndex);
-        }
-
-        private void CerrarTodasLasVentanas()
-        {
-            foreach (Form child in this.MdiChildren)
-            {
-                child.Close();
-            }
-            ActualizarStatusStrip();
         }
 
         private void CerrarSesion()
