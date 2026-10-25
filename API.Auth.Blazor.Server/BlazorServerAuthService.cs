@@ -9,7 +9,9 @@ namespace API.Auth.Blazor.Server
     public class BlazorServerAuthService : IAuthService
     {
         private const string STORAGE_KEY = "DentalClinic_Session";
-        private readonly ProtectedLocalStorage _localStorage;
+        // Se guarda en sessionStorage: la sesión dura mientras la pestaña está abierta (sobrevive a F5),
+        // y al abrir el navegador de nuevo hay que iniciar sesión.
+        private readonly ProtectedSessionStorage _localStorage;
         private readonly CustomAuthStateProvider _authStateProvider;
 
         private string? _token;
@@ -23,7 +25,7 @@ namespace API.Auth.Blazor.Server
         public event Action<bool>? OnAuthenticationStateChanged;
 
         public BlazorServerAuthService(
-            ProtectedLocalStorage localStorage,
+            ProtectedSessionStorage localStorage,
             CustomAuthStateProvider authStateProvider)
         {
             _localStorage = localStorage;

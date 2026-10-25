@@ -1,5 +1,6 @@
 ﻿@page "/login"
 @attribute [AllowAnonymous]
+@layout LoginLayout
 
 @inject AuthApiClient AuthClient
 @inject BlazorServerAuthService AuthService
@@ -72,6 +73,15 @@
     private string lblError = "";
     private bool isSubmitting = false;
     private bool showPassword = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Entrar a la pantalla de login cierra la sesión anterior: hay que volver a identificarse.
+        if (firstRender && AuthService.IsAuthenticated())
+        {
+            await AuthService.ClearSessionAsync();
+        }
+    }
 
     private void ToggleShowPassword()
     {
