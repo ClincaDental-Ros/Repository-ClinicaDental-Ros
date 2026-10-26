@@ -3,10 +3,10 @@ using System.Text;
 
 namespace Application.Services
 {
-    /// <summary>
+
     /// Hash de contraseñas con HMACSHA256 y salt aleatorio.
     /// Formato almacenado: "salt_base64:hash_base64".
-    /// </summary>
+
     public static class PasswordHasher
     {
         public static string Hash(string password)

@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using API.Clients;
 using DTOs;
@@ -9,8 +9,8 @@ namespace API.Auth.Blazor.Server
     public class BlazorServerAuthService : IAuthService
     {
         private const string STORAGE_KEY = "DentalClinic_Session";
-        // Se guarda en sessionStorage: la sesión dura mientras la pestaña está abierta (sobrevive a F5),
-        // y al abrir el navegador de nuevo hay que iniciar sesión.
+        // Se guarda en sessionStorage: la sesión dura mientras la pestaña está abierta ,
+        // y al abrir el navegador de nuevo hay que iniciar sesión
         private readonly ProtectedSessionStorage _localStorage;
         private readonly CustomAuthStateProvider _authStateProvider;
 
@@ -46,9 +46,7 @@ namespace API.Auth.Blazor.Server
                     }
                     else
                     {
-                        // Al recargar la página (F5) se recupera la sesión guardada:
-                        // hay que avisarle al proveedor de autenticación para que las páginas con [Authorize] la reconozcan.
-                        _authStateProvider.NotifyUserAuthentication(this);
+                          _authStateProvider.NotifyUserAuthentication(this);
                     }
                 }
             }

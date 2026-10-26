@@ -44,10 +44,7 @@ namespace WindowsForms
             }
         }
 
-        /// <summary>
-        /// Lee ApiSettings:BaseUrl de appsettings.json (junto al ejecutable), igual que Blazor.Server.
-        /// Si el archivo no existe o no tiene la clave, usa la URL local por defecto.
-        /// </summary>
+
         private static string LeerUrlApi()
         {
             var ruta = Path.Combine(AppContext.BaseDirectory, "appsettings.json");

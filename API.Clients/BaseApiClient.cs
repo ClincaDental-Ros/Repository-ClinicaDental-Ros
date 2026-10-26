@@ -6,7 +6,7 @@ namespace API.Clients
 {
     public abstract class BaseApiClient
     {
-        // WindowsForms: HttpClient compartido + AuthServiceProvider (sesión única de escritorio)
+ 
         private static string _baseUrl = "http://localhost:5263";
         private static readonly HttpClient _sharedHttpClient = new();
         private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -29,11 +29,11 @@ namespace API.Clients
             _sharedHttpClient.BaseAddress = new Uri(_baseUrl);
         }
 
-        // Blazor.Server: un HttpClient y un IAuthService por usuario, inyectados por DI
+   
         private readonly HttpClient? _ownHttpClient;
         private readonly IAuthService? _ownAuthService;
 
-        // Usado por WindowsForms (new AuthApiClient())
+        // Usado por WindowsForms
         protected BaseApiClient()
         {
         }
@@ -67,10 +67,7 @@ namespace API.Clients
             return Task.FromResult(client);
         }
 
-        /// <summary>
-        /// Lanza una excepción si la respuesta no fue exitosa. Usa el campo "message" que devuelve
-        /// la API (ValidationExceptionHandler) para mostrar un mensaje legible al usuario.
-        /// </summary>
+ 
         private static async Task VerificarRespuestaAsync(HttpResponseMessage response)
         {
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)

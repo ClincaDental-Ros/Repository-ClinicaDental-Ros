@@ -63,10 +63,7 @@ namespace Application.Services
             return list.Select(MapToDTO).ToList();
         }
 
-        /// <summary>
-        /// Registra la atención: marca el turno como atendido, guarda la consulta, descuenta el stock
-        /// de los insumos usados y emite la factura. Todo en una sola transacción.
-        /// </summary>
+
         public async Task<ConsultaDTO> RegistrarConsultaAsync(ConsultaDTO dto)
         {
             var turno = await _turnoRepository.GetAsync(dto.TurnoId)

@@ -5,12 +5,12 @@ namespace API.Clients
 {
     public class AuthApiClient : BaseApiClient
     {
-        // Usado por WindowsForms (new AuthApiClient())
+        // Usado por WindowsForms 
         public AuthApiClient() : base()
         {
         }
 
-        // Usado por Blazor (inyección de dependencias)
+        // Usado por Blazor 
         public AuthApiClient(HttpClient httpClient, IAuthService authService)
             : base(httpClient, authService)
         {

@@ -33,18 +33,17 @@ namespace WindowsForms
                     byte[] bytes = File.ReadAllBytes(path);
                     using var ms = new MemoryStream(bytes);
                     using var original = new Bitmap(ms);
-                    // Copia independiente del stream: GDI+ necesita que el stream siga abierto mientras viva el Bitmap
+                    
                     return new Bitmap(original);
                 }
             }
             catch (Exception ex) when (ex is IOException or ArgumentException or UnauthorizedAccessException)
             {
-                // Archivo dañado o inaccesible: se muestran las iniciales en lugar de la foto
+              
             }
             return null;
         }
 
-        // Save y Delete propagan los errores para que la pantalla de perfil los informe
         public static void SaveAvatar(string username, Image image)
         {
             var path = GetAvatarPath(username);

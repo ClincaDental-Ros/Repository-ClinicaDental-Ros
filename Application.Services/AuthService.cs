@@ -54,7 +54,7 @@ namespace Application.Services
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = Encoding.ASCII.GetBytes(SecretKey);
 
-                // Validar el token (permitir expirado para refresh)
+                // Validar el token 
                 var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
