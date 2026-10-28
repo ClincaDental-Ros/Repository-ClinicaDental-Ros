@@ -43,7 +43,6 @@ namespace Data
                         FROM Pacientes p
                         LEFT JOIN ObrasSociales o ON p.ObraSocialId = o.Id
                         WHERE 1 = 1";
-
                     if (!string.IsNullOrWhiteSpace(criteria.Texto))
                     {
                         sql += @" AND (p.Nombre LIKE @SearchTerm 
