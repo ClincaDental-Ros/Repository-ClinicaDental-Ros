@@ -95,7 +95,7 @@
             return;
         }
 
-        if (!decimal.TryParse(precioTexto.Trim(), out var precio) || precio < 0)
+        if (!EntradaNumerica.TryParseImporte(precioTexto, out var precio) || precio < 0)
         {
             errorMessage = "El precio debe ser un número válido mayor o igual a 0.";
             return;

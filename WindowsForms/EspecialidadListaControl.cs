@@ -256,8 +256,16 @@ namespace WindowsForms
             var item = (EspecialidadDTO)gridEspecialidades.SelectedRows[0].DataBoundItem;
             if (MessageBox.Show($"¿Eliminar especialidad '{item.Nombre}'?", "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                await _apiClient.DeleteAsync(item.Id);
-                await CargarEspecialidades();
+                try
+                {
+                    await _apiClient.DeleteAsync(item.Id);
+                    await CargarEspecialidades();
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Por ejemplo, si otros datos todavía lo usan: se informa sin cerrar la aplicación.
+                    MessageBox.Show(FindForm(), $"No se pudo eliminar la especialidad.\n\n{ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
     }

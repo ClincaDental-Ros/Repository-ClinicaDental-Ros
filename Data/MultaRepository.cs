@@ -43,6 +43,17 @@ namespace Data
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Multa>> GetByRangoFechasAsync(DateTime fechaDesde, DateTime fechaHasta)
+        {
+            // El filtro por período se resuelve en SQL, no trayendo todas las multas a memoria.
+            var desde = fechaDesde.Date;
+            var hastaExclusivo = fechaHasta.Date.AddDays(1);
+            return await _context.Multas
+                .Where(m => m.FechaEmision >= desde && m.FechaEmision < hastaExclusivo)
+                .OrderByDescending(m => m.FechaEmision)
+                .ToListAsync();
+        }
+
         public async Task<Multa> AddAsync(Multa multa)
         {
             _context.Multas.Add(multa);

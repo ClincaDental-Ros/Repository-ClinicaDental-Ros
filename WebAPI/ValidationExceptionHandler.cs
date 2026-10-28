@@ -29,7 +29,7 @@ namespace WebAPI
                     break;
                 case DbUpdateException:
                     statusCode = StatusCodes.Status409Conflict;
-                    message = "No se pudo guardar el cambio: el registro está relacionado con otros datos (por ejemplo turnos, facturas u odontólogos).";
+                    message = "No se puede eliminar ni modificar el registro porque otros datos lo usan (por ejemplo turnos, facturas u odontólogos).";
                     break;
                 case BadHttpRequestException:
                     statusCode = StatusCodes.Status400BadRequest;

@@ -68,14 +68,19 @@ namespace Application.Services
             };
         }
 
+        private static void ValidarPeriodo(DateTime fechaDesde, DateTime fechaHasta)
+        {
+            if (fechaDesde.Date > fechaHasta.Date)
+                throw new ArgumentException("La fecha desde no puede ser posterior a la fecha hasta.");
+        }
+
         public async Task<ReporteAusentismoDTO> GetReporteAusentismoAsync(DateTime fechaDesde, DateTime fechaHasta)
         {
+            ValidarPeriodo(fechaDesde, fechaHasta);
             var criteria = new TurnoCriteria { FechaDesde = fechaDesde, FechaHasta = fechaHasta };
             var turnos = (await _turnoRepository.GetByCriteriaAsync(criteria)).ToList();
 
-            var multas = (await _multaRepository.GetAllAsync())
-                .Where(m => m.FechaEmision.Date >= fechaDesde.Date && m.FechaEmision.Date <= fechaHasta.Date)
-                .ToList();
+            var multas = (await _multaRepository.GetByRangoFechasAsync(fechaDesde, fechaHasta)).ToList();
 
             int totalProgramados = turnos.Count;
             int totalAusencias = turnos.Count(t => t.EstadoTurno == TurnoOdontologico.EstadoTurnoEnum.NoAsistido);
@@ -95,6 +100,7 @@ namespace Application.Services
 
         public async Task<ReporteFacturacionDTO> GetReporteFacturacionAsync(DateTime fechaDesde, DateTime fechaHasta)
         {
+            ValidarPeriodo(fechaDesde, fechaHasta);
             var facturas = (await _facturaRepository.GetByRangoFechasAsync(fechaDesde, fechaHasta)).ToList();
 
             return new ReporteFacturacionDTO

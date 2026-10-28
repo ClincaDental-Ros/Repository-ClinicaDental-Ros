@@ -9,7 +9,7 @@ namespace API.Clients
         {
         }
 
-        // Usado por Blazor (inyección de dependencias)
+        // Usado por Blazor 
         public TurnoApiClient(HttpClient httpClient, IAuthService authService)
             : base(httpClient, authService)
         {

@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using API.Clients;
 using DTOs;
@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace API.Auth.Blazor.Server
 {
-    public class BlazorServerAuthService : IAuthService
+    public class BlazorServerAuthService : IAuthService, INotificaSesionExpirada
     {
         private const string STORAGE_KEY = "DentalClinic_Session";
-        // Se guarda en sessionStorage: la sesión dura mientras la pestaña está abierta (sobrevive a F5),
+        // Se guarda en sessionStorage: la sesión dura mientras la pestaña está abierta (sobrevive a F5)
         // y al abrir el navegador de nuevo hay que iniciar sesión.
         private readonly ProtectedSessionStorage _localStorage;
         private readonly CustomAuthStateProvider _authStateProvider;
@@ -23,6 +23,11 @@ namespace API.Auth.Blazor.Server
         private DateTime? _expiration;
 
         public event Action<bool>? OnAuthenticationStateChanged;
+
+        /// <summary>La API respondió 401 a una llamada de este usuario (y solo de este usuario).</summary>
+        public event Action? OnSesionExpirada;
+
+        public void NotificarSesionExpirada() => OnSesionExpirada?.Invoke();
 
         public BlazorServerAuthService(
             ProtectedSessionStorage localStorage,
@@ -46,8 +51,7 @@ namespace API.Auth.Blazor.Server
                     }
                     else
                     {
-                        // Al recargar la página (F5) se recupera la sesión guardada:
-                        // hay que avisarle al proveedor de autenticación para que las páginas con [Authorize] la reconozcan.
+                        // Al recargar (F5) se recupera la sesión: se avisa al proveedor para que [Authorize] la reconozca.
                         _authStateProvider.NotifyUserAuthentication(this);
                     }
                 }

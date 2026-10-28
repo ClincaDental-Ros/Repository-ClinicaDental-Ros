@@ -172,9 +172,11 @@ namespace Data
                 new Paciente(6, "Martín", "Acosta", 33456123, "341-555-3344", "martin.acosta@outlook.com", "Pellegrini 980, Rosario", true, 1, "OSDE-112233")
             );
 
+            var hoyMultas = DateTime.Today;
             modelBuilder.Entity<Multa>().HasData(
-                new Multa(1, 4, 3500m, false, null, "Inasistencia sin aviso a turno odontológico"),
-                new Multa(2, 5, 3500m, true, DateTime.Today.AddDays(-10), "Inasistencia sin aviso a turno odontológico")
+                ConMultaFecha(new Multa(1, 4, 3500m, false, null, "Inasistencia sin aviso a turno odontológico"), hoyMultas.AddDays(-3)),
+                ConMultaFecha(new Multa(2, 5, 3500m, true, hoyMultas.AddDays(-10), "Inasistencia sin aviso a turno odontológico"), hoyMultas.AddDays(-12)),
+                ConMultaFecha(new Multa(3, 3, 3500m, true, hoyMultas.AddDays(-55), "Inasistencia sin aviso a turno odontológico"), hoyMultas.AddDays(-62))
             );
 
             modelBuilder.Entity<HistoriaClinica>().HasData(
@@ -197,21 +199,37 @@ namespace Data
                 new TurnoOdontologico(7, hoy.AddDays(-3).AddHours(9).AddMinutes(30), new TimeOnly(9, 30), TurnoOdontologico.EstadoTurnoEnum.NoAsistido, "Ausencia registrada en recepción", 4, 1, 1, 12000m),
                 new TurnoOdontologico(8, hoy.AddDays(-2).AddHours(15), new TimeOnly(15, 0), TurnoOdontologico.EstadoTurnoEnum.Cancelado, "Viaje laboral del paciente", 5, 3, 3, 18000m),
                 new TurnoOdontologico(9, hoy.AddDays(-1).AddHours(16), new TimeOnly(16, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 6, 3, 3, 18000m),
-                new TurnoOdontologico(10, hoy.AddDays(2).AddHours(10).AddMinutes(30), new TimeOnly(10, 30), TurnoOdontologico.EstadoTurnoEnum.Pendiente, null, 2, 1, 1, 12000m)
+                new TurnoOdontologico(10, hoy.AddDays(2).AddHours(10).AddMinutes(30), new TimeOnly(10, 30), TurnoOdontologico.EstadoTurnoEnum.Pendiente, null, 2, 1, 1, 12000m),
+                // Meses anteriores: para que los reportes por período muestren datos de distintos meses
+                new TurnoOdontologico(11, hoy.AddDays(-95).AddHours(10), new TimeOnly(10, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 2, 2, 2, 25000m),
+                new TurnoOdontologico(12, hoy.AddDays(-80).AddHours(11), new TimeOnly(11, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 6, 1, 1, 12000m),
+                new TurnoOdontologico(13, hoy.AddDays(-62).AddHours(14), new TimeOnly(14, 0), TurnoOdontologico.EstadoTurnoEnum.NoAsistido, "Ausencia registrada en recepción", 3, 3, 3, 18000m),
+                new TurnoOdontologico(14, hoy.AddDays(-48).AddHours(9), new TimeOnly(9, 0), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 5, 3, 3, 18000m),
+                new TurnoOdontologico(15, hoy.AddDays(-33).AddHours(16), new TimeOnly(16, 0), TurnoOdontologico.EstadoTurnoEnum.Cancelado, "Reprogramado a pedido del paciente", 1, 1, 1, 12000m),
+                new TurnoOdontologico(16, hoy.AddDays(-20).AddHours(10).AddMinutes(30), new TimeOnly(10, 30), TurnoOdontologico.EstadoTurnoEnum.Atendido, null, 1, 2, 2, 25000m)
             );
 
             modelBuilder.Entity<Consulta>().HasData(
                 ConConsultaFecha(new Consulta(1, 5, "Caries superficial en pieza 36", "Restauración con resina", "Control en 6 meses", true, false, "Excelente atención", 5), hoy.AddDays(-7).AddHours(10)),
                 ConConsultaFecha(new Consulta(2, 6, "Necrosis pulpar pieza 21", "Tratamiento de conducto", "Requiere corona posterior", true, true, "Muy profesional", 5), hoy.AddDays(-5).AddHours(11)),
                 ConConsultaFecha(new Consulta(3, 3, "Pieza 46 con fractura parcial", "Reconstrucción con resina", "Evitar alimentos duros 48 h"), hoy.AddHours(11)),
-                ConConsultaFecha(new Consulta(4, 9, "Apiñamiento dental leve", "Evaluación para ortodoncia", "Se solicitan radiografías", false, true, "Buena atención, algo de demora", 4), hoy.AddDays(-1).AddHours(16))
+                ConConsultaFecha(new Consulta(4, 9, "Apiñamiento dental leve", "Evaluación para ortodoncia", "Se solicitan radiografías", false, true, "Buena atención, algo de demora", 4), hoy.AddDays(-1).AddHours(16)),
+                ConConsultaFecha(new Consulta(5, 11, "Pulpitis irreversible pieza 26", "Tratamiento de conducto", "Control en 15 días", true, true), hoy.AddDays(-95).AddHours(10)),
+                ConConsultaFecha(new Consulta(6, 12, "Control semestral", "Limpieza y profilaxis", "Sin caries activas"), hoy.AddDays(-80).AddHours(11)),
+                ConConsultaFecha(new Consulta(7, 14, "Diastema leve", "Restauración estética con resina", "Evaluar ortodoncia"), hoy.AddDays(-48).AddHours(9)),
+                ConConsultaFecha(new Consulta(8, 16, "Caries profunda pieza 37", "Tratamiento de conducto", "Requiere corona", true, true), hoy.AddDays(-20).AddHours(10).AddMinutes(30))
             );
 
             modelBuilder.Entity<Factura>().HasData(
                 ConFacturaFecha(new Factura(1, 5, 1, "Atención Odontológica - Restauración con resina", 15300m, 10710m, 15300m, 4590m, true, "Efectivo"), hoy.AddDays(-7).AddHours(10).AddMinutes(45)),
                 ConFacturaFecha(new Factura(2, 6, 2, "Atención Odontológica - Tratamiento de conducto", 36500m, 23725m, 36500m, 12775m, true, "Tarjeta de Débito"), hoy.AddDays(-5).AddHours(12)),
                 ConFacturaFecha(new Factura(3, 3, 3, "Atención Odontológica - Reconstrucción con resina", 21800m, 0m, 21800m, 21800m, false, "Pendiente de Pago"), hoy.AddHours(11).AddMinutes(40)),
-                ConFacturaFecha(new Factura(4, 9, 6, "Atención Odontológica - Evaluación para ortodoncia", 21000m, 14700m, 21000m, 6300m, false, "Pendiente de Pago"), hoy.AddDays(-1).AddHours(16).AddMinutes(30))
+                ConFacturaFecha(new Factura(4, 9, 6, "Atención Odontológica - Evaluación para ortodoncia", 21000m, 14700m, 21000m, 6300m, false, "Pendiente de Pago"), hoy.AddDays(-1).AddHours(16).AddMinutes(30)),
+                // Honorarios del turno + insumos; descuento = cobertura de la obra social del paciente
+                ConFacturaFecha(new Factura(5, 11, 2, "Atención Odontológica - Tratamiento de conducto", 32000m, 20800m, 32000m, 11200m, true, "Tarjeta de Crédito"), hoy.AddDays(-95).AddHours(11)),
+                ConFacturaFecha(new Factura(6, 12, 6, "Atención Odontológica - Limpieza y profilaxis", 13200m, 9240m, 13200m, 3960m, true, "Efectivo"), hoy.AddDays(-80).AddHours(11).AddMinutes(30)),
+                ConFacturaFecha(new Factura(7, 14, 5, "Atención Odontológica - Restauración estética con resina", 24800m, 0m, 24800m, 24800m, true, "Transferencia Bancaria / QR"), hoy.AddDays(-48).AddHours(9).AddMinutes(40)),
+                ConFacturaFecha(new Factura(8, 16, 1, "Atención Odontológica - Tratamiento de conducto", 28000m, 19600m, 28000m, 8400m, true, "Tarjeta de Débito"), hoy.AddDays(-20).AddHours(11))
             );
 
             modelBuilder.Entity<ItemFactura>().HasData(
@@ -220,7 +238,12 @@ namespace Data
                 new ItemFactura(3, 2, 7, 2, 4500m),
                 new ItemFactura(4, 2, 1, 1, 2500m),
                 new ItemFactura(5, 3, 2, 1, 6800m),
-                new ItemFactura(6, 4, 3, 2, 1500m)
+                new ItemFactura(6, 4, 3, 2, 1500m),
+                new ItemFactura(7, 5, 7, 1, 4500m),
+                new ItemFactura(8, 5, 1, 1, 2500m),
+                new ItemFactura(9, 6, 6, 1, 1200m),
+                new ItemFactura(10, 7, 2, 1, 6800m),
+                new ItemFactura(11, 8, 3, 2, 1500m)
             );
         }
 
@@ -228,6 +251,12 @@ namespace Data
         {
             consulta.SetFecha(fecha);
             return consulta;
+        }
+
+        private static Multa ConMultaFecha(Multa multa, DateTime fecha)
+        {
+            multa.SetFechaEmision(fecha);
+            return multa;
         }
 
         private static Factura ConFacturaFecha(Factura factura, DateTime fecha)

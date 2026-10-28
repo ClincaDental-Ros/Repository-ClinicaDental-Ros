@@ -35,7 +35,6 @@ namespace Application.Services
             _insumoRepository = insumoRepository;
         }
 
-        /// <summary>Honorarios del profesional: el monto estimado del turno (o el arancel base si no tiene).</summary>
         public static decimal CalcularHonorarios(TurnoOdontologico? turno) =>
             turno == null ? 0m : (turno.MontoEstimado > 0 ? turno.MontoEstimado : 12000m);
 
@@ -63,10 +62,7 @@ namespace Application.Services
             return list.Select(MapToDTO).ToList();
         }
 
-        /// <summary>
-        /// Alta de factura (maestro) con sus ítems (detalle). Los precios y montos se calculan en el servidor:
-        /// precio unitario = precio actual del insumo; honorarios = monto del turno; descuento = cobertura de la obra social.
-        /// </summary>
+
         public async Task<FacturaDTO> CrearFacturaAsync(FacturaDTO dto)
         {
             var factura = await ConstruirFacturaAsync(0, dto);

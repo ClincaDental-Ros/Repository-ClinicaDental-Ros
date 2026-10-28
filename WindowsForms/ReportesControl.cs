@@ -204,7 +204,7 @@ namespace WindowsForms
             gridFacturacion.AutoGenerateColumns = false;
 
             gridFacturacion.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", HeaderText = "N° Factura", Width = 90, DataPropertyName = "Id" });
-            gridFacturacion.Columns.Add(new DataGridViewTextBoxColumn { Name = "Fecha", HeaderText = "Fecha", Width = 120 });
+            gridFacturacion.Columns.Add(new DataGridViewTextBoxColumn { Name = "Fecha", HeaderText = "Fecha", Width = 120, DataPropertyName = "FechaEmision", DefaultCellStyle = { Format = "dd/MM/yyyy" } });
             gridFacturacion.Columns.Add(new DataGridViewTextBoxColumn { Name = "Paciente", HeaderText = "Paciente", Width = 220, DataPropertyName = "PacienteNombre" });
             gridFacturacion.Columns.Add(new DataGridViewTextBoxColumn { Name = "OS", HeaderText = "Obra Social", Width = 160, DataPropertyName = "ObraSocialNombre" });
             gridFacturacion.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Prestación", Width = 140, DataPropertyName = "Total" });
@@ -254,7 +254,7 @@ namespace WindowsForms
             UITheme.StyleDataGridView(gridConsultasHC);
             gridConsultasHC.AutoGenerateColumns = false;
 
-            gridConsultasHC.Columns.Add(new DataGridViewTextBoxColumn { Name = "Fecha", HeaderText = "Fecha Atención", Width = 120 });
+            gridConsultasHC.Columns.Add(new DataGridViewTextBoxColumn { Name = "Fecha", HeaderText = "Fecha Atención", Width = 120, DataPropertyName = "Fecha", DefaultCellStyle = { Format = "dd/MM/yyyy" } });
             gridConsultasHC.Columns.Add(new DataGridViewTextBoxColumn { Name = "Doctor", HeaderText = "Profesional Interviniente", Width = 200, DataPropertyName = "OdontologoNombre" });
             gridConsultasHC.Columns.Add(new DataGridViewTextBoxColumn { Name = "Diagnostico", HeaderText = "Diagnóstico (CIE-10)", Width = 240, DataPropertyName = "Diagnostico" });
             gridConsultasHC.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tratamiento", HeaderText = "Tratamiento Realizado", Width = 240, DataPropertyName = "Tratamiento" });

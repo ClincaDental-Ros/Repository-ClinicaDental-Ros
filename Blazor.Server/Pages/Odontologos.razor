@@ -244,9 +244,17 @@
 
         if (confirmado && seleccionado != null)
         {
-            await ApiClient.DeleteAsync(seleccionado.Id);
-            seleccionado = null;
-            await CargarOdontologos();
+            try
+            {
+                await ApiClient.DeleteAsync(seleccionado.Id);
+                seleccionado = null;
+                await CargarOdontologos();
+            }
+            catch (HttpRequestException ex)
+            {
+                // Por ejemplo, si otros datos todavía lo usan: se informa y la pantalla sigue funcionando.
+                lblEstado = $"No se pudo eliminar el profesional: {ex.Message}";
+            }
         }
     }
 }

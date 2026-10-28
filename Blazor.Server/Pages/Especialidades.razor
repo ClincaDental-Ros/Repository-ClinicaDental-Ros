@@ -184,9 +184,17 @@
 
         if (confirmado && seleccionado != null)
         {
-            await ApiClient.DeleteAsync(seleccionado.Id);
-            seleccionado = null;
-            await CargarEspecialidades();
+            try
+            {
+                await ApiClient.DeleteAsync(seleccionado.Id);
+                seleccionado = null;
+                await CargarEspecialidades();
+            }
+            catch (HttpRequestException ex)
+            {
+                // Por ejemplo, si otros datos todavía lo usan: se informa y la pantalla sigue funcionando.
+                lblEstado = $"No se pudo eliminar la especialidad: {ex.Message}";
+            }
         }
     }
 }

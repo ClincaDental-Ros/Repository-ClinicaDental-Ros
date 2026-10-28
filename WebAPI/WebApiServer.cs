@@ -45,13 +45,18 @@ namespace WebAPI
             });
 
             // ─── JWT Authentication ───────────────────────────────────────
+            // La clave de firma tampoco se versiona: igual que la cadena de conexión, se toma de
+            // appsettings.Development.json, user-secrets o la variable JwtSettings__SecretKey. Sin clave, la API no arranca.
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"]
-                ?? "TurnoMolarSuperSecretSecurityKeyForJWTAuthentication2026";
+            var secretKey = jwtSettings["SecretKey"];
+            if (string.IsNullOrWhiteSpace(secretKey) || Encoding.UTF8.GetByteCount(secretKey) < 32)
+                throw new InvalidOperationException(
+                    "Falta la clave JWT 'JwtSettings:SecretKey' (mínimo 32 caracteres). Configurala en WebAPI/appsettings.Development.json, " +
+                    "con dotnet user-secrets o con la variable de entorno JwtSettings__SecretKey (ver README).");
             var issuer = jwtSettings["Issuer"] ?? "TurnoMolarAPI";
             var audience = jwtSettings["Audience"] ?? "TurnoMolarClients";
 
-            var key = Encoding.ASCII.GetBytes(secretKey);
+            var key = Encoding.UTF8.GetBytes(secretKey);
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -153,6 +158,7 @@ namespace WebAPI
             builder.Services.AddScoped<IFacturaService, FacturaService>();
             builder.Services.AddScoped<IMultaService, MultaService>();
             builder.Services.AddScoped<IReportesService, ReportesService>();
+            builder.Services.AddScoped<IObraSocialService, ObraSocialService>();
 
             builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
             builder.Services.AddProblemDetails();
@@ -161,27 +167,22 @@ namespace WebAPI
 
             app.UseExceptionHandler();
 
+            // Si la base no se puede crear o no responde, la API no arranca: es mejor fallar acá
+            // con un mensaje claro que recién en el primer login.
             using (var scope = app.Services.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<TurnoMolarDbContext>();
                 try
                 {
-                    var context = scope.ServiceProvider.GetRequiredService<TurnoMolarDbContext>();
                     var created = context.Database.EnsureCreated();
-                    if (created)
-                    {
-                        Console.WriteLine("✅ Base de datos creada y cargada con datos de prueba.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("ℹ️ Conexión establecida con la base de datos existente.");
-                    }
+                    Console.WriteLine(created
+                        ? "Base de datos creada y cargada con datos de prueba."
+                        : "Conexión establecida con la base de datos existente.");
                 }
                 catch (Exception ex)
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine($"⚠️ [AVISO CONEXIÓN BD]: No se pudo conectar a SQL Server ({ex.Message}).");
-                    Console.WriteLine("ℹ️ Verifique la cadena de conexión 'DefaultConnection' y que el servidor SQL esté disponible.");
-                    Console.ResetColor();
+                    throw new InvalidOperationException(
+                        "No se pudo conectar ni crear la base de datos. Revisá la cadena 'DefaultConnection' y que el servidor SQL esté disponible.", ex);
                 }
             }
 
@@ -211,6 +212,7 @@ namespace WebAPI
             app.MapFacturaEndpoints();
             app.MapMultaEndpoints();
             app.MapReportesEndpoints();
+            app.MapObraSocialEndpoints();
 
             return app;
         }

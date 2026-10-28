@@ -8,23 +8,22 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configuración de Blazor
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// 2. Servicios de Seguridad EXACTOS para LocalStorage 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, PassThroughAuthorizationResultHandler>();
 
-// 3. Registrar el almacenamiento local cifrado de Blazor y Providers
+
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<BlazorServerAuthService>();
 builder.Services.AddScoped<IAuthService>(sp => sp.GetRequiredService<BlazorServerAuthService>());
 
-// 4. Configuración de la API Base URL
+
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5263";
 BaseApiClient.BaseUrl = apiBaseUrl;
 
@@ -33,8 +32,8 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri(apiBaseUrl)
 });
 
-// 5. Registrar TODOS los API Clients
 builder.Services.AddScoped<AuthApiClient>();
+builder.Services.AddScoped<ObraSocialApiClient>();
 builder.Services.AddScoped<ConsultaApiClient>();
 builder.Services.AddScoped<EspecialidadApiClient>();
 builder.Services.AddScoped<FacturaApiClient>();

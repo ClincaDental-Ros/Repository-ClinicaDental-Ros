@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Services;
 using DTOs;
 
@@ -11,21 +12,18 @@ namespace WebAPI
                 .WithTags("Odontólogos")
                 .RequireAuthorization();
 
-            group.MapGet("/", async (int? especialidadId, IOdontologoService service) =>
+            group.MapGet("/", async (int? especialidadId, ClaimsPrincipal user, IOdontologoService service) =>
             {
-                if (especialidadId.HasValue && especialidadId.Value > 0)
-                {
-                    var result = await service.GetByEspecialidadAsync(especialidadId.Value);
-                    return Results.Ok(result);
-                }
-                var list = await service.GetAllAsync();
-                return Results.Ok(list);
+                var list = especialidadId.HasValue && especialidadId.Value > 0
+                    ? await service.GetByEspecialidadAsync(especialidadId.Value)
+                    : await service.GetAllAsync();
+                return Results.Ok(list.Select(o => ParaUsuario(o, user)));
             });
 
-            group.MapGet("/{id:int}", async (int id, IOdontologoService service) =>
+            group.MapGet("/{id:int}", async (int id, ClaimsPrincipal user, IOdontologoService service) =>
             {
                 var o = await service.GetAsync(id);
-                return o == null ? Results.NotFound() : Results.Ok(o);
+                return o == null ? Results.NotFound() : Results.Ok(ParaUsuario(o, user));
             });
 
             group.MapPost("/", async (OdontologoDTO dto, IOdontologoService service) =>
@@ -46,6 +44,26 @@ namespace WebAPI
                 var deleted = await service.DeleteAsync(id);
                 return deleted ? Results.NoContent() : Results.NotFound();
             }).RequireAuthorization("AdminOnly");
+        }
+
+        /// <summary>
+        /// Un paciente solo necesita saber quién lo atiende: no recibe el DNI ni el domicilio del profesional.
+        /// </summary>
+        private static OdontologoDTO ParaUsuario(OdontologoDTO o, ClaimsPrincipal user)
+        {
+            if (user.EsPersonal()) return o;
+
+            return new OdontologoDTO
+            {
+                Id = o.Id,
+                NumMatricula = o.NumMatricula,
+                Nombre = o.Nombre,
+                Apellido = o.Apellido,
+                Mail = o.Mail,
+                Telefono = o.Telefono,
+                EspecialidadId = o.EspecialidadId,
+                EspecialidadNombre = o.EspecialidadNombre
+            };
         }
     }
 }

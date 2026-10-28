@@ -7,6 +7,7 @@ namespace WindowsForms
     public class PacienteDetalleForm : Form
     {
         private readonly PacienteApiClient _apiClient = new();
+        private readonly ObraSocialApiClient _obraSocialClient = new();
         private readonly PacienteDTO? _pacienteExistente;
 
         private TextBox txtNombre = null!;
@@ -18,8 +19,6 @@ namespace WindowsForms
         private TextBox txtMail = null!;
         private TextBox txtDomicilio = null!;
         private ComboBox cbObraSocial = null!;
-        private TextBox txtOtraObraSocial = null!;
-        private Label lblOtraOS = null!;
         private TextBox txtAfiliado = null!;
         private TextBox txtUsuario = null!;
         private TextBox txtPassword = null!;
@@ -36,6 +35,32 @@ namespace WindowsForms
             if (_pacienteExistente != null)
             {
                 CargarDatos();
+            }
+            this.Load += async (s, e) => await CargarObrasSocialesAsync();
+        }
+
+        /// <summary>La lista de obras sociales sale de la base, así siempre coincide con las coberturas reales.</summary>
+        private async Task CargarObrasSocialesAsync()
+        {
+            try
+            {
+                var lista = await _obraSocialClient.GetAllAsync();
+                cbObraSocial.DisplayMember = nameof(ObraSocialDTO.Nombre);
+                cbObraSocial.ValueMember = nameof(ObraSocialDTO.Id);
+                cbObraSocial.Format += (s, e) =>
+                {
+                    if (e.ListItem is ObraSocialDTO os) e.Value = $"{os.Nombre} ({os.Plan})";
+                };
+                cbObraSocial.DataSource = lista;
+
+                var particular = lista.FirstOrDefault(o => o.PorcentajeCobertura == 0m) ?? lista.FirstOrDefault();
+                var seleccion = _pacienteExistente?.ObraSocialId ?? particular?.Id;
+                if (seleccion.HasValue) cbObraSocial.SelectedValue = seleccion.Value;
+            }
+            catch (HttpRequestException ex)
+            {
+                lblError.Text = $"No se pudieron cargar las obras sociales: {ex.Message}";
+                btnGuardar.Enabled = false;
             }
         }
 
@@ -127,27 +152,7 @@ namespace WindowsForms
             AddRow("Domicilio:", txtDomicilio);
 
             cbObraSocial = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
-            cbObraSocial.Items.AddRange(new object[] {
-                "Particular (Sin Obra Social)",
-                "OSDE",
-                "Swiss Medical",
-                "IOMA",
-                "IAPOS",
-                "Sancor Salud",
-                "Federada Salud",
-                "Jerárquicos Salud",
-                "Galeno",
-                "Otra (Especificar)"
-            });
-            cbObraSocial.SelectedIndex = 0;
-            cbObraSocial.SelectedIndexChanged += (s, e) => ToggleOtraObraSocial();
             AddRow("Obra Social *:", cbObraSocial);
-
-            lblOtraOS = new Label { Text = "Especifique Cobertura:", Location = new Point(x, y + 3), Size = new Size(labelWidth, 22), Font = UITheme.RegularBold, ForeColor = UITheme.Primary, Visible = false };
-            txtOtraObraSocial = new TextBox { Location = new Point(x + labelWidth, y), Size = new Size(inputWidth, 28), Visible = false, PlaceholderText = "Nombre de su seguro/prepaga..." };
-            pnlCard.Controls.Add(lblOtraOS);
-            pnlCard.Controls.Add(txtOtraObraSocial);
-            y += 38;
 
             txtAfiliado = new TextBox();
             AddRow("N° de Afiliado / Cred:", txtAfiliado);
@@ -217,14 +222,6 @@ namespace WindowsForms
             this.Controls.Add(pnlCard);
         }
 
-        private void ToggleOtraObraSocial()
-        {
-            bool isOtra = cbObraSocial.SelectedItem?.ToString() == "Otra (Especificar)";
-            lblOtraOS.Visible = isOtra;
-            txtOtraObraSocial.Visible = isOtra;
-            if (!isOtra) txtOtraObraSocial.Text = "";
-        }
-
         private void CargarDatos()
         {
             if (_pacienteExistente == null) return;
@@ -238,17 +235,6 @@ namespace WindowsForms
             chkHabilitado.Checked = _pacienteExistente.EstadoHabilitado;
             txtAfiliado.Text = _pacienteExistente.NumeroAfiliado ?? "";
             txtUsuario.Text = _pacienteExistente.Username ?? "N/A";
-
-            if (_pacienteExistente.ObraSocialId.HasValue)
-            {
-                switch (_pacienteExistente.ObraSocialId.Value)
-                {
-                    case 1: cbObraSocial.SelectedIndex = 1; break;
-                    case 2: cbObraSocial.SelectedIndex = 2; break;
-                    case 3: cbObraSocial.SelectedIndex = 3; break;
-                    default: cbObraSocial.SelectedIndex = 0; break;
-                }
-            }
         }
 
         private async void BtnGuardar_Click(object? sender, EventArgs e)
@@ -271,13 +257,11 @@ namespace WindowsForms
 
             try
             {
-                int? osId = cbObraSocial.SelectedIndex switch
+                if (cbObraSocial.SelectedValue is not int osId)
                 {
-                    1 => 1,
-                    2 => 2,
-                    3 => 3,
-                    _ => 4
-                };
+                    lblError.Text = "Elegí una obra social de la lista.";
+                    return;
+                }
 
                 var dto = new PacienteDTO
                 {

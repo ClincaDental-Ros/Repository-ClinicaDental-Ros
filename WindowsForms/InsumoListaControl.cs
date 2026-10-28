@@ -106,7 +106,7 @@ namespace WindowsForms
                 return;
             }
 
-            if (!decimal.TryParse(txtPrecio.Text.Trim(), out var precio) || precio < 0)
+            if (!EntradaNumerica.TryParseImporte(txtPrecio.Text, out var precio) || precio < 0)
             {
                 lblError.Text = "El precio debe ser un número válido mayor o igual a 0.";
                 return;
@@ -321,8 +321,16 @@ namespace WindowsForms
             var item = (InsumoDTO)gridInsumos.SelectedRows[0].DataBoundItem;
             if (MessageBox.Show($"¿Eliminar el insumo '{item.Nombre}'?", "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                await _apiClient.DeleteAsync(item.Id);
-                await CargarInsumos();
+                try
+                {
+                    await _apiClient.DeleteAsync(item.Id);
+                    await CargarInsumos();
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Por ejemplo, si otros datos todavía lo usan: se informa sin cerrar la aplicación.
+                    MessageBox.Show(FindForm(), $"No se pudo eliminar el insumo.\n\n{ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
     }

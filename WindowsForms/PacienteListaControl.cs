@@ -294,8 +294,16 @@ namespace WindowsForms
 
             if (MessageBox.Show($"¿Desea {accion} al paciente {paciente.Apellido}, {paciente.Nombre}?", "Clínica Odontológica - Control de Estado", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                paciente.EstadoHabilitado = nuevoEstado;
-                await _apiClient.UpdateAsync(paciente);
+                try
+                {
+                    paciente.EstadoHabilitado = nuevoEstado;
+                    await _apiClient.UpdateAsync(paciente);
+                }
+                catch (HttpRequestException ex)
+                {
+                    paciente.EstadoHabilitado = !nuevoEstado;
+                    MessageBox.Show(FindForm(), $"No se pudo cambiar el estado del paciente.\n\n{ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
                 await CargarPacientes();
             }
         }
@@ -307,11 +315,19 @@ namespace WindowsForms
             var paciente = (PacienteDTO)gridPacientes.SelectedRows[0].DataBoundItem;
             if (MessageBox.Show($"¿Está seguro de eliminar la ficha médica del paciente {paciente.Apellido}, {paciente.Nombre}?\nEsta acción no se puede deshacer.", "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                var ok = await _apiClient.DeleteAsync(paciente.Id);
-                if (ok)
+                try
                 {
-                    MessageBox.Show("Paciente eliminado con éxito.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    await CargarPacientes();
+                    var ok = await _apiClient.DeleteAsync(paciente.Id);
+                    if (ok)
+                    {
+                        MessageBox.Show("Paciente eliminado con éxito.", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        await CargarPacientes();
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Por ejemplo, si otros datos todavía lo usan: se informa sin cerrar la aplicación.
+                    MessageBox.Show(FindForm(), $"No se pudo eliminar el paciente.\n\n{ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }

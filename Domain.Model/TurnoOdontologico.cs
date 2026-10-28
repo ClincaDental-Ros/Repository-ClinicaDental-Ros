@@ -115,12 +115,56 @@ namespace Domain.Model
             MontoEstimado = montoEstimado;
         }
 
+        /// <summary>
+        /// Transiciones permitidas entre estados. El servidor las hace cumplir aunque la pantalla
+        /// ya las impida: Pendiente → Presente / Cancelado / NoAsistido; Presente → Atendido / Cancelado.
+        /// Atendido, Cancelado y NoAsistido son estados finales.
+        /// </summary>
+        public static bool PuedeCambiar(EstadoTurnoEnum desde, EstadoTurnoEnum hacia) => (desde, hacia) switch
+        {
+            (EstadoTurnoEnum.Pendiente, EstadoTurnoEnum.Presente) => true,
+            (EstadoTurnoEnum.Pendiente, EstadoTurnoEnum.Cancelado) => true,
+            (EstadoTurnoEnum.Pendiente, EstadoTurnoEnum.NoAsistido) => true,
+            (EstadoTurnoEnum.Presente, EstadoTurnoEnum.Atendido) => true,
+            (EstadoTurnoEnum.Presente, EstadoTurnoEnum.Cancelado) => true,
+            _ => false
+        };
+
+        public static string Descripcion(EstadoTurnoEnum estado) => estado switch
+        {
+            EstadoTurnoEnum.Pendiente => "pendiente",
+            EstadoTurnoEnum.Presente => "en sala de espera",
+            EstadoTurnoEnum.Atendido => "atendido",
+            EstadoTurnoEnum.Cancelado => "cancelado",
+            EstadoTurnoEnum.NoAsistido => "ausente",
+            _ => estado.ToString()
+        };
+
+        private void ValidarTransicion(EstadoTurnoEnum nuevo)
+        {
+            if (nuevo == EstadoTurno) return;
+            if (!Enum.IsDefined(typeof(EstadoTurnoEnum), nuevo))
+                throw new ArgumentException($"El estado de turno '{nuevo}' no existe.", nameof(nuevo));
+            if (!PuedeCambiar(EstadoTurno, nuevo))
+                throw new InvalidOperationException(
+                    $"Un turno {Descripcion(EstadoTurno)} no puede pasar a {Descripcion(nuevo)}.");
+        }
+
+        /// <summary>Fecha, horario y profesional solo se pueden cambiar mientras el turno está pendiente.</summary>
+        public void ValidarReprogramable()
+        {
+            if (EstadoTurno != EstadoTurnoEnum.Pendiente)
+                throw new InvalidOperationException(
+                    $"Solo se pueden modificar turnos pendientes; este turno está {Descripcion(EstadoTurno)}.");
+        }
+
         public void SetEstado(EstadoTurnoEnum estadoTurno)
         {
             if (estadoTurno == EstadoTurnoEnum.Cancelado && string.IsNullOrWhiteSpace(MotivoCancelacion))
             {
                 throw new ArgumentException("Debe ingresar un motivo al cancelar un turno.", nameof(MotivoCancelacion));
             }
+            ValidarTransicion(estadoTurno);
             EstadoTurno = estadoTurno;
         }
 
@@ -139,22 +183,26 @@ namespace Domain.Model
             {
                 throw new ArgumentException("Debe ingresar un motivo al cancelar un turno.", nameof(motivo));
             }
+            ValidarTransicion(EstadoTurnoEnum.Cancelado);
             EstadoTurno = EstadoTurnoEnum.Cancelado;
             MotivoCancelacion = motivo;
         }
 
         public void ConfirmarPresencia()
         {
+            ValidarTransicion(EstadoTurnoEnum.Presente);
             EstadoTurno = EstadoTurnoEnum.Presente;
         }
 
         public void Atender()
         {
+            ValidarTransicion(EstadoTurnoEnum.Atendido);
             EstadoTurno = EstadoTurnoEnum.Atendido;
         }
 
         public void RegistrarAusencia(string? motivo = null)
         {
+            ValidarTransicion(EstadoTurnoEnum.NoAsistido);
             EstadoTurno = EstadoTurnoEnum.NoAsistido;
             MotivoCancelacion = string.IsNullOrWhiteSpace(motivo) ? "Ausencia registrada en recepción" : motivo;
         }

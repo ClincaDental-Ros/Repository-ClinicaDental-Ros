@@ -29,8 +29,9 @@ namespace Application.Services
             _configuration = configuration;
         }
 
+        // Sin clave de respaldo: la API valida al iniciar que JwtSettings:SecretKey esté configurada.
         private string SecretKey => _configuration["JwtSettings:SecretKey"]
-            ?? "TurnoMolarSuperSecretSecurityKeyForJWTAuthentication2026";
+            ?? throw new InvalidOperationException("Falta la clave JWT 'JwtSettings:SecretKey'.");
         private string Issuer => _configuration["JwtSettings:Issuer"] ?? "TurnoMolarAPI";
         private string Audience => _configuration["JwtSettings:Audience"] ?? "TurnoMolarClients";
         private int ExpirationMinutes => int.TryParse(_configuration["JwtSettings:ExpirationMinutes"], out var min) ? min : 120;
@@ -52,9 +53,9 @@ namespace Application.Services
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(SecretKey);
+                var key = Encoding.UTF8.GetBytes(SecretKey);
 
-                // Validar el token (permitir expirado para refresh)
+                // Valida firma, emisor y audiencia; se acepta vencido para poder renovarlo
                 var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -82,8 +83,9 @@ namespace Application.Services
 
                 return GenerateTokenResponse(user);
             }
-            catch
+            catch (Exception ex) when (ex is SecurityTokenException or ArgumentException)
             {
+                // Token mal formado o con firma inválida: no se renueva.
                 return null;
             }
         }
@@ -139,7 +141,7 @@ namespace Application.Services
         private LoginResponseDTO GenerateTokenResponse(Usuario user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(SecretKey);
+            var key = Encoding.UTF8.GetBytes(SecretKey);
             var expiration = DateTime.UtcNow.AddMinutes(ExpirationMinutes);
 
             var tokenDescriptor = new SecurityTokenDescriptor

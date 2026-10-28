@@ -474,8 +474,16 @@ namespace WindowsForms
             var o = (OdontologoDTO)gridOdontologos.SelectedRows[0].DataBoundItem;
             if (MessageBox.Show($"¿Desea dar de baja al profesional Dr/a. {o.Apellido}, {o.Nombre}?", "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                await _apiClient.DeleteAsync(o.Id);
-                await CargarOdontologos();
+                try
+                {
+                    await _apiClient.DeleteAsync(o.Id);
+                    await CargarOdontologos();
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Por ejemplo, si otros datos todavía lo usan: se informa sin cerrar la aplicación.
+                    MessageBox.Show(FindForm(), $"No se pudo eliminar el profesional.\n\n{ex.Message}", "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
     }

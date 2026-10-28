@@ -13,6 +13,11 @@ namespace WindowsForms
         {
             ApplicationConfiguration.Initialize();
 
+            // Red de seguridad: un error que una pantalla no atrapó se muestra como mensaje
+            // en lugar del cuadro "Excepción no controlada" que cierra la aplicación.
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (s, e) => MostrarError(e.Exception);
+
             var authService = new WindowsFormsAuthService();
             AuthServiceProvider.Current = authService;
 
@@ -42,6 +47,18 @@ namespace WindowsForms
                     break;
                 }
             }
+        }
+
+
+        private static void MostrarError(Exception ex)
+        {
+            var mensaje = ex switch
+            {
+                HttpRequestException http => http.Message,
+                UnauthorizedAccessException => "La sesión expiró. Volvé a iniciar sesión.",
+                _ => "Ocurrió un error inesperado. Si se repite, avisá al administrador.\n\nDetalle: " + ex.Message
+            };
+            MessageBox.Show(mensaje, "Clínica Odontológica", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         /// <summary>

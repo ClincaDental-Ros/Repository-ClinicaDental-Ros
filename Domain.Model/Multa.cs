@@ -40,6 +40,8 @@ namespace Domain.Model
                 throw new ArgumentException("El motivo de la multa es obligatorio.", nameof(Motivo));
         }
 
+        public void SetFechaEmision(DateTime fecha) => FechaEmision = fecha;
+
         public void SetId(int id)
         {
             if (id < 0)

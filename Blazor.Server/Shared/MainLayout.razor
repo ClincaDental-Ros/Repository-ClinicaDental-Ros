@@ -28,7 +28,18 @@
             </header>
 
             <main class="app-content">
-                @Body
+                <ErrorBoundary @ref="errorBoundary">
+                    <ChildContent>
+                        @Body
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <div class="alert alert-danger m-3">
+                            <strong>No se pudo completar la operación.</strong>
+                            <div class="small mt-1">@MensajeDeError(ex)</div>
+                            <button class="btn btn-sm btn-outline-danger mt-2" @onclick="Recuperar">Volver a intentar</button>
+                        </div>
+                    </ErrorContent>
+                </ErrorBoundary>
             </main>
         </div>
     </div>
@@ -46,6 +57,20 @@ else
     private static readonly System.Globalization.CultureInfo Es = new("es-AR");
 
     private bool menuAbierto;
+    private ErrorBoundary? errorBoundary;
+
+    // Red de seguridad: si una pantalla no atrapa un error de la API, se muestra el mensaje
+    // en lugar de cortar la sesión de Blazor.
+    private static string MensajeDeError(Exception ex) => ex switch
+    {
+        HttpRequestException http => http.Message,
+        UnauthorizedAccessException => "La sesión expiró. Volvé a iniciar sesión.",
+        _ => "Ocurrió un error inesperado. Si se repite, avisá al administrador."
+    };
+
+    private void Recuperar() => errorBoundary?.Recover();
+
+    protected override void OnParametersSet() => errorBoundary?.Recover();
     private bool mostrarLogout;
 
     private string Portal => AuthService.GetRol() == Permisos.Paciente ? "Portal del Paciente" : "Portal Profesional";
@@ -60,9 +85,8 @@ else
 
     protected override void OnInitialized()
     {
-        BaseApiClient.OnUnauthorized -= HandleUnauthorized;
-        BaseApiClient.OnUnauthorized += HandleUnauthorized;
-
+        // Cada usuario escucha solo los 401 de su propia sesión.
+        AuthService.OnSesionExpirada += HandleUnauthorized;
         AuthService.OnAuthenticationStateChanged += HandleAuthStateChanged;
     }
 
@@ -106,7 +130,7 @@ else
 
     public void Dispose()
     {
-        BaseApiClient.OnUnauthorized -= HandleUnauthorized;
+        AuthService.OnSesionExpirada -= HandleUnauthorized;
         AuthService.OnAuthenticationStateChanged -= HandleAuthStateChanged;
     }
 }

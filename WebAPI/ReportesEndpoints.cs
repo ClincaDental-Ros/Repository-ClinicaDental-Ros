@@ -12,9 +12,9 @@ namespace WebAPI
             var group = app.MapGroup("/api/reportes")
                 .WithTags("Reportes y Estadísticas");
 
-            // ---------- Reportes del personal (mismo comportamiento que antes) ----------
+            // ---------- Reportes de gestión: Admin y Recepcionista (igual que en la web y el escritorio) ----------
             var staff = group.MapGroup("")
-                .RequireAuthorization("StaffOnly");
+                .RequireAuthorization("AdminOrRecepcionista");
 
             staff.MapGet("/turnos-dia", async (DateTime? fecha, IReportesService service) =>
             {
@@ -37,7 +37,7 @@ namespace WebAPI
                 var fHasta = fechaHasta ?? DateTime.Today;
                 var rep = await service.GetReporteFacturacionAsync(fDesde, fHasta);
                 return Results.Ok(rep);
-            }).RequireAuthorization("AdminOrRecepcionista");
+            });
 
             // ---------- Historia clínica: personal o el propio paciente ----------
             group.MapGet("/historia-clinica/{pacienteId:int}", async (

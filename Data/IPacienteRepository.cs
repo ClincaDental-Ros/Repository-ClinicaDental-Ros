@@ -12,5 +12,8 @@ namespace Data
         Task<bool> DeleteAsync(int id);
         Task<bool> EmailExistsAsync(string email, int? excludeId = null);
         Task<bool> DniExistsAsync(int dni, int? excludeId = null);
+
+        /// <summary>Describe los datos que dependen del paciente (turnos, historia clínica, multas, facturas). Vacía si no tiene.</summary>
+        Task<List<string>> GetRelacionesAsync(int id);
     }
 }

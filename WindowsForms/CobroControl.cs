@@ -113,7 +113,13 @@ namespace WindowsForms
             lblDescuento.Text = $"Descuento Cobertura Obra Social: -{_factura.DescuentoObraSocial:C2}";
             lblTotalPaciente.Text = $"TOTAL A COBRAR PACIENTE: {_factura.MontoAPagarPaciente:C2}";
 
-            gridItems.DataSource = _factura.Items;
+            // Igual que en la web: primero la línea de honorarios y después los insumos.
+            var lineas = new List<ItemFacturaDTO>
+            {
+                new() { InsumoNombre = "Honorarios profesionales", CantidadInsumo = 1, PrecioUnitario = _factura.Honorarios }
+            };
+            lineas.AddRange(_factura.Items);
+            gridItems.DataSource = lineas;
 
             if (_factura.EstadoPago)
             {

@@ -99,19 +99,23 @@ El proyecto sigue un enfoque en cascada, con documentación formal versionada en
 
 Requisitos: .NET 8 SDK, Visual Studio 2022 (para la aplicación de escritorio) y acceso a un SQL Server.
 
-### 1. Configurar la base de datos
+### 1. Configurar la base de datos y la clave JWT
 
-La API usa la base en la nube. La cadena de conexión **no está en el repositorio** (tiene la contraseña), así que hay que configurarla una vez en cada PC con una de estas opciones:
+La cadena de conexión y la clave para firmar los tokens JWT **no están en el repositorio**. Hay que configurarlas una vez en cada PC con una de estas opciones:
 
 ```bash
 # Opción A: user-secrets (queda fuera del repositorio)
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<cadena de conexión>" --project WebAPI
+dotnet user-secrets set "JwtSettings:SecretKey" "<clave aleatoria de al menos 32 caracteres>" --project WebAPI
 
-# Opción B: variable de entorno (PowerShell)
+# Opción B: variables de entorno (PowerShell)
 $env:ConnectionStrings__DefaultConnection = "<cadena de conexión>"
+$env:JwtSettings__SecretKey = "<clave aleatoria de al menos 32 caracteres>"
 ```
 
-También se puede crear `WebAPI/appsettings.Development.json`, que está en `.gitignore`.
+También se puede copiar `WebAPI/appsettings.Development.example.json` como `WebAPI/appsettings.Development.json` (está en `.gitignore`) y completar los valores.
+
+Si falta la clave JWT, o si la API no puede conectarse ni crear la base, la API no arranca y muestra el motivo. Si la base está vacía, la API crea las tablas y los datos de prueba al iniciar (`EnsureCreated`); no hace falta ningún script SQL. Los datos de prueba incluyen turnos, consultas, facturas y multas de los últimos tres meses, para que los reportes por período muestren meses distintos.
 
 ### 2. Ejecutar
 
@@ -135,8 +139,18 @@ Las claves se guardan con hash (HMAC-SHA256 con salt). Al dar de alta un pacient
 
 ### 4. Pruebas
 
+El proyecto `Application.Services.Tests` (xUnit) forma parte de la solución:
+
 ```bash
-dotnet test Application.Services.Tests
+dotnet test DentalClinic.sln
+```
+
+### 5. Generar el .zip del código
+
+Para entregar el código sin `.git`, `.vs`, `bin`, `obj`, archivos `*.user` ni `appsettings.Development.json`, se genera desde git (solo incluye los archivos versionados):
+
+```bash
+git archive --format=zip -o TurnoMolar.zip HEAD
 ```
 
 ---

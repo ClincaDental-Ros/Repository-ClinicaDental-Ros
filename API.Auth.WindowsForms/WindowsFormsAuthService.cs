@@ -46,9 +46,9 @@ namespace API.Auth.WindowsForms
                     if (!string.IsNullOrEmpty(entidadClaim) && int.TryParse(entidadClaim, out var parsedEntidad)) _entidadId = parsedEntidad;
                 }
             }
-            catch
+            catch (ArgumentException)
             {
-                
+                // El token no se pudo leer: se mantiene la sesión con los datos de la respuesta del login.
             }
 
             OnAuthenticationStateChanged?.Invoke(true);

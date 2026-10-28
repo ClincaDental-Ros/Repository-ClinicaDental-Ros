@@ -6,7 +6,7 @@ namespace API.Clients
 {
     public abstract class BaseApiClient
     {
-        // WindowsForms: HttpClient compartido + AuthServiceProvider (sesión única de escritorio)
+        // Escritorio: un HttpClient compartido y la sesión única de AuthServiceProvider.
         private static string _baseUrl = "http://localhost:5263";
         private static readonly HttpClient _sharedHttpClient = new();
         private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -29,11 +29,11 @@ namespace API.Clients
             _sharedHttpClient.BaseAddress = new Uri(_baseUrl);
         }
 
-        // Blazor.Server: un HttpClient y un IAuthService por usuario, inyectados por DI
+        // Web (Blazor.Server): HttpClient y sesión propios de cada usuario, inyectados por DI.
         private readonly HttpClient? _ownHttpClient;
         private readonly IAuthService? _ownAuthService;
 
-        // Usado por WindowsForms (new AuthApiClient())
+        // Usado por WindowsForms
         protected BaseApiClient()
         {
         }
@@ -45,6 +45,10 @@ namespace API.Clients
             _ownAuthService = authService;
         }
 
+        /// <summary>
+        /// Solo para el escritorio, que tiene una única sesión. En la web el aviso de 401 va a la sesión
+        /// de cada usuario (INotificaSesionExpirada) y no se comparte entre usuarios conectados.
+        /// </summary>
         public static event Action? OnUnauthorized;
 
         protected Task<HttpClient> GetConfiguredClientAsync()
@@ -67,15 +71,18 @@ namespace API.Clients
             return Task.FromResult(client);
         }
 
+ 
         /// <summary>
-        /// Lanza una excepción si la respuesta no fue exitosa. Usa el campo "message" que devuelve
-        /// la API (ValidationExceptionHandler) para mostrar un mensaje legible al usuario.
+        /// Lanza una excepción si la respuesta no fue exitosa, con el "message" que devuelve la API.
         /// </summary>
-        private static async Task VerificarRespuestaAsync(HttpResponseMessage response)
+        private async Task VerificarRespuestaAsync(HttpResponseMessage response)
         {
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                OnUnauthorized?.Invoke();
+                if (_ownAuthService is INotificaSesionExpirada sesion)
+                    sesion.NotificarSesionExpirada();
+                else if (_ownAuthService == null)
+                    OnUnauthorized?.Invoke();
                 throw new UnauthorizedAccessException("Sesión expirada o no autorizada.");
             }
 

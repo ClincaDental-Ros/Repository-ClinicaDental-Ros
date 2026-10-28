@@ -296,20 +296,35 @@
 
         if (!confirmado || seleccionado == null) return;
 
-        if (accionPendiente == TipoAccionConfirmar.ToggleEstado)
+        try
         {
-            seleccionado.EstadoHabilitado = !seleccionado.EstadoHabilitado;
-            await ApiClient.UpdateAsync(seleccionado);
-            await CargarPacientes();
-        }
-        else if (accionPendiente == TipoAccionConfirmar.Eliminar)
-        {
-            var ok = await ApiClient.DeleteAsync(seleccionado.Id);
-            if (ok)
+            if (accionPendiente == TipoAccionConfirmar.ToggleEstado)
             {
-                seleccionado = null;
+                var cambio = !seleccionado.EstadoHabilitado;
+                seleccionado.EstadoHabilitado = cambio;
+                try
+                {
+                    await ApiClient.UpdateAsync(seleccionado);
+                }
+                catch
+                {
+                    seleccionado.EstadoHabilitado = !cambio;
+                    throw;
+                }
                 await CargarPacientes();
             }
+            else if (accionPendiente == TipoAccionConfirmar.Eliminar)
+            {
+                await ApiClient.DeleteAsync(seleccionado.Id);
+                seleccionado = null;
+                await CargarPacientes();
+                lblEstado = "Paciente eliminado.";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            // Por ejemplo: el paciente tiene turnos o historia clínica y no se puede eliminar.
+            lblEstado = ex.Message;
         }
     }
 }

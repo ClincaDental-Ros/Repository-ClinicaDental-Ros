@@ -1,4 +1,5 @@
 ﻿@inject PacienteApiClient ApiClient
+@inject ObraSocialApiClient ObraSocialClient
 
 @if (Show)
 {
@@ -64,17 +65,12 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Obra Social *:</label>
-                            <select class="form-select" @bind="selectedObraSocialIndex">
-                                <option value="0">Particular (Sin Obra Social)</option>
-                                <option value="1">OSDE</option>
-                                <option value="2">Swiss Medical</option>
-                                <option value="3">IOMA</option>
-                                <option value="4">IAPOS</option>
-                                <option value="5">Sancor Salud</option>
-                                <option value="6">Federada Salud</option>
-                                <option value="7">Jerárquicos Salud</option>
-                                <option value="8">Galeno</option>
-                                <option value="9">Otra (Especificar)</option>
+                            @* La lista sale de la base (api/obras-sociales), así siempre coincide con las coberturas reales. *@
+                            <select class="form-select" @bind="selectedObraSocialId">
+                                @foreach (var os in obrasSociales)
+                                {
+                                    <option value="@os.Id">@os.Nombre (@os.Plan)</option>
+                                }
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -133,22 +129,30 @@
     private string errorMessage = "";
     private string tipoDoc = "DNI";
     private string dniTexto = "";
-    private int selectedObraSocialIndex = 0;
+    private int selectedObraSocialId = 0;
+    private List<ObraSocialDTO> obrasSociales = new();
+    private bool estabaAbierto;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        if (Show)
+        if (Show && !estabaAbierto)
         {
             dniTexto = Model.Dni > 0 ? Model.Dni.ToString() : "";
-            selectedObraSocialIndex = Model.ObraSocialId switch
-            {
-                1 => 1,
-                2 => 2,
-                3 => 3,
-                _ => 0
-            };
             errorMessage = "";
+            try
+            {
+                obrasSociales = await ObraSocialClient.GetAllAsync();
+            }
+            catch (HttpRequestException ex)
+            {
+                errorMessage = $"No se pudieron cargar las obras sociales: {ex.Message}";
+            }
+
+            // Si el paciente no tiene, se propone "Particular" (si existe en la base).
+            var particular = obrasSociales.FirstOrDefault(o => o.PorcentajeCobertura == 0m) ?? obrasSociales.FirstOrDefault();
+            selectedObraSocialId = Model.ObraSocialId ?? particular?.Id ?? 0;
         }
+        estabaAbierto = Show;
     }
 
     private async Task Cerrar()
@@ -177,13 +181,12 @@
 
         try
         {
-            Model.ObraSocialId = selectedObraSocialIndex switch
+            if (!obrasSociales.Any(o => o.Id == selectedObraSocialId))
             {
-                1 => 1,
-                2 => 2,
-                3 => 3,
-                _ => 4
-            };
+                errorMessage = "Elegí una obra social de la lista.";
+                return;
+            }
+            Model.ObraSocialId = selectedObraSocialId;
 
             PacienteDTO? resultado;
             if (!IsEditing)

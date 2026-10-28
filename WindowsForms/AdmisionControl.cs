@@ -95,7 +95,7 @@ namespace WindowsForms
             dtpFecha = new DateTimePicker { Location = new Point(170, 17), Width = 130, Format = DateTimePickerFormat.Short, Value = DateTime.Today };
             dtpFecha.ValueChanged += DtpFecha_ValueChanged;
 
-            btnBuscar = new Button { Text = "🔄 Actualizar", Location = new Point(315, 13), Size = new Size(120, 36) };
+            btnBuscar = new Button { Text = "🔄 Actualizar", Location = new Point(310, 13), Size = new Size(135, 36) };
             UITheme.StylePrimaryButton(btnBuscar);
             btnBuscar.Click += BtnBuscar_Click;
 

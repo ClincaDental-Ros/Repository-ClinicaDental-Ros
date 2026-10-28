@@ -75,10 +75,9 @@ namespace Data
 
             if (!string.IsNullOrWhiteSpace(criteria.EstadoTurno))
             {
-                if (Enum.TryParse<TurnoOdontologico.EstadoTurnoEnum>(criteria.EstadoTurno, true, out var estadoEnum))
-                {
-                    query = query.Where(t => t.EstadoTurno == estadoEnum);
-                }
+                // El servicio ya validó el estado: uno inexistente se rechaza con 400 antes de llegar acá.
+                var estadoEnum = Enum.Parse<TurnoOdontologico.EstadoTurnoEnum>(criteria.EstadoTurno, true);
+                query = query.Where(t => t.EstadoTurno == estadoEnum);
             }
 
             return await query.OrderBy(t => t.Fecha).ThenBy(t => t.HorarioTurno).ToListAsync();
@@ -105,25 +104,13 @@ namespace Data
 
         public async Task<bool> UpdateAsync(TurnoOdontologico turno)
         {
+            // Las reglas de estado ya las aplicó la entidad (Cancelar, Atender, etc.); acá solo se persiste.
             var existing = await _context.Turnos.FindAsync(turno.Id);
             if (existing == null)
                 return false;
 
-            existing.SetFecha(turno.Fecha);
-            existing.SetHorarioTurno(turno.HorarioTurno);
-            existing.SetPacienteId(turno.PacienteId);
-            existing.SetOdontologoId(turno.OdontologoId);
-            existing.SetEspecialidadId(turno.EspecialidadId);
-            existing.SetMontoEstimado(turno.MontoEstimado);
-            if (turno.EstadoTurno == TurnoOdontologico.EstadoTurnoEnum.Cancelado)
-            {
-                existing.Cancelar(turno.MotivoCancelacion ?? "Cancelado");
-            }
-            else
-            {
-                existing.SetMotivo(turno.MotivoCancelacion);
-                existing.SetEstado(turno.EstadoTurno);
-            }
+            if (!ReferenceEquals(existing, turno))
+                _context.Entry(existing).CurrentValues.SetValues(turno);
 
             await _context.SaveChangesAsync();
             return true;
