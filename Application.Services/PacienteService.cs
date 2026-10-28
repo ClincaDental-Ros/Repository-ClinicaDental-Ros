@@ -1,6 +1,7 @@
 using Data;
 using Domain.Model;
 using DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services
 {
@@ -19,12 +20,14 @@ namespace Application.Services
     {
         private readonly IPacienteRepository _pacienteRepository;
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly TurnoMolarDbContext _context;
 
-        public PacienteService(IPacienteRepository pacienteRepository, IUsuarioRepository usuarioRepository)
+    public PacienteService(IPacienteRepository pacienteRepository, IUsuarioRepository usuarioRepository, TurnoMolarDbContext context)
         {
             _pacienteRepository = pacienteRepository;
             _usuarioRepository = usuarioRepository;
-        }
+           _context = context;
+         }
 
         public async Task<PacienteDTO?> GetAsync(int id)
         {
@@ -123,44 +126,43 @@ namespace Application.Services
             string createdUsername = "";
             string defaultPassword = "paciente123";
 
-            try
-            {
-                string baseUsername = !string.IsNullOrWhiteSpace(dto.Mail) && dto.Mail.Contains("@")
-                    ? dto.Mail.Split('@')[0].ToLower()
-                    : $"{dto.Nombre.ToLower().Replace(" ", "")}{dto.Dni}";
 
-                string username = baseUsername;
-                int counter = 1;
-                while (await _usuarioRepository.GetByUsernameAsync(username) != null)
-                {
-                    username = $"{baseUsername}{counter++}";
-                }
+            string baseUsername = !string.IsNullOrWhiteSpace(dto.Mail) && dto.Mail.Contains("@")
+            ? dto.Mail.Split('@')[0].ToLower()
+             : $"{dto.Nombre.ToLower().Replace(" ", "")}{dto.Dni}";
 
-                createdUsername = username;
+            string username = baseUsername;
 
-                var usuario = new Usuario(
-                    0,
-                    username,
-                    PasswordHasher.Hash(defaultPassword),
-                    "Paciente",
-                    $"{dto.Nombre} {dto.Apellido}",
-                    dto.Mail ?? $"{username}@turnomolar.com",
-                    dto.EstadoHabilitado,
-                    paciente.Id
-                );
+            int counter = 1;
 
-                await _usuarioRepository.AddAsync(usuario);
-            }
-            catch
-            {
-                
-            }
+         while (await _usuarioRepository.GetByUsernameAsync(username) != null)
+          username = $"{baseUsername}{counter++}";
+          createdUsername = username;
+     
+      using var transaction = await _context.Database.BeginTransactionAsync();
+      try
+      {
+        await _pacienteRepository.AddAsync(paciente);
+        var usuario = new Usuario(
+            0, username, PasswordHasher.Hash(defaultPassword),
+            "Paciente", $"{dto.Nombre} {dto.Apellido}",
+            dto.Mail ?? $"{username}@turnomolar.com",
+            dto.EstadoHabilitado, paciente.Id
+        );
+        await _usuarioRepository.AddAsync(usuario);
+        await transaction.CommitAsync();
+      }
+      catch
+      {
+        await transaction.RollbackAsync();
+        throw;
+      }
+      var resultDto = MapToDTO(paciente);
+      resultDto.Username = createdUsername;
+      resultDto.PasswordDefault = defaultPassword;
+      return resultDto;
+    }
 
-            var resultDto = MapToDTO(paciente);
-            resultDto.Username = string.IsNullOrEmpty(createdUsername) ? dto.Username : createdUsername;
-            resultDto.PasswordDefault = defaultPassword;
-            return resultDto;
-        }
 
         public async Task<bool> UpdateAsync(PacienteDTO dto)
         {
@@ -206,22 +208,31 @@ namespace Application.Services
             return updated;
         }
 
-        public async Task<bool> DeleteAsync(int id)
-        {
-            try
-            {
-                var usuario = await _usuarioRepository.GetByEntidadIdAsync(id, "Paciente");
-                if (usuario != null)
-                {
-                    await _usuarioRepository.DeleteAsync(usuario.Id);
-                }
-            }
-            catch { }
+    public async Task<bool> DeleteAsync(int id)
+    {
+      
+      var tieneTurnos = await _pacienteRepository.TieneRegistrosAsociadosAsync(id);
+      if (tieneTurnos)
+        throw new InvalidOperationException("No se puede eliminar el paciente porque tiene turnos, consultas o facturas registradas.");
+              
+      using var transaction = await _context.Database.BeginTransactionAsync();
+      try
+      {
+        var usuario = await _usuarioRepository.GetByEntidadIdAsync(id, "Paciente");
+        if (usuario != null)
+          await _usuarioRepository.DeleteAsync(usuario.Id);
+        await _pacienteRepository.DeleteAsync(id);
+        await transaction.CommitAsync();
+        return true;
+      }
+      catch
+      {
+        await transaction.RollbackAsync();
+        throw;
+      }
+    }
 
-            return await _pacienteRepository.DeleteAsync(id);
-        }
-
-        public async Task<bool> ToggleHabilitacionAsync(int id, bool habilitar)
+    public async Task<bool> ToggleHabilitacionAsync(int id, bool habilitar)
         {
             var paciente = await _pacienteRepository.GetAsync(id);
             if (paciente == null) return false;

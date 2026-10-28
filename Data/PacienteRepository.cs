@@ -8,12 +8,19 @@ namespace Data
     {
         private readonly TurnoMolarDbContext _context;
 
-        public PacienteRepository(TurnoMolarDbContext context)
+        
+    public PacienteRepository(TurnoMolarDbContext context)
         {
             _context = context;
         }
 
-        public async Task<Paciente?> GetAsync(int id)
+    public async Task<bool> TieneRegistrosAsociadosAsync(int id)
+    {
+      return await _context.Turnos.AnyAsync(t => t.PacienteId == id)
+          || await _context.Consultas.AnyAsync(c => c.TurnoId != 0 && _context.Turnos.Any(t => t.Id == c.TurnoId && t.PacienteId == id))
+          || await _context.Facturas.AnyAsync(f => f.PacienteId == id);
+    }
+    public async Task<Paciente?> GetAsync(int id)
         {
             return await _context.Pacientes
                 .Include(p => p.ObraSocial)

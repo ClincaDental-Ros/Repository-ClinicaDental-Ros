@@ -39,7 +39,8 @@ namespace WebAPI
                 return Results.Created($"/api/pacientes/{created.Id}", created);
             }).RequireAuthorization("AdminOrRecepcionista");
 
-            // El personal edita cualquier ficha; un paciente solo sus datos de contacto (no su habilitación).
+
+
             group.MapPut("/{id:int}", async (int id, PacienteDTO dto, ClaimsPrincipal user, IPacienteService service) =>
             {
                 var esAdminORecepcion = user.IsInRole("Admin") || user.IsInRole("Recepcionista");
@@ -58,13 +59,22 @@ namespace WebAPI
                 return updated ? Results.Ok(dto) : Results.NotFound();
             });
 
-            group.MapDelete("/{id:int}", async (int id, IPacienteService service) =>
-            {
-                var deleted = await service.DeleteAsync(id);
-                return deleted ? Results.NoContent() : Results.NotFound();
-            }).RequireAuthorization("AdminOnly");
 
-            group.MapPatch("/{id:int}/habilitar", async (int id, bool habilitar, IPacienteService service) =>
+      group.MapDelete("/{id:int}", async (int id, IPacienteService service) =>
+      {
+        try
+        {
+          var deleted = await service.DeleteAsync(id);
+          return deleted ? Results.NoContent() : Results.NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+          return Results.BadRequest(new { error = ex.Message });
+        }
+      }).RequireAuthorization("AdminOnly");
+
+
+      group.MapPatch("/{id:int}/habilitar", async (int id, bool habilitar, IPacienteService service) =>
             {
                 var ok = await service.ToggleHabilitacionAsync(id, habilitar);
                 return ok ? Results.Ok() : Results.NotFound();

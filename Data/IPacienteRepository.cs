@@ -12,5 +12,6 @@ namespace Data
         Task<bool> DeleteAsync(int id);
         Task<bool> EmailExistsAsync(string email, int? excludeId = null);
         Task<bool> DniExistsAsync(int dni, int? excludeId = null);
-    }
+        Task<bool> TieneRegistrosAsociadosAsync(int id);
+  }
 }
