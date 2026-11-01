@@ -1,190 +1,57 @@
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace WindowsForms
 {
-    public class AdmisionControl : UserControl
+    public partial class AdmisionControl : UserControl
     {
         private readonly TurnoApiClient _turnoClient = new();
         private readonly MultaApiClient _multaClient = new();
-
-        private DateTimePicker dtpFecha = null!;
-        private Button btnBuscar = null!;
-        private Button btnConfirmarPresencia = null!;
-        private Button btnRegistrarAusencia = null!;
-        private Button btnVerMultas = null!;
-        private DataGridView gridAdmision = null!;
-        private FlowLayoutPanel pnlStats = null!;
-        private Label lblEstado = null!;
         private List<TurnoOdontologicoDTO> _turnos = new();
 
         public AdmisionControl()
         {
             InitializeComponent();
+            gridAdmision.AutoGenerateColumns = false;
             if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
             {
-                BuildUI();
                 this.Load += OnControlLoad;
             }
         }
 
-        private void InitializeComponent()
+        private void GridAdmision_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
-            this.SuspendLayout();
-            this.Name = "AdmisionControl";
-            this.Size = new Size(1000, 650);
-            this.ResumeLayout(false);
-        }
-
-        private void BuildUI()
-        {
-            this.Dock = DockStyle.Fill;
-            this.BackColor = UITheme.Background;
-            this.Font = UITheme.RegularFont;
-
-            var pnlTop = new Panel
+            if ((gridAdmision.Columns[e.ColumnIndex].Name == "Estado" || gridAdmision.Columns[e.ColumnIndex].Name == "colEstado") && e.Value is string estado && e.CellStyle != null)
             {
-                Dock = DockStyle.Top,
-                Height = 70,
-                Padding = new Padding(25, 15, 25, 10),
-                BackColor = UITheme.CardBackground
-            };
-
-            var lblTitle = new Label
-            {
-                Text = "Módulo de Recepción y Admisión Diaria",
-                Font = UITheme.HeaderFont,
-                ForeColor = UITheme.Primary,
-                Location = new Point(25, 12),
-                AutoSize = true
-            };
-
-            var lblSubtitle = new Label
-            {
-                Text = "Control de sala de espera, confirmación de presencia y aplicación de sanciones por ausentismo",
-                Font = UITheme.SmallFont,
-                ForeColor = UITheme.TextSecondary,
-                Location = new Point(27, 40),
-                AutoSize = true
-            };
-
-            pnlTop.Controls.Add(lblTitle);
-            pnlTop.Controls.Add(lblSubtitle);
-
-            pnlStats = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Top,
-                Height = 95,
-                Padding = new Padding(25, 10, 25, 5),
-                BackColor = UITheme.Background,
-                WrapContents = false,
-                AutoScroll = true
-            };
-
-            var pnlBar = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 65,
-                Padding = new Padding(25, 12, 25, 12),
-                BackColor = UITheme.CardBackground
-            };
-
-            var lblFec = new Label { Text = "Fecha de Admisión:", Location = new Point(25, 20), AutoSize = true, Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
-            dtpFecha = new DateTimePicker { Location = new Point(170, 17), Width = 130, Format = DateTimePickerFormat.Short, Value = DateTime.Today };
-            dtpFecha.ValueChanged += DtpFecha_ValueChanged;
-
-            btnBuscar = new Button { Text = "🔄 Actualizar", Location = new Point(310, 13), Size = new Size(135, 36) };
-            UITheme.StylePrimaryButton(btnBuscar);
-            btnBuscar.Click += BtnBuscar_Click;
-
-            btnConfirmarPresencia = new Button { Text = "✅ Confirmar Presencia", Location = new Point(450, 13), Size = new Size(190, 36) };
-            UITheme.StyleSuccessButton(btnConfirmarPresencia);
-            btnConfirmarPresencia.Click += BtnConfirmarPresencia_Click;
-
-            btnRegistrarAusencia = new Button { Text = "⚠️ Registrar Ausencia (Multa)", Location = new Point(650, 13), Size = new Size(230, 36) };
-            UITheme.StyleDangerButton(btnRegistrarAusencia);
-            btnRegistrarAusencia.Click += BtnRegistrarAusencia_Click;
-
-            btnVerMultas = new Button { Text = "💳 Cobro de Multas", Location = new Point(890, 13), Size = new Size(160, 36) };
-            UITheme.StyleSecondaryButton(btnVerMultas);
-            btnVerMultas.Click += BtnVerMultas_Click;
-
-            pnlBar.Controls.Add(lblFec);
-            pnlBar.Controls.Add(dtpFecha);
-            pnlBar.Controls.Add(btnBuscar);
-            pnlBar.Controls.Add(btnConfirmarPresencia);
-            pnlBar.Controls.Add(btnRegistrarAusencia);
-            pnlBar.Controls.Add(btnVerMultas);
-
-            var pnlGrid = new Panel { Dock = DockStyle.Fill, Padding = new Padding(25, 15, 25, 10), BackColor = UITheme.Background };
-            gridAdmision = new DataGridView { Dock = DockStyle.Fill };
-            UITheme.StyleDataGridView(gridAdmision);
-            ConfigurarColumnas();
-
-            lblEstado = new Label
-            {
-                Dock = DockStyle.Bottom,
-                Height = 32,
-                Text = "Cargando citas...",
-                ForeColor = UITheme.TextSecondary,
-                Font = UITheme.SmallFont,
-                Padding = new Padding(25, 6, 0, 0),
-                BackColor = UITheme.CardBackground
-            };
-
-            pnlGrid.Controls.Add(gridAdmision);
-
-            this.Controls.Add(pnlGrid);
-            this.Controls.Add(lblEstado);
-            this.Controls.Add(pnlBar);
-            this.Controls.Add(pnlStats);
-            this.Controls.Add(pnlTop);
-        }
-
-        private void ConfigurarColumnas()
-        {
-            gridAdmision.Columns.Clear();
-            gridAdmision.AutoGenerateColumns = false;
-
-            gridAdmision.Columns.Add(new DataGridViewTextBoxColumn { Name = "Hora", HeaderText = "Horario", Width = 90, DataPropertyName = "HorarioTurno" });
-            gridAdmision.Columns.Add(new DataGridViewTextBoxColumn { Name = "Paciente", HeaderText = "Paciente Citado", Width = 240, DataPropertyName = "PacienteNombre" });
-            gridAdmision.Columns.Add(new DataGridViewTextBoxColumn { Name = "Odontologo", HeaderText = "Profesional Asignado", Width = 230, DataPropertyName = "OdontologoNombre" });
-            gridAdmision.Columns.Add(new DataGridViewTextBoxColumn { Name = "Especialidad", HeaderText = "Especialidad", Width = 200, DataPropertyName = "EspecialidadNombre" });
-            gridAdmision.Columns.Add(new DataGridViewTextBoxColumn { Name = "Estado", HeaderText = "Estado Actual", Width = 180, DataPropertyName = "EstadoTurno" });
-
-            gridAdmision.CellFormatting += (s, e) =>
-            {
-                if (gridAdmision.Columns[e.ColumnIndex].Name == "Estado" && e.Value is string estado && e.CellStyle != null)
+                switch (estado)
                 {
-                    switch (estado)
-                    {
-                        case "Pendiente":
-                            e.Value = "⏳ Citado (Pendiente)";
-                            e.CellStyle.ForeColor = Color.FromArgb(180, 100, 0);
-                            break;
-                        case "Presente":
-                            e.Value = "✅ En Sala de Espera";
-                            e.CellStyle.ForeColor = UITheme.Accent;
-                            e.CellStyle.Font = UITheme.RegularBold;
-                            break;
-                        case "Atendido":
-                            e.Value = "🩺 Atendido / En Caja";
-                            e.CellStyle.ForeColor = UITheme.Success;
-                            break;
-                        case "NoAsistido":
-                            e.Value = "❌ Ausente (Multado)";
-                            e.CellStyle.ForeColor = UITheme.Danger;
-                            e.CellStyle.Font = UITheme.RegularBold;
-                            break;
-                        case "Cancelado":
-                            e.Value = "🚫 Cancelado";
-                            e.CellStyle.ForeColor = Color.Gray;
-                            break;
-                    }
+                    case "Pendiente":
+                        e.Value = "⏳ Citado (Pendiente)";
+                        e.CellStyle.ForeColor = Color.FromArgb(180, 100, 0);
+                        break;
+                    case "Presente":
+                        e.Value = "✅ En Sala de Espera";
+                        e.CellStyle.ForeColor = UITheme.Accent;
+                        e.CellStyle.Font = UITheme.RegularBold;
+                        break;
+                    case "Atendido":
+                        e.Value = "🩺 Atendido / En Caja";
+                        e.CellStyle.ForeColor = UITheme.Success;
+                        break;
+                    case "NoAsistido":
+                        e.Value = "❌ Ausente (Multado)";
+                        e.CellStyle.ForeColor = UITheme.Danger;
+                        e.CellStyle.Font = UITheme.RegularBold;
+                        break;
+                    case "Cancelado":
+                        e.Value = "🚫 Cancelado";
+                        e.CellStyle.ForeColor = Color.Gray;
+                        break;
                 }
-            };
+            }
         }
 
         private async void OnControlLoad(object? sender, EventArgs e)

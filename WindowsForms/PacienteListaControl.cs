@@ -5,20 +5,9 @@ using System.Windows.Forms;
 
 namespace WindowsForms
 {
-    public class PacienteListaControl : UserControl
+    public partial class PacienteListaControl : UserControl
     {
         private readonly PacienteApiClient _apiClient = new();
-
-        private TextBox txtBuscar = null!;
-        private CheckBox chkSoloHabilitados = null!;
-        private Button btnBuscar = null!;
-        private Button btnNuevo = null!;
-        private Button btnEditar = null!;
-        private Button btnEliminar = null!;
-        private Button btnToggleEstado = null!;
-        private DataGridView gridPacientes = null!;
-        private Label lblEstado = null!;
-        private FlowLayoutPanel pnlStats = null!;
         private List<PacienteDTO> _pacientes = new();
 
         public PacienteListaControl()
@@ -26,170 +15,8 @@ namespace WindowsForms
             InitializeComponent();
             if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
             {
-                BuildUI();
                 this.Load += OnControlLoad;
             }
-        }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            this.Name = "PacienteListaControl";
-            this.Size = new Size(1000, 650);
-            this.ResumeLayout(false);
-        }
-
-        private void BuildUI()
-        {
-            this.Dock = DockStyle.Fill;
-            this.BackColor = UITheme.Background;
-            this.Font = UITheme.RegularFont;
-
-            var pnlTop = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 70,
-                Padding = new Padding(25, 15, 25, 10),
-                BackColor = UITheme.CardBackground
-            };
-
-            var lblTitle = new Label
-            {
-                Text = "Gestión de Pacientes y Fichas Médicas",
-                Font = UITheme.HeaderFont,
-                ForeColor = UITheme.Primary,
-                Location = new Point(25, 12),
-                AutoSize = true
-            };
-
-            var lblSubtitle = new Label
-            {
-                Text = "Padrón general, control de habilitaciones, obras sociales y antecedentes clínicos",
-                Font = UITheme.SmallFont,
-                ForeColor = UITheme.TextSecondary,
-                Location = new Point(27, 40),
-                AutoSize = true
-            };
-
-            pnlTop.Controls.Add(lblTitle);
-            pnlTop.Controls.Add(lblSubtitle);
-
-            pnlStats = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Top,
-                Height = 95,
-                Padding = new Padding(25, 10, 25, 5),
-                BackColor = UITheme.Background,
-                WrapContents = false,
-                AutoScroll = true
-            };
-
-            var pnlFilters = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 65,
-                Padding = new Padding(25, 12, 25, 12),
-                BackColor = UITheme.CardBackground
-            };
-
-            var lblSearch = new Label { Text = "Buscar:", Location = new Point(15, 20), AutoSize = true, Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
-            txtBuscar = new TextBox { Location = new Point(75, 17), Width = 220, PlaceholderText = "Nombre, Apellido, DNI o Email..." };
-            txtBuscar.KeyDown += TxtBuscar_KeyDown;
-
-            chkSoloHabilitados = new CheckBox { Text = "Solo Habilitados", Location = new Point(305, 19), AutoSize = true, Font = UITheme.RegularFont };
-            chkSoloHabilitados.CheckedChanged += ChkSoloHabilitados_CheckedChanged;
-
-            btnBuscar = new Button { Text = "🔍 Buscar", Location = new Point(440, 13), Size = new Size(100, 36) };
-            UITheme.StylePrimaryButton(btnBuscar);
-            btnBuscar.Click += BtnBuscar_Click;
-
-            btnNuevo = new Button { Text = "+ Nuevo Paciente", Location = new Point(550, 13), Size = new Size(140, 36) };
-            UITheme.StyleSuccessButton(btnNuevo);
-            btnNuevo.Click += (s, e) => AbrirDetalle(null);
-
-            btnEditar = new Button { Text = "✏️ Modificar", Location = new Point(700, 13), Size = new Size(110, 36) };
-            UITheme.StyleSecondaryButton(btnEditar);
-            btnEditar.Click += (s, e) => ModificarSeleccionado();
-
-            btnToggleEstado = new Button { Text = "🔒 Cambiar Estado", Location = new Point(820, 13), Size = new Size(130, 36) };
-            UITheme.StyleSecondaryButton(btnToggleEstado);
-            btnToggleEstado.Click += BtnToggleEstado_Click;
-
-            btnEliminar = new Button { Text = "🗑️ Eliminar", Location = new Point(960, 13), Size = new Size(100, 36) };
-            UITheme.StyleDangerButton(btnEliminar);
-            btnEliminar.Click += BtnEliminar_Click;
-
-            pnlFilters.Controls.Add(lblSearch);
-            pnlFilters.Controls.Add(txtBuscar);
-            pnlFilters.Controls.Add(chkSoloHabilitados);
-            pnlFilters.Controls.Add(btnBuscar);
-            pnlFilters.Controls.Add(btnNuevo);
-            pnlFilters.Controls.Add(btnEditar);
-            pnlFilters.Controls.Add(btnToggleEstado);
-            pnlFilters.Controls.Add(btnEliminar);
-
-            var pnlGrid = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(25, 15, 25, 10),
-                BackColor = UITheme.Background
-            };
-
-            gridPacientes = new DataGridView { Dock = DockStyle.Fill };
-            UITheme.StyleDataGridView(gridPacientes);
-            ConfigurarColumnas();
-            gridPacientes.CellDoubleClick += (s, e) => ModificarSeleccionado();
-
-            lblEstado = new Label
-            {
-                Dock = DockStyle.Bottom,
-                Height = 32,
-                Text = "Cargando pacientes...",
-                ForeColor = UITheme.TextSecondary,
-                Font = UITheme.SmallFont,
-                Padding = new Padding(25, 6, 0, 0),
-                BackColor = UITheme.CardBackground
-            };
-
-            pnlGrid.Controls.Add(gridPacientes);
-
-            this.Controls.Add(pnlGrid);
-            this.Controls.Add(lblEstado);
-            this.Controls.Add(pnlFilters);
-            this.Controls.Add(pnlStats);
-            this.Controls.Add(pnlTop);
-        }
-
-        private void ConfigurarColumnas()
-        {
-            gridPacientes.Columns.Clear();
-            gridPacientes.AutoGenerateColumns = false;
-
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", HeaderText = "ID", Width = 60, DataPropertyName = "Id" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Dni", HeaderText = "DNI / Doc.", Width = 110, DataPropertyName = "Dni" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Apellido", HeaderText = "Apellido", Width = 150, DataPropertyName = "Apellido" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nombre", HeaderText = "Nombre", Width = 150, DataPropertyName = "Nombre" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Username", HeaderText = "Usuario Portal", Width = 140, DataPropertyName = "Username" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Telefono", HeaderText = "Teléfono", Width = 130, DataPropertyName = "Telefono" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Mail", HeaderText = "Correo Electrónico", Width = 220, DataPropertyName = "Mail" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "ObraSocial", HeaderText = "Obra Social / Cobertura", Width = 180, DataPropertyName = "ObraSocialNombre" });
-            gridPacientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "Estado", HeaderText = "Estado", Width = 140 });
-
-            gridPacientes.CellFormatting += (s, e) =>
-            {
-                if (gridPacientes.Columns[e.ColumnIndex].Name == "Estado" && e.RowIndex >= 0 && e.RowIndex < gridPacientes.Rows.Count)
-                {
-                    if (gridPacientes.Rows[e.RowIndex].DataBoundItem is PacienteDTO p)
-                    {
-                        e.Value = p.EstadoHabilitado ? "✅ Habilitado" : "❌ Inhabilitado";
-                        if (e.CellStyle != null)
-                        {
-                            e.CellStyle.ForeColor = p.EstadoHabilitado ? UITheme.Success : UITheme.Danger;
-                            e.CellStyle.Font = UITheme.RegularBold;
-                        }
-                    }
-                }
-            };
         }
 
         private async void OnControlLoad(object? sender, EventArgs e)
@@ -216,6 +43,16 @@ namespace WindowsForms
             await CargarPacientes();
         }
 
+        private void BtnNuevo_Click(object? sender, EventArgs e)
+        {
+            AbrirDetalle(null);
+        }
+
+        private void BtnEditar_Click(object? sender, EventArgs e)
+        {
+            ModificarSeleccionado();
+        }
+
         private async void BtnToggleEstado_Click(object? sender, EventArgs e)
         {
             await ToggleHabilitacion();
@@ -224,6 +61,27 @@ namespace WindowsForms
         private async void BtnEliminar_Click(object? sender, EventArgs e)
         {
             await EliminarSeleccionado();
+        }
+
+        private void GridPacientes_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            ModificarSeleccionado();
+        }
+
+        private void GridPacientes_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (gridPacientes.Columns[e.ColumnIndex].Name == "Estado" && e.RowIndex >= 0 && e.RowIndex < gridPacientes.Rows.Count)
+            {
+                if (gridPacientes.Rows[e.RowIndex].DataBoundItem is PacienteDTO p)
+                {
+                    e.Value = p.EstadoHabilitado ? "✅ Habilitado" : "❌ Inhabilitado";
+                    if (e.CellStyle != null)
+                    {
+                        e.CellStyle.ForeColor = p.EstadoHabilitado ? UITheme.Success : UITheme.Danger;
+                        e.CellStyle.Font = UITheme.RegularBold;
+                    }
+                }
+            }
         }
 
         public async Task CargarPacientes()

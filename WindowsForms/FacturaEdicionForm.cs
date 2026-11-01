@@ -1,5 +1,9 @@
 using API.Clients;
 using DTOs;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WindowsForms
@@ -8,7 +12,7 @@ namespace WindowsForms
     /// Alta y modificación de una factura (maestro) con sus ítems de insumos (detalle).
     /// Los precios, honorarios y el descuento de obra social los calcula la API al guardar.
     /// </summary>
-    public class FacturaEdicionForm : Form
+    public partial class FacturaEdicionForm : Form
     {
         private readonly FacturaApiClient _facturaClient = new();
         private readonly PacienteApiClient _pacienteClient = new();
@@ -19,16 +23,6 @@ namespace WindowsForms
         private readonly List<ItemFacturaDTO> _items = new();
         private List<InsumoDTO> _insumos = new();
 
-        private ComboBox cbPaciente = null!;
-        private ComboBox cbTurno = null!;
-        private TextBox txtDescripcion = null!;
-        private ComboBox cbInsumo = null!;
-        private NumericUpDown nudCantidad = null!;
-        private DataGridView gridItems = null!;
-        private Label lblTotalItems = null!;
-        private Label lblError = null!;
-        private Button btnGuardar = null!;
-
         private sealed record OpcionTurno(int? Id, string Texto)
         {
             public override string ToString() => Texto;
@@ -38,97 +32,38 @@ namespace WindowsForms
         {
             _facturaExistente = factura;
             InitializeComponent();
-            BuildUI();
-            this.Load += async (s, e) => await CargarDatosAsync();
+
+            if (_facturaExistente != null)
+            {
+                this.Text = $"Modificar Factura N° {_facturaExistente.Id}";
+                lblHeader.Text = "🧾 Editar Factura Pendiente";
+                cbPaciente.Enabled = false;
+            }
+
+            if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
+            {
+                this.Load += async (s, e) => await CargarDatosAsync();
+            }
         }
 
-        private void InitializeComponent()
+        private async void CbPaciente_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            this.SuspendLayout();
-            this.ClientSize = new Size(720, 640);
-            this.Name = "FacturaEdicionForm";
-            this.ResumeLayout(false);
+            await CargarTurnosAsync();
         }
 
-        private void BuildUI()
+        private void BtnAgregar_Click(object? sender, EventArgs e)
         {
-            bool esNueva = _facturaExistente == null;
-            this.Text = esNueva ? "Nueva Factura" : $"Modificar Factura N° {_facturaExistente!.Id}";
-            this.Size = new Size(720, 640);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.BackColor = UITheme.CardBackground;
-            this.Font = UITheme.RegularFont;
+            AgregarItem();
+        }
 
-            var lblHeader = new Label
-            {
-                Text = esNueva ? "🧾 Registrar Factura" : "🧾 Editar Factura Pendiente",
-                Font = UITheme.LargeTitleFont,
-                ForeColor = UITheme.Primary,
-                Location = new Point(25, 18),
-                AutoSize = true
-            };
+        private void BtnQuitar_Click(object? sender, EventArgs e)
+        {
+            QuitarItem();
+        }
 
-            // --- Maestro ---
-            var lblPac = new Label { Text = "Paciente *:", Location = new Point(25, 70), AutoSize = true, Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
-            cbPaciente = new ComboBox { Location = new Point(150, 66), Width = 520, DropDownStyle = ComboBoxStyle.DropDownList, Enabled = esNueva };
-            cbPaciente.SelectedIndexChanged += async (s, e) => await CargarTurnosAsync();
-
-            var lblTurno = new Label { Text = "Turno:", Location = new Point(25, 108), AutoSize = true, Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
-            cbTurno = new ComboBox { Location = new Point(150, 104), Width = 520, DropDownStyle = ComboBoxStyle.DropDownList };
-
-            var lblDesc = new Label { Text = "Descripción:", Location = new Point(25, 146), AutoSize = true, Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
-            txtDescripcion = new TextBox { Location = new Point(150, 142), Width = 520, PlaceholderText = "Opcional: si queda vacía se genera automáticamente" };
-
-            // --- Detalle ---
-            var lblDetalle = new Label { Text = "Ítems (insumos):", Location = new Point(25, 190), AutoSize = true, Font = UITheme.SubheaderFont, ForeColor = UITheme.Primary };
-
-            cbInsumo = new ComboBox { Location = new Point(25, 222), Width = 380, DropDownStyle = ComboBoxStyle.DropDownList };
-            nudCantidad = new NumericUpDown { Location = new Point(415, 222), Width = 80, Minimum = 1, Maximum = 1000, Value = 1 };
-
-            var btnAgregar = new Button { Text = "➕ Agregar", Location = new Point(505, 219), Size = new Size(80, 30) };
-            UITheme.StylePrimaryButton(btnAgregar);
-            btnAgregar.Click += (s, e) => AgregarItem();
-
-            var btnQuitar = new Button { Text = "Quitar", Location = new Point(590, 219), Size = new Size(80, 30) };
-            UITheme.StyleDangerButton(btnQuitar);
-            btnQuitar.Click += (s, e) => QuitarItem();
-
-            gridItems = new DataGridView { Location = new Point(25, 260), Size = new Size(645, 200) };
-            UITheme.StyleDataGridView(gridItems);
-            gridItems.AutoGenerateColumns = false;
-            gridItems.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Insumo", Width = 290, DataPropertyName = "InsumoNombre" });
-            gridItems.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cant.", Width = 80, DataPropertyName = "CantidadInsumo" });
-            gridItems.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "P. Unitario", Width = 120, DataPropertyName = "PrecioUnitario", DefaultCellStyle = new DataGridViewCellStyle { Format = "C2" } });
-            gridItems.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Subtotal", Width = 120, DataPropertyName = "Subtotal", DefaultCellStyle = new DataGridViewCellStyle { Format = "C2" } });
-
-            lblTotalItems = new Label { Location = new Point(25, 470), Size = new Size(645, 22), Font = UITheme.RegularBold, ForeColor = UITheme.TextPrimary };
-            var lblNota = new Label
-            {
-                Text = "Los honorarios del turno y el descuento de la obra social se calculan al guardar.",
-                Location = new Point(25, 494),
-                AutoSize = true,
-                Font = UITheme.SmallFont,
-                ForeColor = UITheme.TextSecondary
-            };
-
-            lblError = new Label { Location = new Point(25, 520), Size = new Size(645, 22), ForeColor = UITheme.Danger, Font = UITheme.SmallBold };
-
-            btnGuardar = new Button { Text = "💾 Guardar", Location = new Point(400, 550), Size = new Size(130, 38) };
-            UITheme.StyleSuccessButton(btnGuardar);
-            btnGuardar.Click += async (s, e) => await GuardarAsync();
-
-            var btnCancelar = new Button { Text = "Cancelar", Location = new Point(540, 550), Size = new Size(130, 38), DialogResult = DialogResult.Cancel };
-            UITheme.StyleSecondaryButton(btnCancelar);
-
-            this.CancelButton = btnCancelar;
-            this.Controls.AddRange(new Control[]
-            {
-                lblHeader, lblPac, cbPaciente, lblTurno, cbTurno, lblDesc, txtDescripcion,
-                lblDetalle, cbInsumo, nudCantidad, btnAgregar, btnQuitar, gridItems,
-                lblTotalItems, lblNota, lblError, btnGuardar, btnCancelar
-            });
+        private async void BtnGuardar_Click(object? sender, EventArgs e)
+        {
+            await GuardarAsync();
         }
 
         private async Task CargarDatosAsync()

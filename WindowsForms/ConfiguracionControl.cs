@@ -2,352 +2,114 @@ using API.Auth.WindowsForms;
 using API.Clients;
 using DTOs;
 using System.ComponentModel;
+using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WindowsForms
 {
-    public class ConfiguracionControl : UserControl
+    public partial class ConfiguracionControl : UserControl
     {
-        private readonly WindowsFormsAuthService _authService;
+        private readonly WindowsFormsAuthService _authService = null!;
         private readonly PacienteApiClient _pacienteClient = new();
         private readonly AuthApiClient _authClient = new();
-
-        private PictureBox picAvatar = null!;
-        private Label lblAvatarIniciales = null!;
-        private Button btnCambiarFoto = null!;
-        private Button btnQuitarFoto = null!;
-
-        private TextBox txtNombre = null!;
-        private TextBox txtApellido = null!;
-        private TextBox txtDni = null!;
-        private TextBox txtMail = null!;
-        private TextBox txtTelefono = null!;
-        private TextBox txtDomicilio = null!;
-
-        private ComboBox cbObraSocial = null!;
-        private TextBox txtAfiliado = null!;
-
-        private TextBox txtPassActual = null!;
-        private TextBox txtPassNueva = null!;
-        private TextBox txtPassConfirmar = null!;
-        private Label lblPassMatch = null!;
-
-        private CheckBox chkNotifEmail = null!;
-        private CheckBox chkNotifWhatsapp = null!;
-
-        private Button btnGuardar = null!;
-        private Label lblFeedback = null!;
 
         private bool _fotoModificada = false;
         private bool _fotoEliminada = false;
         private PacienteDTO? _pacienteActual;
         private Action? _onPerfilActualizado;
 
-        public ConfiguracionControl(WindowsFormsAuthService authService, Action? onPerfilActualizado = null)
+        public ConfiguracionControl()
+        {
+            InitializeComponent();
+            if (cbObraSocial.Items.Count > 1)
+                cbObraSocial.SelectedIndex = 1;
+        }
+
+        public ConfiguracionControl(WindowsFormsAuthService authService, Action? onPerfilActualizado = null) : this()
         {
             _authService = authService;
             _onPerfilActualizado = onPerfilActualizado;
-            InitializeComponent();
             if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
             {
-                BuildUI();
                 this.Load += OnControlLoad;
             }
         }
 
-        private void InitializeComponent()
+        private void PnlCard_Paint(object? sender, PaintEventArgs e)
         {
-            this.SuspendLayout();
-            this.Name = "ConfiguracionControl";
-            this.Size = new Size(1000, 720);
-            this.ResumeLayout(false);
+            if (sender is not Control card) return;
+            using var pen = new Pen(UITheme.BorderColor, 1);
+            e.Graphics.DrawRectangle(pen, 0, 0, card.Width - 1, card.Height - 1);
         }
 
-        private void BuildUI()
+        private void PicAvatar_Paint(object? sender, PaintEventArgs e)
         {
-            this.Dock = DockStyle.Fill;
-            this.BackColor = UITheme.Background;
-            this.Font = UITheme.RegularFont;
+            using var path = new GraphicsPath();
+            path.AddEllipse(0, 0, 80, 80);
+            picAvatar.Region = new Region(path);
+        }
 
-            var pnlTop = new Panel
+        private void BtnQuitarFoto_Click(object? sender, EventArgs e)
+        {
+            picAvatar.Image?.Dispose();
+            picAvatar.Image = null;
+            picAvatar.Visible = false;
+            lblAvatarIniciales.Visible = true;
+            _fotoModificada = true;
+            _fotoEliminada = true;
+        }
+
+        private void BtnEyeActual_Click(object? sender, EventArgs e)
+        {
+            txtPassActual.UseSystemPasswordChar = !txtPassActual.UseSystemPasswordChar;
+            btnEyeActual.Text = txtPassActual.UseSystemPasswordChar ? UITheme.IconoVer : UITheme.IconoOcultar;
+        }
+
+        private void BtnEyeNueva_Click(object? sender, EventArgs e)
+        {
+            txtPassNueva.UseSystemPasswordChar = !txtPassNueva.UseSystemPasswordChar;
+            btnEyeNueva.Text = txtPassNueva.UseSystemPasswordChar ? UITheme.IconoVer : UITheme.IconoOcultar;
+        }
+
+        private void BtnEyeConfirmar_Click(object? sender, EventArgs e)
+        {
+            txtPassConfirmar.UseSystemPasswordChar = !txtPassConfirmar.UseSystemPasswordChar;
+            btnEyeConfirmar.Text = txtPassConfirmar.UseSystemPasswordChar ? UITheme.IconoVer : UITheme.IconoOcultar;
+        }
+
+        private void TxtPass_TextChanged(object? sender, EventArgs e)
+        {
+            var n = txtPassNueva.Text;
+            var c = txtPassConfirmar.Text;
+            if (string.IsNullOrEmpty(n) && string.IsNullOrEmpty(c))
             {
-                Dock = DockStyle.Top,
-                Height = 70,
-                Padding = new Padding(25, 15, 25, 10),
-                BackColor = UITheme.CardBackground
-            };
-
-            var lblTitle = new Label
-            {
-                Text = "Configuración de Cuenta y Perfil de Usuario",
-                Font = UITheme.HeaderFont,
-                ForeColor = UITheme.Primary,
-                Location = new Point(25, 12),
-                AutoSize = true
-            };
-
-            var lblSub = new Label
-            {
-                Text = "Administrá tu foto de perfil, datos personales, cobertura de obra social, seguridad y preferencias",
-                Font = UITheme.SmallFont,
-                ForeColor = UITheme.TextSecondary,
-                Location = new Point(27, 40),
-                AutoSize = true
-            };
-
-            pnlTop.Controls.Add(lblTitle);
-            pnlTop.Controls.Add(lblSub);
-
-            var pnlBody = new Panel
-            {
-                Dock = DockStyle.Fill,
-                AutoScroll = true,
-                Padding = new Padding(25, 15, 25, 25)
-            };
-
-            int y = 15;
-
-            
-            // FOTO DE PERFIL / AVATAR
-            
-            var pnlFotoCard = new Panel { Location = new Point(25, y), Size = new Size(740, 115), BackColor = Color.White, Padding = new Padding(20) };
-            pnlFotoCard.Paint += (s, e) =>
-            {
-                using var pen = new Pen(UITheme.BorderColor, 1);
-                e.Graphics.DrawRectangle(pen, 0, 0, pnlFotoCard.Width - 1, pnlFotoCard.Height - 1);
-            };
-
-            picAvatar = new PictureBox { Location = new Point(20, 15), Size = new Size(80, 80), SizeMode = PictureBoxSizeMode.Zoom, Visible = false };
-            picAvatar.Paint += (s, e) =>
-            {
-                using var path = new GraphicsPath();
-                path.AddEllipse(0, 0, 80, 80);
-                picAvatar.Region = new Region(path);
-            };
-
-            lblAvatarIniciales = new Label
-            {
-                Text = "U",
-                Font = new Font("Segoe UI", 24F, FontStyle.Bold),
-                ForeColor = Color.White,
-                BackColor = UITheme.Primary,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Location = new Point(20, 15),
-                Size = new Size(80, 80)
-            };
-
-            btnCambiarFoto = new Button { Text = "📷 Cargar Foto de Perfil", Location = new Point(120, 25), Size = new Size(190, 36) };
-            UITheme.StylePrimaryButton(btnCambiarFoto);
-            btnCambiarFoto.Click += BtnCambiarFoto_Click;
-
-            btnQuitarFoto = new Button { Text = "Quitar Foto", Location = new Point(320, 25), Size = new Size(120, 36) };
-            UITheme.StyleSecondaryButton(btnQuitarFoto);
-            btnQuitarFoto.Click += (s, e) =>
-            {
-                picAvatar.Image?.Dispose();
-                picAvatar.Image = null;
-                picAvatar.Visible = false;
-                lblAvatarIniciales.Visible = true;
-                _fotoModificada = true;
-                _fotoEliminada = true;
-            };
-
-            var lblFotoInfo = new Label { Text = "Formatos soportados: JPG, PNG. Tamaño máximo recomendado 2MB.", Font = UITheme.SmallFont, ForeColor = UITheme.TextSecondary, Location = new Point(122, 68), AutoSize = true };
-
-            pnlFotoCard.Controls.Add(picAvatar);
-            pnlFotoCard.Controls.Add(lblAvatarIniciales);
-            pnlFotoCard.Controls.Add(btnCambiarFoto);
-            pnlFotoCard.Controls.Add(btnQuitarFoto);
-            pnlFotoCard.Controls.Add(lblFotoInfo);
-
-            pnlBody.Controls.Add(pnlFotoCard);
-            y += 130;
-
-            
-            // DATOS PERSONALES
-            
-            var pnlDatosCard = new Panel { Location = new Point(25, y), Size = new Size(740, 210), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
-            pnlDatosCard.Paint += (s, e) =>
-            {
-                using var pen = new Pen(UITheme.BorderColor, 1);
-                e.Graphics.DrawRectangle(pen, 0, 0, pnlDatosCard.Width - 1, pnlDatosCard.Height - 1);
-            };
-
-            var lblDatosTitle = new Label { Text = "👤 Datos Personales del Titular", Font = UITheme.SubheaderFont, ForeColor = UITheme.Primary, Location = new Point(20, 15), AutoSize = true };
-            pnlDatosCard.Controls.Add(lblDatosTitle);
-
-            int dy = 45;
-            void AddField(Panel parent, string label, ref TextBox tb, int x, int width, string val, bool enabled = true)
-            {
-                var l = new Label { Text = label, Location = new Point(x, dy), AutoSize = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-                tb = new TextBox { Location = new Point(x, dy + 20), Width = width, Font = UITheme.RegularFont, Text = val, Enabled = enabled };
-                parent.Controls.Add(l);
-                parent.Controls.Add(tb);
+                lblPassMatch.Text = "";
             }
-
-            AddField(pnlDatosCard, "Nombre *:", ref txtNombre, 20, 215, "");
-            AddField(pnlDatosCard, "Apellido *:", ref txtApellido, 250, 215, "");
-            AddField(pnlDatosCard, "DNI / Documento:", ref txtDni, 480, 215, "", enabled: false);
-
-            dy += 65;
-            AddField(pnlDatosCard, "Correo Electrónico *:", ref txtMail, 20, 215, "");
-            AddField(pnlDatosCard, "Teléfono Móvil *:", ref txtTelefono, 250, 215, "");
-            AddField(pnlDatosCard, "Domicilio:", ref txtDomicilio, 480, 215, "");
-
-            pnlBody.Controls.Add(pnlDatosCard);
-            y += 225;
-
-            
-            // OBRA SOCIAL Y COBERTURA
-            
-            var pnlOSCard = new Panel { Location = new Point(25, y), Size = new Size(740, 125), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
-            pnlOSCard.Paint += (s, e) =>
+            else if (!string.IsNullOrEmpty(n) && n.Length < 4)
             {
-                using var pen = new Pen(UITheme.BorderColor, 1);
-                e.Graphics.DrawRectangle(pen, 0, 0, pnlOSCard.Width - 1, pnlOSCard.Height - 1);
-            };
-
-            var lblOSTitle = new Label { Text = "🛡️ Obra Social y Cobertura Médica", Font = UITheme.SubheaderFont, ForeColor = UITheme.Primary, Location = new Point(20, 15), AutoSize = true };
-            pnlOSCard.Controls.Add(lblOSTitle);
-
-            var lblOS = new Label { Text = "Obra Social / Prepaga:", Location = new Point(20, 48), AutoSize = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-            cbObraSocial = new ComboBox { Location = new Point(20, 70), Width = 320, DropDownStyle = ComboBoxStyle.DropDownList, Font = UITheme.RegularFont };
-            cbObraSocial.Items.AddRange(new object[] {
-                "Particular (Sin Obra Social)",
-                "OSDE (Plan 210 / 310)",
-                "Swiss Medical",
-                "IOMA"
-            });
-            cbObraSocial.SelectedIndex = 1;
-
-            var lblAf = new Label { Text = "N° de Afiliado / Credencial:", Location = new Point(360, 48), AutoSize = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-            txtAfiliado = new TextBox { Location = new Point(360, 70), Width = 340, Font = UITheme.RegularFont };
-
-            pnlOSCard.Controls.Add(lblOS);
-            pnlOSCard.Controls.Add(cbObraSocial);
-            pnlOSCard.Controls.Add(lblAf);
-            pnlOSCard.Controls.Add(txtAfiliado);
-
-            pnlBody.Controls.Add(pnlOSCard);
-            y += 140;
-
-                        
-            // SEGURIDAD Y NOTIFICACIONES
-            
-            var pnlSegCard = new Panel { Location = new Point(25, y), Size = new Size(740, 215), BackColor = Color.White, Padding = new Padding(25, 20, 25, 20) };
-            pnlSegCard.Paint += (s, e) =>
-            {
-                using var pen = new Pen(UITheme.BorderColor, 1);
-                e.Graphics.DrawRectangle(pen, 0, 0, pnlSegCard.Width - 1, pnlSegCard.Height - 1);
-            };
-
-            var lblSegTitle = new Label { Text = "🔒 Seguridad y Notificaciones", Font = UITheme.SubheaderFont, ForeColor = UITheme.Primary, Location = new Point(20, 15), AutoSize = true };
-            pnlSegCard.Controls.Add(lblSegTitle);
-
-            dy = 45;
-            void AddPasswordField(Panel parent, string label, ref TextBox tb, int x, int width)
-            {
-                var l = new Label { Text = label, Location = new Point(x, dy), AutoSize = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-                int tbWidth = width - 36;
-                tb = new TextBox { Location = new Point(x, dy + 20), Width = tbWidth, Font = UITheme.RegularFont, UseSystemPasswordChar = true };
-
-                var capturedTb = tb;
-                var btnEye = new Button
-                {
-                    Text = UITheme.IconoVer,
-                    Location = new Point(x + tbWidth + 4, dy + 19),
-                    Size = new Size(32, 27),
-                    Font = UITheme.IconFont,
-                    FlatStyle = FlatStyle.Flat,
-                    Cursor = Cursors.Hand,
-                    BackColor = Color.FromArgb(241, 245, 249),
-                    ForeColor = UITheme.Primary
-                };
-                btnEye.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
-                btnEye.Click += (s, e) =>
-                {
-                    capturedTb.UseSystemPasswordChar = !capturedTb.UseSystemPasswordChar;
-                    btnEye.Text = capturedTb.UseSystemPasswordChar ? UITheme.IconoVer : UITheme.IconoOcultar;
-                };
-
-                parent.Controls.Add(l);
-                parent.Controls.Add(tb);
-                parent.Controls.Add(btnEye);
+                lblPassMatch.ForeColor = Color.FromArgb(217, 119, 6);
+                lblPassMatch.Text = "⚠ La nueva contraseña debe tener al menos 4 caracteres.";
             }
-
-            AddPasswordField(pnlSegCard, "Contraseña Actual:", ref txtPassActual, 20, 215);
-            AddPasswordField(pnlSegCard, "Nueva Contraseña:", ref txtPassNueva, 250, 215);
-            AddPasswordField(pnlSegCard, "Confirmar Nueva:", ref txtPassConfirmar, 480, 215);
-
-            lblPassMatch = new Label
+            else if (!string.IsNullOrEmpty(c))
             {
-                Location = new Point(250, 97),
-                Size = new Size(450, 20),
-                Font = UITheme.SmallBold,
-                Text = "",
-                ForeColor = UITheme.Danger
-            };
-            pnlSegCard.Controls.Add(lblPassMatch);
-
-            void VerificarCoincidencia()
-            {
-                var n = txtPassNueva.Text;
-                var c = txtPassConfirmar.Text;
-                if (string.IsNullOrEmpty(n) && string.IsNullOrEmpty(c))
+                if (n == c)
                 {
-                    lblPassMatch.Text = "";
-                }
-                else if (!string.IsNullOrEmpty(n) && n.Length < 4)
-                {
-                    lblPassMatch.ForeColor = Color.FromArgb(217, 119, 6);
-                    lblPassMatch.Text = "⚠ La nueva contraseña debe tener al menos 4 caracteres.";
-                }
-                else if (!string.IsNullOrEmpty(c))
-                {
-                    if (n == c)
-                    {
-                        lblPassMatch.ForeColor = Color.FromArgb(16, 185, 129);
-                        lblPassMatch.Text = "✓ Las contraseñas coinciden correctamente.";
-                    }
-                    else
-                    {
-                        lblPassMatch.ForeColor = UITheme.Danger;
-                        lblPassMatch.Text = "✗ Las contraseñas no coinciden.";
-                    }
+                    lblPassMatch.ForeColor = Color.FromArgb(16, 185, 129);
+                    lblPassMatch.Text = "✓ Las contraseñas coinciden correctamente.";
                 }
                 else
                 {
-                    lblPassMatch.Text = "";
+                    lblPassMatch.ForeColor = UITheme.Danger;
+                    lblPassMatch.Text = "✗ Las contraseñas no coinciden.";
                 }
             }
-
-            txtPassNueva.TextChanged += (s, e) => VerificarCoincidencia();
-            txtPassConfirmar.TextChanged += (s, e) => VerificarCoincidencia();
-
-            chkNotifEmail = new CheckBox { Text = "Recibir recordatorios y comprobantes de turnos por Email", Location = new Point(20, 130), AutoSize = true, Checked = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-            chkNotifWhatsapp = new CheckBox { Text = "Recibir avisos de estado de sala y alertas por SMS / WhatsApp", Location = new Point(20, 155), AutoSize = true, Checked = true, Font = UITheme.SmallBold, ForeColor = UITheme.TextPrimary };
-
-            pnlSegCard.Controls.Add(chkNotifEmail);
-            pnlSegCard.Controls.Add(chkNotifWhatsapp);
-
-            pnlBody.Controls.Add(pnlSegCard);
-            y += 230;
-
-            
-            // BOTÓN GUARDAR Y FEEDBACK
-            
-            btnGuardar = new Button { Text = "💾 Guardar Todos los Cambios", Location = new Point(25, y), Size = new Size(260, 44) };
-            UITheme.StylePrimaryButton(btnGuardar);
-            btnGuardar.Click += BtnGuardar_Click;
-
-            lblFeedback = new Label { Location = new Point(300, y + 10), Size = new Size(465, 30), Font = UITheme.RegularBold, ForeColor = UITheme.Success };
-
-            pnlBody.Controls.Add(btnGuardar);
-            pnlBody.Controls.Add(lblFeedback);
-
-            this.Controls.Add(pnlBody);
-            this.Controls.Add(pnlTop);
+            else
+            {
+                lblPassMatch.Text = "";
+            }
         }
 
         private async void OnControlLoad(object? sender, EventArgs e)

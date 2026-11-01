@@ -1,45 +1,33 @@
 using API.Auth.WindowsForms;
-using API.Clients;
 using System.ComponentModel;
+using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace WindowsForms
 {
-    public class HomeForm : Form
+    public partial class HomeForm : Form
     {
-        private readonly WindowsFormsAuthService _authService;
-        private MenuStrip menuMain = null!;
+        private readonly WindowsFormsAuthService _authService = null!;
 
-        public HomeForm(WindowsFormsAuthService authService)
+        // Constructor sin parámetros para el Diseñador de Visual Studio
+        public HomeForm()
+        {
+            InitializeComponent();
+            PersonalizarFondoMdi();
+        }
+
+        public HomeForm(WindowsFormsAuthService authService) : this()
         {
             _authService = authService;
-            InitializeComponent();
             if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
             {
-                BuildUI();
+                AplicarPermisosPorRol();
             }
         }
 
-        private void InitializeComponent()
+        private void PersonalizarFondoMdi()
         {
-            this.SuspendLayout();
-            this.ClientSize = new Size(1300, 850);
-            this.Name = "HomeForm";
-            this.IsMdiContainer = true;
-            this.ResumeLayout(false);
-        }
-
-        private void BuildUI()
-        {
-            this.Text = "Clínica Odontológica - Sistema MDI de Gestión Integral";
-            this.Size = new Size(1300, 850);
-            this.MinimumSize = new Size(1080, 680);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.BackColor = UITheme.Background;
-            this.Font = UITheme.RegularFont;
-            this.IsMdiContainer = true;
-
-            // Personalizar el fondo del MdiClient container
             foreach (Control c in this.Controls)
             {
                 if (c is MdiClient mdiClient)
@@ -47,81 +35,12 @@ namespace WindowsForms
                     mdiClient.BackColor = Color.FromArgb(241, 245, 249);
                 }
             }
-
-            BuildMenuStrip();
-
-            this.MainMenuStrip = menuMain;
-            this.Controls.Add(menuMain);
         }
 
-        private void BuildMenuStrip()
+        private void AplicarPermisosPorRol()
         {
-            menuMain = new MenuStrip
-            {
-                BackColor = Color.FromArgb(15, 23, 42),
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10F, FontStyle.Regular),
-                Padding = new Padding(6, 4, 6, 4)
-            };
+            var rol = _authService?.GetRol() ?? "Admin";
 
-            var rol = _authService.GetRol() ?? "Admin";
-
-            // 1. Menú Archivo / Maestros
-            var menuMaestros = new ToolStripMenuItem("📁 Maestros") { ForeColor = Color.White };
-
-            var itemPacientes = new ToolStripMenuItem("👥 Pacientes", null, (s, e) => AbrirModuloMdi("👥 Gestión de Pacientes", () => new PacienteListaControl()));
-            var itemOdontologos = new ToolStripMenuItem("🩺 Odontólogos", null, (s, e) => AbrirModuloMdi("🩺 Odontólogos", () => new OdontologoListaControl()));
-            var itemEspecialidades = new ToolStripMenuItem("🏷️ Especialidades", null, (s, e) => AbrirModuloMdi("🏷️ Especialidades", () => new EspecialidadListaControl()));
-            var itemInsumos = new ToolStripMenuItem("📦 Insumos y Stock", null, (s, e) => AbrirModuloMdi("📦 Insumos y Stock", () => new InsumoListaControl()));
-
-            var itemConfig = new ToolStripMenuItem("⚙️ Configuración de Perfil", null, (s, e) => AbrirModuloMdi("⚙️ Configuración", () => new ConfiguracionControl(_authService)));
-            var itemLogout = new ToolStripMenuItem("🚪 Cerrar Sesión", null, (s, e) => CerrarSesion());
-            var itemSalir = new ToolStripMenuItem("❌ Salir", null, (s, e) => Application.Exit());
-
-            menuMaestros.DropDownItems.Add(itemPacientes);
-            menuMaestros.DropDownItems.Add(itemOdontologos);
-            menuMaestros.DropDownItems.Add(itemEspecialidades);
-            menuMaestros.DropDownItems.Add(itemInsumos);
-            menuMaestros.DropDownItems.Add(new ToolStripSeparator());
-            menuMaestros.DropDownItems.Add(itemConfig);
-            menuMaestros.DropDownItems.Add(new ToolStripSeparator());
-            menuMaestros.DropDownItems.Add(itemLogout);
-            menuMaestros.DropDownItems.Add(itemSalir);
-
-            // 2. Menú Gestión Clínica
-            var menuClinica = new ToolStripMenuItem("🏥 Gestión Clínica") { ForeColor = Color.White };
-
-            var itemTurnos = new ToolStripMenuItem("📅 Gestión de Turnos", null, (s, e) => AbrirModuloMdi("📅 Gestión de Turnos", () => new TurnoListaControl()));
-            var itemAdmision = new ToolStripMenuItem("🛎️ Recepción / Sala de Espera", null, (s, e) => AbrirModuloMdi("🛎️ Recepción / Admisión", () => new AdmisionControl()));
-            var itemAtencion = new ToolStripMenuItem("💉 Consola Médica", null, (s, e) => AbrirModuloMdi("💉 Consola Médica", () => new AtencionClinicaControl()));
-
-            menuClinica.DropDownItems.Add(itemTurnos);
-            menuClinica.DropDownItems.Add(itemAdmision);
-            menuClinica.DropDownItems.Add(itemAtencion);
-
-            // 3. Menú Caja y Facturación
-            var menuCaja = new ToolStripMenuItem("💳 Caja y Facturación") { ForeColor = Color.White };
-            var itemCobro = new ToolStripMenuItem("🧾 Cobro, Caja y Liquidación", null, (s, e) => AbrirModuloMdi("💳 Cobro y Caja", () => new CobroControl()));
-            menuCaja.DropDownItems.Add(itemCobro);
-
-            // 4. Menú Reportes
-            var menuReportes = new ToolStripMenuItem("📊 Reportes") { ForeColor = Color.White };
-            var itemMetricas = new ToolStripMenuItem("📈 Reportes y Métricas", null, (s, e) => AbrirModuloMdi("📊 Reportes y Métricas", () => new ReportesControl()));
-            menuReportes.DropDownItems.Add(itemMetricas);
-
-            // 5. Menú Mi Portal (Paciente)
-            var menuPortal = new ToolStripMenuItem("👤 Portal Paciente") { ForeColor = Color.White };
-            var itemPortalHome = new ToolStripMenuItem("🏠 Mi Portal del Paciente", null, (s, e) => AbrirPortalPacienteTab(0));
-            var itemPortalTurnos = new ToolStripMenuItem("📅 Mis Turnos y Citas", null, (s, e) => AbrirPortalPacienteTab(1));
-            var itemPortalHistoria = new ToolStripMenuItem("📋 Mi Historial Clínico", null, (s, e) => AbrirPortalPacienteTab(2));
-            var itemPortalPagos = new ToolStripMenuItem("💳 Mis Pagos y Deudas", null, (s, e) => AbrirPortalPacienteTab(3));
-
-            menuPortal.DropDownItems.Add(itemPortalHome);
-            menuPortal.DropDownItems.Add(itemPortalTurnos);
-            menuPortal.DropDownItems.Add(itemPortalHistoria);
-            menuPortal.DropDownItems.Add(itemPortalPagos);
-
-            // Aplicar visibilidad y permisos según Rol
             if (rol == "Paciente")
             {
                 itemPacientes.Enabled = false;
@@ -131,8 +50,8 @@ namespace WindowsForms
                 menuClinica.Enabled = false;
                 menuCaja.Enabled = false;
                 menuReportes.Enabled = false;
+                menuPortal.Visible = true;
             }
-            // Mismos permisos que la web (Permisos.cs): reportes para Admin y Recepcionista.
             else if (rol == "Odontologo")
             {
                 itemEspecialidades.Enabled = false;
@@ -143,27 +62,49 @@ namespace WindowsForms
             {
                 itemAtencion.Enabled = false;
             }
-
-            menuMain.Items.Add(menuMaestros);
-            menuMain.Items.Add(menuClinica);
-            menuMain.Items.Add(menuCaja);
-            menuMain.Items.Add(menuReportes);
-            // El portal muestra los datos del paciente logueado: solo tiene sentido para ese rol
-            if (rol == "Paciente")
-            {
-                menuMain.Items.Add(menuPortal);
-            }
-
-            // Estilar elementos desplegables con colores agradables
-            foreach (ToolStripMenuItem item in menuMain.Items)
-            {
-                item.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            }
         }
+
+        private void ItemPacientes_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("👥 Gestión de Pacientes", () => new PacienteListaControl());
+
+        private void ItemOdontologos_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("🩺 Odontólogos", () => new OdontologoListaControl());
+
+        private void ItemEspecialidades_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("🏷️ Especialidades", () => new EspecialidadListaControl());
+
+        private void ItemInsumos_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("📦 Insumos y Stock", () => new InsumoListaControl());
+
+        private void ItemConfig_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("⚙️ Configuración", () => new ConfiguracionControl(_authService));
+
+        private void ItemLogout_Click(object? sender, EventArgs e) => CerrarSesion();
+
+        private void ItemSalir_Click(object? sender, EventArgs e) => Application.Exit();
+
+        private void ItemTurnos_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("📅 Gestión de Turnos", () => new TurnoListaControl());
+
+        private void ItemAdmision_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("🛎️ Recepción / Admisión", () => new AdmisionControl());
+
+        private void ItemAtencion_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("💉 Consola Médica", () => new AtencionClinicaControl());
+
+        private void ItemCobro_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("💳 Cobro y Caja", () => new CobroControl());
+
+        private void ItemMetricas_Click(object? sender, EventArgs e) =>
+            AbrirModuloMdi("📊 Reportes y Métricas", () => new ReportesControl());
+
+        private void ItemPortalHome_Click(object? sender, EventArgs e) => AbrirPortalPacienteTab(0);
+        private void ItemPortalTurnos_Click(object? sender, EventArgs e) => AbrirPortalPacienteTab(1);
+        private void ItemPortalHistoria_Click(object? sender, EventArgs e) => AbrirPortalPacienteTab(2);
+        private void ItemPortalPagos_Click(object? sender, EventArgs e) => AbrirPortalPacienteTab(3);
 
         public void AbrirModuloMdi<T>(string titulo, Func<T> factory) where T : UserControl
         {
-            // Si la ventana MDI ya existe, activarla y traer al frente
             foreach (Form child in this.MdiChildren)
             {
                 if (child.Text == titulo || child.Controls.OfType<T>().Any())
@@ -179,10 +120,6 @@ namespace WindowsForms
             MostrarVentanaMdi(titulo, control);
         }
 
-        /// <summary>
-        /// Crea la ventana hija MDI centrada en el área cliente del contenedor
-        /// (StartPosition.CenterParent no aplica a hijos MDI).
-        /// </summary>
         private Form MostrarVentanaMdi(string titulo, UserControl control)
         {
             control.Dock = DockStyle.Fill;
