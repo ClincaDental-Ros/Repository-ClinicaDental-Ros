@@ -15,9 +15,9 @@ Turno Molar digitaliza la administración, la gestión de turnos y el seguimient
 
 Optimizar la gestión operativa y clínica del consultorio mediante:
 - La asignación, reprogramación y cancelación centralizada de turnos.
-- La organización de las agendas y horarios de disponibilidad de cada profesional.
+- El control de la agenda de cada profesional (un turno por horario y por odontólogo).
 - El registro digital estructurado de la historia clínica y los tratamientos realizados a cada paciente.
-- La gestión de obras sociales, coberturas y aranceles de las prestaciones.
+- La facturación de las atenciones con el descuento de la obra social de cada paciente.
 - La generación de reportes administrativos y de atenciones para la clínica.
 
 ---
@@ -26,19 +26,21 @@ Optimizar la gestión operativa y clínica del consultorio mediante:
 
 | Rol | Permisos principales |
 | :--- | :--- |
-| **Administración / Recepción** | Gestiona el registro de pacientes, agenda turnos, asigna horarios a profesionales, administra obras sociales/aranceles y visualiza reportes generales de la clínica. |
-| **Odontólogo / Profesional** | Consulta su agenda diaria/semanal, registra la evolución en la historia clínica de los pacientes atendidos y detalla los tratamientos realizados. |
-| **Paciente** | Consulta sus turnos asignados, solicita o cancela turnos disponibles y visualiza su historial básico de citas. |
+| **Administrador** | Todo lo de recepción, más el ABM de odontólogos, especialidades e insumos y la baja de pacientes. |
+| **Recepcionista** | Alta y edición de pacientes, reserva y reprogramación de turnos, admisión (presencia / ausencia), facturación, cobro de facturas y multas, y reportes. |
+| **Odontólogo** | Consulta turnos y pacientes, confirma la presencia en sala de espera y registra la atención clínica (diagnóstico, tratamiento e insumos usados). |
+| **Paciente** | Desde su portal: ve y reserva sus turnos, cancela los propios, consulta su historia clínica, facturas y multas, paga sus multas y valora las atenciones. |
 
 ---
 
 ## Funcionalidades principales
 
-- **Gestión de usuarios y accesos:** Registro, autenticación y control de permisos diferenciados según el rol del usuario (JWT).
-- **Gestión de turnos y agendas:** Asignación de citas considerando la especialidad, la disponibilidad horaria del odontólogo y los consultorios/sillones disponibles.
-- **Historia clínica digital:** Registro unificado de antecedentes médicos, diagnósticos, evolución por consulta y detalle de prestaciones realizadas.
-- **Administración de obras sociales y aranceles:** Catálogo de coberturas, planes médicos y registro de pagos o copagos de las prestaciones odontológicas.
-- **Panel de control y reportes:** Visualización del flujo de pacientes, tasa de ausentismo a turnos, tratamientos más frecuentes y métricas administrativas de la clínica.
+- **Usuarios y accesos:** inicio de sesión con JWT y permisos por rol. Al dar de alta un paciente se crea su usuario del portal.
+- **Turnos:** la reserva valida que el paciente esté habilitado y sin multas impagas, que no tenga otro turno ese día, que el horario del odontólogo esté libre y que la fecha sea futura. Estados: Pendiente → Presente → Atendido, o Cancelado / NoAsistido. Registrar una ausencia genera una multa e inhabilita al paciente.
+- **Atención clínica:** se registra la consulta (diagnóstico, tratamiento, observaciones, anestesia, radiografías), se descuenta el stock de los insumos usados y se genera la factura, todo en una misma transacción.
+- **Facturación y cobro:** factura maestro/detalle (ítems de insumos) con descuento según el porcentaje de cobertura de la obra social; registro del pago y cobro de multas.
+- **Historia clínica:** antecedentes, alergias, observaciones generales y las consultas previas del paciente.
+- **Reportes:** turnos del día por estado, ausentismo por período (porcentaje y multas) y facturación por período (cobrado a pacientes y liquidado a obras sociales).
 
 ---
 
@@ -66,14 +68,18 @@ Base de datos: SQL Server en la nube del equipo (MonsterASP, base `db65098`). Si
 
 ## Modelo de dominio (resumen)
 
-Entidades principales del sistema:
-- **Usuario (superclase):** Administrador, Odontólogo, Recepcionista, Paciente.
-- **Paciente:** Datos personales, contacto, antecedentes y cobertura médica.
-- **Turno:** Registro de la cita médica (fecha, hora, estado: pendiente, confirmado, cancelado, atendido).
-- **HistoriaClinica y Evolucion:** Registro cronológico de atenciones, diagnósticos y observaciones médicas.
-- **Tratamiento / Prestación:** Catálogo de servicios odontológicos ofrecidos y sus aranceles.
-- **ObraSocial y Plan:** Coberturas médicas asociadas a los pacientes.
-- **DisponibilidadHoraria:** Días y franjas horarias de atención de cada odontólogo.
+Entidades del proyecto `Domain.Model`:
+- **Persona (clase abstracta):** nombre, apellido, DNI, teléfono, mail y domicilio. La heredan **Paciente** (habilitación, obra social y número de afiliado) y **Odontologo** (matrícula y especialidad).
+- **Usuario:** credenciales del sistema (usuario, contraseña con hash y rol: Admin, Recepcionista, Odontologo o Paciente). No hereda de Persona: se vincula con su paciente u odontólogo mediante `EntidadId`.
+- **Especialidad:** área de atención de cada odontólogo.
+- **ObraSocial:** nombre, plan y porcentaje de cobertura.
+- **TurnoOdontologico:** fecha, horario, paciente, odontólogo, especialidad, monto estimado y estado (Pendiente, Presente, Atendido, Cancelado, NoAsistido), con las reglas de transición entre estados.
+- **Consulta:** la atención de un turno (diagnóstico, tratamiento, observaciones y la valoración del paciente).
+- **HistoriaClinica:** antecedentes médicos, alergias y observaciones generales del paciente.
+- **Factura e ItemFactura:** factura maestro/detalle con sus insumos y el cálculo de montos con descuento de obra social.
+- **Insumo:** materiales con precio y stock.
+- **Multa:** cargo por inasistencia; mientras esté impaga, el paciente no puede reservar turnos.
+- **Consultorio y HorarioOdont:** están modeladas y tienen su tabla, pero la asignación de consultorios y la gestión de horarios de los odontólogos quedaron fuera del alcance acordado (no tienen servicio ni pantallas).
 
 El modelo completo, con atributos y multiplicidades, se documenta por separado como parte del análisis de diseño del proyecto.
 

@@ -423,7 +423,6 @@ namespace WindowsForms
             AddDetail("PROFESIONAL:", t.OdontologoNombre);
             AddDetail("ESPECIALIDAD:", t.EspecialidadNombre);
             AddDetail("FECHA Y HORA:", $"{t.Fecha:dd/MM/yyyy} a las {t.HorarioTurno}");
-            AddDetail("UBICACIÓN:", "Consultorio 3 - Piso 1, Sede Rosario");
             AddDetail("ESTADO:", "RESERVA CONFIRMADA (Citado)");
 
             var btnCerrar = new Button { Text = "Imprimir / Aceptar", Location = new Point(130, y + 20), Size = new Size(180, 38) };

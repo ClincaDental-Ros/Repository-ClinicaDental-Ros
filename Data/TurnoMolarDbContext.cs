@@ -21,6 +21,7 @@ namespace Data
         public DbSet<Multa> Multas => Set<Multa>();
         public DbSet<ObraSocial> ObrasSociales => Set<ObraSocial>();
         public DbSet<HistoriaClinica> HistoriasClinicas => Set<HistoriaClinica>();
+        // Modeladas para una etapa futura (fuera del alcance acordado): tienen tabla pero todavía no se usan.
         public DbSet<Consultorio> Consultorios => Set<Consultorio>();
         public DbSet<HorarioOdont> HorariosOdont => Set<HorarioOdont>();
 

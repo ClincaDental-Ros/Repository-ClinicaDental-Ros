@@ -1,5 +1,9 @@
 namespace Domain.Model
 {
+    /// <summary>
+    /// Consultorio de la clínica. Está en el modelo de dominio y tiene su tabla, pero la asignación
+    /// de consultorios a turnos quedó fuera del alcance acordado: todavía no tiene servicio, endpoints ni pantallas.
+    /// </summary>
     public class Consultorio
     {
         public int Id { get; private set; }

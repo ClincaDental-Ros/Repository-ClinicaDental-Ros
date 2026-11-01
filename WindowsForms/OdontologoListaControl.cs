@@ -449,7 +449,6 @@ namespace WindowsForms
 
             pnlStats.Controls.Add(UITheme.CreateStatCard("Odontólogos", total.ToString(), "Profesionales activos", UITheme.Primary));
             pnlStats.Controls.Add(UITheme.CreateStatCard("Especialidades", especialidadesDistintas.ToString(), "Áreas cubiertas", UITheme.Accent));
-            pnlStats.Controls.Add(UITheme.CreateStatCard("Atención", "Consultorios 1 al 4", "Sede Central Rosario", UITheme.Success));
         }
 
         private void AbrirDetalle(OdontologoDTO? odontologo)
