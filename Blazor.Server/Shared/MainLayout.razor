@@ -1,0 +1,136 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject BlazorServerAuthService AuthService
+@inject NavigationManager Navigation
+
+@if (AuthService.IsAuthenticated())
+{
+    <div class="app-shell">
+        <aside class="app-sidebar @(menuAbierto ? "abierta" : "")">
+            <NavMenu OnNavegar="() => menuAbierto = false" OnCerrarSesion="() => mostrarLogout = true" />
+        </aside>
+        <div class="app-backdrop @(menuAbierto ? "visible" : "")" @onclick="() => menuAbierto = false"></div>
+
+        <div class="app-main">
+            <header class="top-header">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn-menu d-lg-none" @onclick="() => menuAbierto = !menuAbierto" aria-label="Abrir menú">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <div class="brand-title">
+                        <span class="text-primary"><LogoDiente Tamanio="22" /></span>
+                        <span><span class="d-none d-sm-inline">Clínica Odontológica </span>Turno Molar</span>
+                        <span class="separator d-none d-md-inline">|</span>
+                        <span class="d-none d-md-inline fw-semibold text-secondary">@Portal</span>
+                    </div>
+                </div>
+                <span class="date-pill d-none d-md-inline"><i class="bi bi-calendar3 me-1"></i>@FechaHoy</span>
+            </header>
+
+            <main class="app-content">
+                <ErrorBoundary @ref="errorBoundary">
+                    <ChildContent>
+                        @Body
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <div class="alert alert-danger m-3">
+                            <strong>No se pudo completar la operación.</strong>
+                            <div class="small mt-1">@MensajeDeError(ex)</div>
+                            <button class="btn btn-sm btn-outline-danger mt-2" @onclick="Recuperar">Volver a intentar</button>
+                        </div>
+                    </ErrorContent>
+                </ErrorBoundary>
+            </main>
+        </div>
+    </div>
+
+    <LogoutModal Show="mostrarLogout" OnResponse="ConfirmarLogout" />
+}
+else
+{
+    <main>
+        @Body
+    </main>
+}
+
+@code {
+    private static readonly System.Globalization.CultureInfo Es = new("es-AR");
+
+    private bool menuAbierto;
+    private ErrorBoundary? errorBoundary;
+
+    // Red de seguridad: si una pantalla no atrapa un error de la API, se muestra el mensaje
+    // en lugar de cortar la sesión de Blazor.
+    private static string MensajeDeError(Exception ex) => ex switch
+    {
+        HttpRequestException http => http.Message,
+        UnauthorizedAccessException => "La sesión expiró. Volvé a iniciar sesión.",
+        _ => "Ocurrió un error inesperado. Si se repite, avisá al administrador."
+    };
+
+    private void Recuperar() => errorBoundary?.Recover();
+
+    protected override void OnParametersSet() => errorBoundary?.Recover();
+    private bool mostrarLogout;
+
+    private string Portal => AuthService.GetRol() == Permisos.Paciente ? "Portal del Paciente" : "Portal Profesional";
+    private string FechaHoy
+    {
+        get
+        {
+            var texto = DateTime.Now.ToString("dddd d 'de' MMMM, yyyy", Es);
+            return char.ToUpper(texto[0]) + texto[1..];
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Cada usuario escucha solo los 401 de su propia sesión.
+        AuthService.OnSesionExpirada += HandleUnauthorized;
+        AuthService.OnAuthenticationStateChanged += HandleAuthStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await AuthService.InitializeAsync();
+
+            if (!AuthService.IsAuthenticated() && !Navigation.Uri.Contains("/login"))
+            {
+                Navigation.NavigateTo("/login");
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmarLogout(bool confirmado)
+    {
+        mostrarLogout = false;
+        if (!confirmado) return;
+
+        await AuthService.ClearSessionAsync();
+        Navigation.NavigateTo("/login");
+    }
+
+    private void HandleAuthStateChanged(bool isAuth)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleUnauthorized()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await AuthService.ClearSessionAsync();
+            Navigation.NavigateTo("/login");
+        });
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnSesionExpirada -= HandleUnauthorized;
+        AuthService.OnAuthenticationStateChanged -= HandleAuthStateChanged;
+    }
+}

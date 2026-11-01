@@ -1,10 +1,118 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\vikio\\source\\repos\\BackEnd-ClinicaDental-Ros\\",
+  "WorkspaceRootPath": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{75B575D9-6B62-2950-E620-3DDAE2D18B8A}|DentalClinic.Application.Services\\DentalClinic.Application.Services.csproj|c:\\users\\vikio\\source\\repos\\backend-clinicadental-ros\\dentalclinic.application.services\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{75B575D9-6B62-2950-E620-3DDAE2D18B8A}|DentalClinic.Application.Services\\DentalClinic.Application.Services.csproj|solutionrelative:dentalclinic.application.services\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\reportescontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\reportescontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\configuracioncontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\configuracioncontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\windowsforms\\atencionclinicacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\atencionclinicacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\admisioncontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\admisioncontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\odontologodetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\odontologodetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\insumodetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\insumodetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\facturadetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\facturadetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A9C75BD-C436-40E4-8428-8C98D186FFC7}|Blazor.Server\\Blazor.Server.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\blazor.server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A9C75BD-C436-40E4-8428-8C98D186FFC7}|Blazor.Server\\Blazor.Server.csproj|solutionrelative:blazor.server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\homeform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\homeform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\cobrocontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\cobrocontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\webapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\webapi\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\pacientedetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\pacientedetalleform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\especialidadlistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\especialidadlistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\admisioncontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\admisioncontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\domain.model\\turnoodontologico.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|solutionrelative:domain.model\\turnoodontologico.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\domain.model\\especialidad.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|solutionrelative:domain.model\\especialidad.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\domain.model\\consulta.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|solutionrelative:domain.model\\consulta.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\webapi\\webapi.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\webapi.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A9C75BD-C436-40E4-8428-8C98D186FFC7}|Blazor.Server\\Blazor.Server.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\blazor.server\\wwwroot\\app.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{6A9C75BD-C436-40E4-8428-8C98D186FFC7}|Blazor.Server\\Blazor.Server.csproj|solutionrelative:blazor.server\\wwwroot\\app.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\webapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{DAC6015A-9C78-46AA-9441-37144EBF4191}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\domain.model\\persona.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|solutionrelative:domain.model\\persona.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\windowsforms\\odontologolistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\odontologolistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\domain.model\\horarioodont.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{611EDE3B-3915-4997-86D3-E391F4A6C8F4}|Domain.Model\\Domain.Model.csproj|solutionrelative:domain.model\\horarioodont.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\turnolistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\turnolistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|c:\\users\\vikio\\source\\repos\\repository-clinicadental-ros\\windowsforms\\pacientelistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\pacientelistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\windowsforms\\pacientelistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{BDA36E0B-C659-4281-AF3E-004E57D3A030}|WindowsForms\\WindowsForms.csproj|solutionrelative:windowsforms\\pacientelistacontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,7 +122,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -25,17 +133,366 @@
               "Name": "ST:0:0:{c9c0ae26-aa77-11d2-b3f0-0000f87570ee}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Class1.cs",
-              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\BackEnd-ClinicaDental-Ros\\DentalClinic.Application.Services\\Class1.cs",
-              "RelativeDocumentMoniker": "DentalClinic.Application.Services\\Class1.cs",
-              "ToolTip": "C:\\Users\\vikio\\source\\repos\\BackEnd-ClinicaDental-Ros\\DentalClinic.Application.Services\\Class1.cs",
-              "RelativeToolTip": "DentalClinic.Application.Services\\Class1.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAABAAAAAAAAAA==",
+              "Title": "ReportesControl.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\ReportesControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\ReportesControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\ReportesControl.cs [Design]*",
+              "RelativeToolTip": "WindowsForms\\ReportesControl.cs [Design]*",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-11T15:54:20.828Z",
+              "WhenOpened": "2026-11-01T20:28:51.829Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ConfiguracionControl.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\ConfiguracionControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\ConfiguracionControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\ConfiguracionControl.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\ConfiguracionControl.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-01T20:26:58.136Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AdmisionControl.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\AdmisionControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\AdmisionControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\AdmisionControl.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\AdmisionControl.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-01T20:26:39.9Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "OdontologoDetalleForm.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\OdontologoDetalleForm.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\OdontologoDetalleForm.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\OdontologoDetalleForm.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\OdontologoDetalleForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-01T20:25:28.269Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "InsumoDetalleForm.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\InsumoDetalleForm.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\InsumoDetalleForm.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\InsumoDetalleForm.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\InsumoDetalleForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-01T20:25:55.664Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AtencionClinicaControl.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\AtencionClinicaControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\AtencionClinicaControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\AtencionClinicaControl.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\AtencionClinicaControl.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-21T22:31:41.109Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "FacturaDetalleForm.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\FacturaDetalleForm.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\FacturaDetalleForm.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\FacturaDetalleForm.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\FacturaDetalleForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-01T20:26:11.467Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Blazor.Server\\Program.cs",
+              "RelativeDocumentMoniker": "Blazor.Server\\Program.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Blazor.Server\\Program.cs",
+              "RelativeToolTip": "Blazor.Server\\Program.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAACEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T21:45:43.484Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "HomeForm.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\HomeForm.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\HomeForm.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\HomeForm.cs",
+              "RelativeToolTip": "WindowsForms\\HomeForm.cs",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAAwGkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T18:21:05.403Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "CobroControl.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\CobroControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\CobroControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\CobroControl.cs",
+              "RelativeToolTip": "WindowsForms\\CobroControl.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAcwMAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-24T20:02:33.438Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\Program.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Program.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\Program.cs",
+              "RelativeToolTip": "WebAPI\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-03T18:37:43.338Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\appsettings.json",
+              "RelativeDocumentMoniker": "WebAPI\\appsettings.json",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\appsettings.json",
+              "RelativeToolTip": "WebAPI\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-05T20:42:46.258Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "WebAPI\\appsettings.Development.json",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\appsettings.Development.json",
+              "RelativeToolTip": "WebAPI\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-29T19:02:25.641Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "PacienteDetalleForm.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\PacienteDetalleForm.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\PacienteDetalleForm.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\PacienteDetalleForm.cs",
+              "RelativeToolTip": "WindowsForms\\PacienteDetalleForm.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAQwE8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-24T20:08:04.438Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "EspecialidadListaControl.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\EspecialidadListaControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\EspecialidadListaControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\EspecialidadListaControl.cs",
+              "RelativeToolTip": "WindowsForms\\EspecialidadListaControl.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-01T18:07:06.646Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "AdmisionControl.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\AdmisionControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\AdmisionControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\AdmisionControl.cs",
+              "RelativeToolTip": "WindowsForms\\AdmisionControl.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAgwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-01T17:42:17.257Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "TurnoOdontologico.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\TurnoOdontologico.cs",
+              "RelativeDocumentMoniker": "Domain.Model\\TurnoOdontologico.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\TurnoOdontologico.cs",
+              "RelativeToolTip": "Domain.Model\\TurnoOdontologico.cs",
+              "ViewState": "AgIAALcAAAAAAAAAAAAuwGoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-02T17:20:47.26Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Especialidad.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\Especialidad.cs",
+              "RelativeDocumentMoniker": "Domain.Model\\Especialidad.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\Especialidad.cs",
+              "RelativeToolTip": "Domain.Model\\Especialidad.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAkwBIAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-02T17:20:08.697Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "Consulta.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\Consulta.cs",
+              "RelativeDocumentMoniker": "Domain.Model\\Consulta.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\Consulta.cs",
+              "RelativeToolTip": "Domain.Model\\Consulta.cs",
+              "ViewState": "AgIAADcAAAAAAAAAAAAkwEQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-02T17:19:51.277Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "WebAPI.http",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\WebAPI.http",
+              "RelativeDocumentMoniker": "WebAPI\\WebAPI.http",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\WebAPI.http",
+              "RelativeToolTip": "WebAPI\\WebAPI.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2026-10-29T19:00:25.356Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "app.css",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Blazor.Server\\wwwroot\\app.css",
+              "RelativeDocumentMoniker": "Blazor.Server\\wwwroot\\app.css",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Blazor.Server\\wwwroot\\app.css",
+              "RelativeToolTip": "Blazor.Server\\wwwroot\\app.css",
+              "ViewState": "AgIAADwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-10-26T21:45:25.806Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "WebAPI\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WebAPI\\Properties\\launchSettings.json",
+              "RelativeToolTip": "WebAPI\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-05T20:42:42.635Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "Persona.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\Persona.cs",
+              "RelativeDocumentMoniker": "Domain.Model\\Persona.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\Persona.cs",
+              "RelativeToolTip": "Domain.Model\\Persona.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-02T17:20:42.019Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "HorarioOdont.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\HorarioOdont.cs",
+              "RelativeDocumentMoniker": "Domain.Model\\HorarioOdont.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\Domain.Model\\HorarioOdont.cs",
+              "RelativeToolTip": "Domain.Model\\HorarioOdont.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-02T17:20:12.89Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "OdontologoListaControl.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\OdontologoListaControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\OdontologoListaControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\OdontologoListaControl.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\OdontologoListaControl.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-24T20:02:24.553Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "TurnoListaControl.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\TurnoListaControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\TurnoListaControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\TurnoListaControl.cs",
+              "RelativeToolTip": "WindowsForms\\TurnoListaControl.cs",
+              "ViewState": "AgIAAAQAAAAAAAD//wckwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-24T20:03:05.14Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "PacienteListaControl.cs",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\PacienteListaControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\PacienteListaControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\PacienteListaControl.cs",
+              "RelativeToolTip": "WindowsForms\\PacienteListaControl.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-24T20:02:37.898Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "PacienteListaControl.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\PacienteListaControl.cs",
+              "RelativeDocumentMoniker": "WindowsForms\\PacienteListaControl.cs",
+              "ToolTip": "C:\\Users\\vikio\\source\\repos\\Repository-ClinicaDental-Ros\\WindowsForms\\PacienteListaControl.cs [Design]",
+              "RelativeToolTip": "WindowsForms\\PacienteListaControl.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-24T20:02:25.581Z"
             }
           ]
         }

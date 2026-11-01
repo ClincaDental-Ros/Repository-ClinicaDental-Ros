@@ -1,0 +1,105 @@
+﻿@page "/"
+@attribute [Authorize]
+@inject BlazorServerAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Panel principal - Turno Molar</PageTitle>
+
+<div class="hero mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1 small mb-2">@AuthService.GetRol()</span>
+        <h3 class="mb-1">¡Hola, @(AuthService.GetNombreCompleto() ?? AuthService.GetUsername())!</h3>
+        <p class="mb-0 text-white-50">Bienvenido/a al sistema de gestión de la clínica.</p>
+    </div>
+    <span class="d-none d-md-inline-flex align-items-center justify-content-center rounded-circle"
+          style="width: 72px; height: 72px; background: rgba(255,255,255,.15);">
+        <LogoDiente Tamanio="38" />
+    </span>
+</div>
+
+<h6 class="fw-bold text-secondary text-uppercase small mb-3">Accesos rápidos</h6>
+
+<div class="row g-3">
+        @if (Ve(Permisos.PortalPaciente))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/portal-paciente">
+                    <span class="stat-icon tono-primary"><i class="bi bi-house-heart"></i></span>
+                    <h6>Portal del paciente</h6>
+                    <p>Consultá tus turnos, pedí nuevas citas y revisá tus pagos.</p>
+                </a>
+            </div>
+        }
+        @if (Ve(Permisos.Turnos))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/turnos">
+                    <span class="stat-icon tono-primary"><i class="bi bi-calendar2-week"></i></span>
+                    <h6>Gestión de turnos</h6>
+                    <p>Agenda de turnos, estados de atención y cancelaciones.</p>
+                </a>
+            </div>
+        }
+        @if (Ve(Permisos.Admision))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/admision">
+                    <span class="stat-icon tono-info"><i class="bi bi-person-check"></i></span>
+                    <h6>Recepción y sala de espera</h6>
+                    <p>Confirmación de presencia y registro de inasistencias.</p>
+                </a>
+            </div>
+        }
+        @if (Ve(Permisos.AtencionClinica))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/atencion-clinica">
+                    <span class="stat-icon tono-success"><i class="bi bi-clipboard2-pulse"></i></span>
+                    <h6>Consola médica</h6>
+                    <p>Diagnóstico, tratamiento y consumo de insumos de cada atención.</p>
+                </a>
+            </div>
+        }
+        @if (Ve(Permisos.Cobro))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/cobro">
+                    <span class="stat-icon tono-warning"><i class="bi bi-receipt"></i></span>
+                    <h6>Cobro y facturación</h6>
+                    <p>Facturas con ítems, descuentos de obra social y cobros.</p>
+                </a>
+            </div>
+        }
+        @if (Ve(Permisos.Reportes))
+        {
+            <div class="col-sm-6 col-xl-4">
+                <a class="acceso-card" href="/reportes">
+                    <span class="stat-icon tono-secondary"><i class="bi bi-bar-chart-line"></i></span>
+                    <h6>Reportes</h6>
+                    <p>Ausentismo, facturación del período e historial clínico.</p>
+                </a>
+            </div>
+        }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Redirección inteligente basada en rol si no es Admin
+        var rol = AuthService.GetRol();
+        if (rol == "Paciente")
+        {
+            Navigation.NavigateTo("portal-paciente");
+        }
+        else if (rol == "Odontologo")
+        {
+            Navigation.NavigateTo("atencion-clinica");
+        }
+        else if (rol == "Recepcionista")
+        {
+            Navigation.NavigateTo("admision");
+        }
+    }
+
+    private bool Ve(string permiso) => Permisos.Puede(AuthService.GetRol(), permiso);
+}

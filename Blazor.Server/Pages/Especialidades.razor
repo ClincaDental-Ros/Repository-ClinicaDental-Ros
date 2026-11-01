@@ -1,0 +1,200 @@
+﻿@page "/especialidades"
+@attribute [Authorize(Roles = Permisos.Especialidades)]
+@inject EspecialidadApiClient ApiClient
+
+<PageTitle>Especialidades - Turno Molar</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <PageHeader Titulo="Especialidades Odontológicas" Subtitulo="Catálogo de tratamientos, áreas de atención médica y coberturas" Icono="bi-tag" />
+
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Especialidades" Detalle="Habilitadas en clínica" Color="primary" Icono="bi-tag">@especialidades.Count</StatCard>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Cobertura" Detalle="Integral ambulatoria" Color="success" Icono="bi-shield-plus">100%</StatCard>
+        </div>
+    </div>
+
+    <div class="bg-white p-3 border-top border-bottom">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-theme-success" @onclick="AbrirModalNuevo">
+                + Nueva Especialidad
+            </button>
+            <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionado" disabled="@(seleccionado == null)">
+                <i class="bi bi-pencil-square"></i> Modificar
+            </button>
+            <button class="btn btn-theme-danger" @onclick="SolicitarEliminar" disabled="@(seleccionado == null)">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <div class="table-responsive panel">
+            <table class="table table-hover align-middle mb-0 table-theme">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th style="width: 280px;">Especialidad Médica</th>
+                        <th>Descripción del Alcance Clínico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="small text-muted mt-2">Cargando catálogo...</div>
+                            </td>
+                        </tr>
+                    }
+                    else if (especialidades.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">
+                                No hay especialidades registradas en el sistema.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in especialidades)
+                        {
+                            <tr class="@(seleccionado?.Id == item.Id ? "selected-row" : "")"
+                                @onclick="() => seleccionado = item"
+                                @ondblclick="() => AbrirModalEditar(item)"
+                                style="cursor: pointer;">
+                                <td><strong>#@item.Id</strong></td>
+                                <td><span class="badge bg-light text-dark border fs-6">@item.Nombre</span></td>
+                                <td class="text-secondary">@(string.IsNullOrWhiteSpace(item.Descripcion) ? "-" : item.Descripcion)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-2 mt-2 border rounded text-muted small">
+            @lblEstado
+        </div>
+    </div>
+</div>
+
+<!-- SUBCOMPONENTE MODAL DE EDICIÓN / ALTA -->
+<EspecialidadDetalleModal Show="showModal"
+                          Model="modalModel"
+                          IsEditing="isEditing"
+                          OnClosed="() => showModal = false"
+                          OnSaved="HandleEspecialidadGuardada" />
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<ConfirmModal Show="showConfirmModal"
+              Titulo="Confirmar Eliminación"
+              Mensaje="@mensajeConfirmacion"
+              OnResponse="HandleConfirmacionEliminar" />
+
+@code {
+    private List<EspecialidadDTO> especialidades = new();
+    private EspecialidadDTO? seleccionado;
+    private string lblEstado = "Cargando especialidades...";
+    private bool isLoading = false;
+
+    // Control del Modal de Edición / Alta
+    private bool showModal = false;
+    private bool isEditing = false;
+    private EspecialidadDTO modalModel = new();
+
+    // Control del Modal de Confirmación
+    private bool showConfirmModal = false;
+    private string mensajeConfirmacion = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEspecialidades();
+    }
+
+    private async Task CargarEspecialidades()
+    {
+        isLoading = true;
+        lblEstado = "Cargando especialidades desde la API...";
+        try
+        {
+            especialidades = await ApiClient.GetAllAsync();
+            lblEstado = $"Catálogo: {especialidades.Count} especialidad(es) registrada(s).";
+
+            if (seleccionado != null)
+            {
+                seleccionado = especialidades.FirstOrDefault(e => e.Id == seleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error al cargar: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void AbrirModalNuevo()
+    {
+        modalModel = new EspecialidadDTO();
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void AbrirModalEditar(EspecialidadDTO dto)
+    {
+        modalModel = new EspecialidadDTO
+        {
+            Id = dto.Id,
+            Nombre = dto.Nombre,
+            Descripcion = dto.Descripcion
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void ModificarSeleccionado()
+    {
+        if (seleccionado != null) AbrirModalEditar(seleccionado);
+    }
+
+    private async Task HandleEspecialidadGuardada()
+    {
+        showModal = false;
+        await CargarEspecialidades();
+    }
+
+    private void SolicitarEliminar()
+    {
+        if (seleccionado == null) return;
+
+        mensajeConfirmacion = $"¿Está seguro de eliminar la especialidad '{seleccionado.Nombre}'?";
+        showConfirmModal = true;
+    }
+
+    private async Task HandleConfirmacionEliminar(bool confirmado)
+    {
+        showConfirmModal = false;
+
+        if (confirmado && seleccionado != null)
+        {
+            try
+            {
+                await ApiClient.DeleteAsync(seleccionado.Id);
+                seleccionado = null;
+                await CargarEspecialidades();
+            }
+            catch (HttpRequestException ex)
+            {
+                // Por ejemplo, si otros datos todavía lo usan: se informa y la pantalla sigue funcionando.
+                lblEstado = $"No se pudo eliminar la especialidad: {ex.Message}";
+            }
+        }
+    }
+}

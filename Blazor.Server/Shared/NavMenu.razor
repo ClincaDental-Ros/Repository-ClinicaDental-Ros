@@ -1,0 +1,167 @@
+@implements IDisposable
+@inject BlazorServerAuthService AuthService
+@inject NavigationManager Navigation
+
+@* Menú lateral: perfil del usuario y opciones según los permisos del rol (Permisos.cs). *@
+
+<div class="brand-sidebar">
+    <span class="brand-logo"><LogoDiente Tamanio="20" /></span>
+    <span>Turno Molar</span>
+</div>
+
+<div class="profile-section">
+    <span class="profile-avatar">@Iniciales</span>
+    <div class="profile-info">
+        <p class="nombre" title="@NombreUsuario">@NombreUsuario</p>
+        <span class="badge-rol">@NombreRol</span>
+    </div>
+</div>
+
+<nav>
+    <ul class="side-nav">
+        @if (Rol == Permisos.Admin)
+        {
+            <li><a class="side-link @Activo("/")" href="/" @onclick="Navegar"><i class="bi bi-speedometer2"></i> Panel principal</a></li>
+        }
+    </ul>
+
+    @if (VeAlguno(Permisos.Turnos, Permisos.Admision, Permisos.AtencionClinica))
+    {
+        <div class="nav-section">Gestión clínica</div>
+        <ul class="side-nav">
+            @if (Ve(Permisos.Turnos))
+            {
+                <li><a class="side-link @Activo("/turnos")" href="/turnos" @onclick="Navegar"><i class="bi bi-calendar2-week"></i> Gestión de turnos</a></li>
+            }
+            @if (Ve(Permisos.Admision))
+            {
+                <li><a class="side-link @Activo("/admision")" href="/admision" @onclick="Navegar"><i class="bi bi-person-check"></i> Recepción y sala de espera</a></li>
+            }
+            @if (Ve(Permisos.AtencionClinica))
+            {
+                <li><a class="side-link @Activo("/atencion-clinica")" href="/atencion-clinica" @onclick="Navegar"><i class="bi bi-clipboard2-pulse"></i> Consola médica</a></li>
+            }
+        </ul>
+    }
+
+    @if (VeAlguno(Permisos.Pacientes, Permisos.Odontologos, Permisos.Especialidades, Permisos.Insumos))
+    {
+        <div class="nav-section">Maestros</div>
+        <ul class="side-nav">
+            @if (Ve(Permisos.Pacientes))
+            {
+                <li><a class="side-link @Activo("/pacientes")" href="/pacientes" @onclick="Navegar"><i class="bi bi-people"></i> Pacientes</a></li>
+            }
+            @if (Ve(Permisos.Odontologos))
+            {
+                <li><a class="side-link @Activo("/odontologos")" href="/odontologos" @onclick="Navegar"><i class="bi bi-person-badge"></i> Odontólogos</a></li>
+            }
+            @if (Ve(Permisos.Especialidades))
+            {
+                <li><a class="side-link @Activo("/especialidades")" href="/especialidades" @onclick="Navegar"><i class="bi bi-tag"></i> Especialidades</a></li>
+            }
+            @if (Ve(Permisos.Insumos))
+            {
+                <li><a class="side-link @Activo("/insumos")" href="/insumos" @onclick="Navegar"><i class="bi bi-box-seam"></i> Insumos y stock</a></li>
+            }
+        </ul>
+    }
+
+    @if (VeAlguno(Permisos.Cobro, Permisos.Reportes))
+    {
+        <div class="nav-section">Administración</div>
+        <ul class="side-nav">
+            @if (Ve(Permisos.Cobro))
+            {
+                <li><a class="side-link @Activo("/cobro")" href="/cobro" @onclick="Navegar"><i class="bi bi-receipt"></i> Cobro y facturación</a></li>
+            }
+            @if (Ve(Permisos.Reportes))
+            {
+                <li><a class="side-link @Activo("/reportes")" href="/reportes" @onclick="Navegar"><i class="bi bi-bar-chart-line"></i> Reportes</a></li>
+            }
+        </ul>
+    }
+
+    @if (Ve(Permisos.PortalPaciente))
+    {
+        <div class="nav-section">Mi portal</div>
+        <ul class="side-nav">
+            <li><a class="side-link @ActivoTab(0)" href="/portal-paciente?tab=0" @onclick="Navegar"><i class="bi bi-house-door"></i> Inicio</a></li>
+            <li><a class="side-link @ActivoTab(1)" href="/portal-paciente?tab=1" @onclick="Navegar"><i class="bi bi-calendar-check"></i> Mis turnos</a></li>
+            <li><a class="side-link @ActivoTab(2)" href="/portal-paciente?tab=2" @onclick="Navegar"><i class="bi bi-file-earmark-medical"></i> Mi historial clínico</a></li>
+            <li><a class="side-link @ActivoTab(3)" href="/portal-paciente?tab=3" @onclick="Navegar"><i class="bi bi-wallet2"></i> Pagos y deudas</a></li>
+            <li><a class="side-link @ActivoTab(4)" href="/portal-paciente?tab=4" @onclick="Navegar"><i class="bi bi-shield-check"></i> Mi obra social</a></li>
+        </ul>
+    }
+</nav>
+
+<div class="side-footer">
+    <button class="btn-logout" @onclick="() => OnCerrarSesion.InvokeAsync()">
+        <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+    </button>
+</div>
+
+@code {
+    /// <summary>Se avisa al elegir una opción, para cerrar el menú en pantallas chicas.</summary>
+    [Parameter] public EventCallback OnNavegar { get; set; }
+    /// <summary>Se avisa al tocar "Cerrar sesión"; el layout pide la confirmación.</summary>
+    [Parameter] public EventCallback OnCerrarSesion { get; set; }
+
+    // Sin rol => sin menús
+    private string Rol => AuthService.GetRol() ?? string.Empty;
+
+    private string NombreUsuario => AuthService.GetNombreCompleto() ?? AuthService.GetUsername() ?? "Usuario";
+
+    private string NombreRol => Rol switch
+    {
+        Permisos.Admin => "Administrador",
+        Permisos.Odontologo => "Odontólogo",
+        Permisos.Recepcionista => "Recepcionista",
+        Permisos.Paciente => "Paciente",
+        _ => Rol
+    };
+
+    private string Iniciales
+    {
+        get
+        {
+            var partes = NombreUsuario.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return string.Concat(partes.Take(2).Select(p => char.ToUpper(p[0])));
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        AuthService.OnAuthenticationStateChanged += HandleAuthStateChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private void HandleAuthStateChanged(bool isAuth) => _ = InvokeAsync(StateHasChanged);
+
+    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        => _ = InvokeAsync(StateHasChanged);
+
+    private bool Ve(string permiso) => Permisos.Puede(Rol, permiso);
+
+    private bool VeAlguno(params string[] permisos) => permisos.Any(Ve);
+
+    private string RutaActual => "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0];
+
+    private string Activo(string ruta) => string.Equals(RutaActual, ruta, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    private string ActivoTab(int tab)
+    {
+        if (RutaActual != "/portal-paciente") return "";
+        var query = new Uri(Navigation.Uri).Query;
+        var actual = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(query).TryGetValue("tab", out var valor) ? valor.ToString() : "0";
+        return actual == tab.ToString() ? "active" : "";
+    }
+
+    private Task Navegar() => OnNavegar.InvokeAsync();
+
+    public void Dispose()
+    {
+        AuthService.OnAuthenticationStateChanged -= HandleAuthStateChanged;
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+}

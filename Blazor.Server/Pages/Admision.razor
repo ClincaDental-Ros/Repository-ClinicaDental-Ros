@@ -1,0 +1,276 @@
+﻿@page "/admision"
+@attribute [Authorize(Roles = Permisos.Admision)]
+@inject TurnoApiClient TurnoClient
+@inject MultaApiClient MultaClient
+
+<PageTitle>Recepción y Admisión - Turno Molar</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <PageHeader Titulo="Módulo de Recepción y Admisión Diaria" Subtitulo="Control de sala de espera, confirmación de presencia y aplicación de sanciones por ausentismo" Icono="bi-person-check" />
+
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Turnos Hoy" Detalle="@fechaSeleccionada.ToString("dd/MM/yyyy")" Color="primary" Icono="bi-calendar-day">@turnos.Count</StatCard>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="En Sala de Espera" Detalle="Listos para atender" Color="info" Icono="bi-hourglass-split">@turnos.Count(t => t.EstadoTurno == "Presente")</StatCard>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Atendidos" Detalle="Consultas concluidas" Color="success" Icono="bi-check2-circle">@turnos.Count(t => t.EstadoTurno == "Atendido")</StatCard>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Ausencias / Multas" Detalle="Inasistencias registradas" Color="@(AusenciasCount > 0 ? "danger" : "secondary")" Icono="bi-exclamation-octagon">@AusenciasCount</StatCard>
+        </div>
+    </div>
+
+    <div class="bg-white p-3 border-top border-bottom">
+        <div class="row g-2 align-items-center">
+            <div class="col-lg-4 col-xxl-3 d-flex align-items-center gap-2">
+                <label class="fw-bold text-secondary text-nowrap">Fecha de Admisión:</label>
+                <input type="date" class="form-control" @bind="fechaSeleccionada" @bind:after="CargarTurnosDelDia" />
+            </div>
+            <div class="col-lg-8 col-xxl-9 d-flex justify-content-end gap-2 flex-wrap">
+                <button class="btn btn-theme-primary" @onclick="CargarTurnosDelDia" disabled="@isLoading">
+                    <i class="bi bi-arrow-clockwise"></i> Actualizar
+                </button>
+                <button class="btn btn-theme-success" @onclick="ConfirmarPresencia" disabled="@(seleccionado == null || seleccionado.EstadoTurno != "Pendiente")">
+                    <i class="bi bi-check-circle"></i> Confirmar Presencia
+                </button>
+                <button class="btn btn-theme-danger" @onclick="SolicitarAusencia" disabled="@(seleccionado == null || seleccionado.EstadoTurno != "Pendiente")">
+                    <i class="bi bi-exclamation-triangle"></i> Registrar Ausencia (Multa)
+                </button>
+                <button class="btn btn-theme-secondary" @onclick="AbrirModalCobroMultas">
+                    <i class="bi bi-credit-card"></i> Cobro de Multas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="table-responsive panel">
+            <table class="table table-hover align-middle mb-0 table-theme">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Horario</th>
+                        <th>Paciente Citado</th>
+                        <th>Profesional Asignado</th>
+                        <th>Especialidad</th>
+                        <th style="width: 220px;">Estado Actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="small text-muted mt-2">Cargando citas del día...</div>
+                            </td>
+                        </tr>
+                    }
+                    else if (turnos.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                No hay citaciones agendadas para la fecha seleccionada.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var t in turnos)
+                        {
+                            <tr class="@(seleccionado?.Id == t.Id ? "selected-row" : "")"
+                                @onclick="() => seleccionado = t"
+                                style="cursor: pointer;">
+                                <td><span class="badge bg-light text-dark border">@t.HorarioTurno</span></td>
+                                <td><span class="fw-bold">@t.PacienteNombre</span></td>
+                                <td>@t.OdontologoNombre</td>
+                                <td>@t.EspecialidadNombre</td>
+                                <td>
+                                    <EstadoBadge Estado="@t.EstadoTurno" />
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-2 mt-2 border rounded text-muted small">
+            @lblEstado
+        </div>
+    </div>
+</div>
+
+<ConfirmModal Show="showConfirmAusencia"
+              Titulo="Registrar Ausencia y Aplicar Multa"
+              Mensaje="@mensajeConfirmAusencia"
+              OnResponse="HandleConfirmacionAusencia" />
+
+@if (showMultasModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header btn-theme-primary text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-credit-card"></i> Liquidación y Cobro de Multas por Inasistencia</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => showMultasModal = false"></button>
+                </div>
+                <div class="modal-body p-0">
+                    @if (multasImpagas.Count == 0)
+                    {
+                        <div class="p-4 text-center text-muted">
+                            No hay multas pendientes de cobro en este momento.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 table-theme">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">ID Multa</th>
+                                        <th>Paciente Sancionado</th>
+                                        <th>Monto ($)</th>
+                                        <th>Motivo de la Sanción</th>
+                                        <th style="width: 140px;">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var m in multasImpagas)
+                                    {
+                                        <tr>
+                                            <td><strong>#@m.Id</strong></td>
+                                            <td>@m.PacienteNombre</td>
+                                            <td class="text-danger fw-bold">@m.Monto.ToString("C2")</td>
+                                            <td><small class="text-muted">@m.Motivo</small></td>
+                                            <td>
+                                                <button class="btn btn-theme-success btn-sm" @onclick="() => CobrarMulta(m)">
+                                                    <i class="bi bi-credit-card"></i> Cobrar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-theme-secondary" @onclick="() => showMultasModal = false">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<TurnoOdontologicoDTO> turnos = new();
+    private TurnoOdontologicoDTO? seleccionado;
+    private DateTime fechaSeleccionada = DateTime.Today;
+    private string lblEstado = "Cargando citas...";
+    private bool isLoading = false;
+
+    // Control Ausencia Modal
+    private bool showConfirmAusencia = false;
+    private string mensajeConfirmAusencia = "";
+
+    // Control Modal Multas
+    private bool showMultasModal = false;
+    private List<MultaDTO> multasImpagas = new();
+
+    private int AusenciasCount => turnos.Count(t => t.EstadoTurno == "NoAsistido");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTurnosDelDia();
+    }
+
+    private async Task CargarTurnosDelDia()
+    {
+        isLoading = true;
+        lblEstado = "Cargando citas del día...";
+        try
+        {
+            turnos = await TurnoClient.GetHoyAsync(fechaSeleccionada.Date);
+            lblEstado = $"Total citados para hoy: {turnos.Count} paciente(s). En sala de espera: {turnos.Count(t => t.EstadoTurno == "Presente")}.";
+
+            if (seleccionado != null)
+            {
+                seleccionado = turnos.FirstOrDefault(t => t.Id == seleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ConfirmarPresencia()
+    {
+        if (seleccionado == null || seleccionado.EstadoTurno != "Pendiente") return;
+
+        try
+        {
+            await TurnoClient.ConfirmarPresenciaAsync(seleccionado.Id);
+            lblEstado = $"Llegada confirmada. El paciente {seleccionado.PacienteNombre} pasa a sala de espera.";
+            await CargarTurnosDelDia();
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error al confirmar presencia: {ex.Message}";
+        }
+    }
+
+    private void SolicitarAusencia()
+    {
+        if (seleccionado == null || seleccionado.EstadoTurno != "Pendiente") return;
+
+        mensajeConfirmAusencia = $"¿Confirmar ausencia del paciente {seleccionado.PacienteNombre}?\nAl registrar la ausencia se generará automáticamente una MULTA de $3.500 y el paciente quedará INHABILITADO para futuros turnos.";
+        showConfirmAusencia = true;
+    }
+
+    private async Task HandleConfirmacionAusencia(bool confirmado)
+    {
+        showConfirmAusencia = false;
+
+        if (confirmado && seleccionado != null)
+        {
+            await TurnoClient.RegistrarAusenciaAsync(seleccionado.Id, "Inasistencia sin previo aviso en el horario asignado", 3500m);
+            await CargarTurnosDelDia();
+        }
+    }
+
+    private async Task AbrirModalCobroMultas()
+    {
+        try
+        {
+            multasImpagas = await MultaClient.GetAllAsync(soloImpagas: true);
+            showMultasModal = true;
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error al cargar multas: {ex.Message}";
+        }
+    }
+
+    private async Task CobrarMulta(MultaDTO m)
+    {
+        try
+        {
+            await MultaClient.PagarAsync(m.Id);
+            multasImpagas = await MultaClient.GetAllAsync(soloImpagas: true);
+            await CargarTurnosDelDia();
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error al cobrar multa: {ex.Message}";
+        }
+    }
+}

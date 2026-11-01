@@ -1,0 +1,22 @@
+@* Tarjeta de resumen con ícono, título, valor y detalle. *@
+<div class="card-stat">
+    <span class="stat-icon tono-@Color"><i class="bi @Icono"></i></span>
+    <div class="min-w-0">
+        <div class="stat-titulo">@Titulo</div>
+        <div class="stat-valor texto-@Color">@ChildContent</div>
+        @if (!string.IsNullOrEmpty(Detalle))
+        {
+            <div class="stat-detalle">@Detalle</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Titulo { get; set; } = "";
+    [Parameter] public string? Detalle { get; set; }
+    /// <summary>primary, info, success, warning, danger o secondary.</summary>
+    [Parameter] public string Color { get; set; } = "primary";
+    [Parameter] public string Icono { get; set; } = "bi-bar-chart";
+    /// <summary>El valor que se muestra.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,63 @@
+namespace Domain.Model
+{
+    /// <summary>
+    /// Consultorio de la clínica. Está en el modelo de dominio y tiene su tabla, pero la asignación
+    /// de consultorios a turnos quedó fuera del alcance acordado: todavía no tiene servicio, endpoints ni pantallas.
+    /// </summary>
+    public class Consultorio
+    {
+        public int Id { get; private set; }
+        public int NumConsultorio { get; private set; }
+        public string Direccion { get; private set; } = string.Empty;
+        public string Equipamiento { get; private set; } = string.Empty;
+
+        public Consultorio() { }
+
+        public Consultorio(int id, int numConsultorio, string direccion, string equipamiento = "")
+        {
+            Id = id;
+            NumConsultorio = numConsultorio;
+            Direccion = direccion;
+            Equipamiento = equipamiento;
+            Validate();
+        }
+
+        public void Validate()
+        {
+            if (Id < 0)
+                throw new ArgumentException("El ID del consultorio no puede ser negativo.", nameof(Id));
+
+            if (NumConsultorio <= 0)
+                throw new ArgumentException("El número de consultorio debe ser mayor a cero.", nameof(NumConsultorio));
+
+            if (string.IsNullOrWhiteSpace(Direccion))
+                throw new ArgumentException("La dirección del consultorio es obligatoria.", nameof(Direccion));
+        }
+
+        public void SetId(int id)
+        {
+            if (id < 0)
+                throw new ArgumentException("El ID del consultorio no puede ser negativo.", nameof(id));
+            Id = id;
+        }
+
+        public void SetNumConsultorio(int numConsultorio)
+        {
+            if (numConsultorio <= 0)
+                throw new ArgumentException("El número de consultorio debe ser mayor a cero.", nameof(numConsultorio));
+            NumConsultorio = numConsultorio;
+        }
+
+        public void SetDireccion(string direccion)
+        {
+            if (string.IsNullOrWhiteSpace(direccion))
+                throw new ArgumentException("La dirección del consultorio es obligatoria.", nameof(direccion));
+            Direccion = direccion;
+        }
+
+        public void SetEquipamiento(string equipamiento)
+        {
+            Equipamiento = equipamiento ?? string.Empty;
+        }
+    }
+}

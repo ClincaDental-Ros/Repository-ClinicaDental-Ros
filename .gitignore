@@ -1,17 +1,30 @@
 # Visual Studio
 .vs/
-.vscode/
-bin/
-obj/
 *.user
-*.suo
-*.sln.docstates
-.DS_Store
+obj/
+bin/
 
-# NuGet
-*.nupkg
-*.snupkg
+# Database
+*.db
+*.db-shm
+*.db-wal
 
-# Rider
+# Backup files
+*.backup.json
+
+# Backup / temporales
+*.tmp
+
+# Resultados de tests
+TestResults/
+
+# Otros IDEs
 .idea/
-*.sln.iml
+.vscode/
+
+# Configuraciones y secretos de conexion
+appsettings.Development.json
+appsettings.*.local.json
+
+# Documentación interna del grupo (no se versiona)
+docs/

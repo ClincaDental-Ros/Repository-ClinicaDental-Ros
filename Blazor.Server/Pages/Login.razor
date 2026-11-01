@@ -1,0 +1,149 @@
+﻿@page "/login"
+@attribute [AllowAnonymous]
+@layout LoginLayout
+
+@inject AuthApiClient AuthClient
+@inject BlazorServerAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Iniciar sesión - Turno Molar</PageTitle>
+
+<div class="login-bg d-flex justify-content-center align-items-center px-3">
+    <div class="card login-card p-4 p-md-5 bg-white" style="width: 100%; max-width: 440px;">
+
+        <div class="text-center mb-4">
+            <span class="brand-logo mx-auto mb-3" style="width: 64px; height: 64px; border-radius: 18px;"><LogoDiente Tamanio="34" /></span>
+            <h3 class="fw-bold mb-1">Turno Molar</h3>
+            <p class="text-muted small mb-0">Clínica Odontológica · Sede Rosario</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(lblError))
+        {
+            <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 small mb-3" role="alert">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>@lblError</span>
+            </div>
+        }
+
+        <EditForm Model="loginModel" OnValidSubmit="RealizarLogin">
+            <div class="mb-3">
+                <label class="form-label fw-semibold small mb-1">Usuario o número de documento</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-person text-secondary"></i></span>
+                    <InputText @bind-Value="loginModel.Username" class="form-control" placeholder="Ej.: admin" disabled="@isSubmitting" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold small mb-1">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-lock text-secondary"></i></span>
+                    <InputText @bind-Value="loginModel.Password" type="@(showPassword ? "text" : "password")" class="form-control" disabled="@isSubmitting" />
+                    <button type="button" class="btn btn-theme-secondary" @onclick="ToggleShowPassword" tabindex="-1"
+                            title="@(showPassword ? "Ocultar contraseña" : "Mostrar contraseña")">
+                        <i class="bi @(showPassword ? "bi-eye-slash" : "bi-eye")"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-theme-primary w-100 py-2 mt-2" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <span>Ingresando...</span>
+                }
+                else
+                {
+                    <i class="bi bi-box-arrow-in-right me-1"></i>
+                    <span>Iniciar sesión</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="text-center mt-4 pt-3 border-top">
+            <small class="text-muted" style="font-size: .75rem;">© 2026 Clínica Odontológica Turno Molar · Rosario</small>
+        </div>
+    </div>
+</div>
+
+@code {
+    // 2. Modelo privado y simple. .
+    private LoginRequestDTO loginModel = new();
+
+    private string lblError = "";
+    private bool isSubmitting = false;
+    private bool showPassword = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Entrar a la pantalla de login cierra la sesión anterior: hay que volver a identificarse.
+        if (firstRender && AuthService.IsAuthenticated())
+        {
+            await AuthService.ClearSessionAsync();
+        }
+    }
+
+    private void ToggleShowPassword()
+    {
+        showPassword = !showPassword;
+    }
+
+    private async Task RealizarLogin()
+    {
+        if (string.IsNullOrWhiteSpace(loginModel.Username) || string.IsNullOrWhiteSpace(loginModel.Password))
+        {
+            lblError = "Ingresá tu usuario y contraseña.";
+            return;
+        }
+
+        lblError = "";
+        isSubmitting = true;
+        string? urlDestino = null;
+
+        try
+        {
+            var request = new LoginRequestDTO
+            {
+                Username = loginModel.Username.Trim(),
+                Password = loginModel.Password.Trim()
+            };
+
+            var response = await AuthClient.LoginAsync(request);
+            if (response != null && !string.IsNullOrWhiteSpace(response.Token))
+            {
+                AuthService.SetSession(response);
+
+                var rol = AuthService.GetRol();
+                urlDestino = rol switch
+                {
+                    "Paciente" => "/portal-paciente",
+                    "Odontologo" => "/atencion-clinica",
+                    "Recepcionista" => "/admision",
+                    _ => "/"
+                };
+            }
+            else
+            {
+                lblError = "Usuario no existente o contraseña incorrecta.";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            lblError = "Error de conexión con el servidor o la base de datos.";
+        }
+        catch (Exception ex)
+        {
+            lblError = $"Error imprevisto: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+
+        // 3. Navegación FUERA del try-catch y SIN forceLoad
+        if (!string.IsNullOrEmpty(urlDestino))
+        {
+            Navigation.NavigateTo(urlDestino);
+        }
+    }
+}

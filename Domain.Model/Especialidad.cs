@@ -1,33 +1,46 @@
-namespace DentalClinic.Domain.Model
+namespace Domain.Model
 {
-	public class Especialidad
-	{
-		public string Nombre { get; private set; }
-		public string Descripcion { get; private set; }
-		public int Id { get; private set; }
-		private static int _nextId = 0;
+    public class Especialidad
+    {
+        public int Id { get; private set; }
+        public string Nombre { get; private set; } = string.Empty;
+        public string Descripcion { get; private set; } = string.Empty;
 
+        public Especialidad() { }
 
-		public Especialidad(string nombre, string descripcion)
-		{
-			SetNom(nombre);
-			SetDesc(descripcion);
-			_nextId++;
-			Id = _nextId;
-		}
+        public Especialidad(int id, string nombre, string descripcion)
+        {
+            Id = id;
+            Nombre = nombre;
+            Descripcion = descripcion;
+            Validate();
+        }
 
+        public void Validate()
+        {
+            if (Id < 0)
+                throw new ArgumentException("El ID de la especialidad no puede ser negativo.", nameof(Id));
 
-		public void SetNom(string nombre)
-		{
-			if (string.IsNullOrWhiteSpace(nombre))
-				throw new ArgumentException("El nombre no puede ser nulo o vacío.", nameof(nombre));
-			Nombre = nombre;
-		}
+            if (string.IsNullOrWhiteSpace(Nombre))
+                throw new ArgumentException("El nombre de la especialidad es obligatorio.", nameof(Nombre));
+        }
 
-		public void SetDesc(string descripcion)
-		{
-			if (string.IsNullOrWhiteSpace(descripcion))
-				throw new ArgumentException("El descripción no puede ser nulo o vacío.", nameof(descripcion));
-			Descripcion = descripcion;
-		}
-	}
+        public void SetId(int id)
+        {
+            if (id < 0)
+                throw new ArgumentException("El ID de la especialidad no puede ser negativo.", nameof(id));
+            Id = id;
+        }
+
+        public void SetNom(string nombre)
+        {
+            if (string.IsNullOrWhiteSpace(nombre))
+                throw new ArgumentException("El nombre de la especialidad es obligatorio.", nameof(nombre));
+            Nombre = nombre;
+        }
+        public void SetNombre(string nombre) => SetNom(nombre);
+
+        public void SetDesc(string descripcion) => Descripcion = descripcion ?? string.Empty;
+        public void SetDescripcion(string descripcion) => SetDesc(descripcion);
+    }
+}

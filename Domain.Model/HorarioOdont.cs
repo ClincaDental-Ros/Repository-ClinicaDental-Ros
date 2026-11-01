@@ -1,38 +1,73 @@
-namespace DentalClinic.Domain.Model
+namespace Domain.Model
 {
+    /// <summary>
+    /// Franja horaria de atenci贸n de un odont贸logo (d铆a de la semana, hora desde y hasta).
+    /// Est谩 en el modelo de dominio y tiene su tabla, pero la gesti贸n de horarios (CU20 / RM-09)
+    /// qued贸 fuera del alcance acordado: todav铆a no tiene servicio, endpoints ni pantallas.
+    /// </summary>
     public class HorarioOdont
     {
-        public string HoraDesde { get; private set; }
-        public string HoraHasta { get; private set; }
-        public string DiaSemana { get; private set; }
+        public int Id { get; private set; }
+        public int OdontologoId { get; private set; }
+        public Odontologo? Odontologo { get; private set; }
+        public string DiaSemana { get; private set; } = string.Empty;
+        public TimeOnly HoraDesde { get; private set; }
+        public TimeOnly HoraHasta { get; private set; }
 
+        public HorarioOdont() { }
 
-        public HorarioOdont(string horadesde, string horahasta, string diasemana)
+        public HorarioOdont(int id, int odontologoId, string diaSemana, TimeOnly horaDesde, TimeOnly horaHasta)
         {
-            SetHoraD(horadesde);
-            SetHoraH(horahasta);
-            SetDiaS(diasemana);
-           
+            Id = id;
+            OdontologoId = odontologoId;
+            DiaSemana = diaSemana;
+            HoraDesde = horaDesde;
+            HoraHasta = horaHasta;
+            Validate();
         }
 
-
-        public void SetHoraD(string horadesde)
+        public void Validate()
         {
-            if (string.IsNullOrWhiteSpace(horadesde))
-                throw new ArgumentException("El horario desde no puede ser nulo o vac韔.", nameof(horadesde));
-            HoraDesde = horadesde;
+            if (Id < 0)
+                throw new ArgumentException("El ID del horario no puede ser negativo.", nameof(Id));
+
+            if (OdontologoId <= 0)
+                throw new ArgumentException("El ID del odont贸logo es obligatorio.", nameof(OdontologoId));
+
+            if (string.IsNullOrWhiteSpace(DiaSemana))
+                throw new ArgumentException("El d铆a de la semana es obligatorio.", nameof(DiaSemana));
+
+            if (HoraHasta <= HoraDesde)
+                throw new ArgumentException("La hora de fin debe ser posterior a la hora de inicio.", nameof(HoraHasta));
         }
 
-        public void SetHoraH(string horahasta)
+        public void SetId(int id)
         {
-            if (string.IsNullOrWhiteSpace(horahasta))
-                throw new ArgumentException("El horario hasta no puede ser nulo o vac韔.", nameof(horahasta));
-            HoraHasta = horahasta;
+            if (id < 0)
+                throw new ArgumentException("El ID del horario no puede ser negativo.", nameof(id));
+            Id = id;
         }
-        public void SetDiaS(string diasemana)
+
+        public void SetOdontologoId(int odontologoId)
         {
-            if (string.IsNullOrWhiteSpace(diasemana))
-                throw new ArgumentException("El dia de la semana no puede ser nulo o vac韔.", nameof(diasemana));
-            DiaSemana = diasemana;
+            if (odontologoId <= 0)
+                throw new ArgumentException("El ID del odont贸logo es obligatorio.", nameof(odontologoId));
+            OdontologoId = odontologoId;
+        }
+
+        public void SetDiaSemana(string diaSemana)
+        {
+            if (string.IsNullOrWhiteSpace(diaSemana))
+                throw new ArgumentException("El d铆a de la semana es obligatorio.", nameof(diaSemana));
+            DiaSemana = diaSemana;
+        }
+
+        public void SetHorarios(TimeOnly desde, TimeOnly hasta)
+        {
+            if (hasta <= desde)
+                throw new ArgumentException("La hora de fin debe ser posterior a la hora de inicio.", nameof(hasta));
+            HoraDesde = desde;
+            HoraHasta = hasta;
         }
     }
+}

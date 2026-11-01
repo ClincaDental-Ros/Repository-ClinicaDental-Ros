@@ -1,0 +1,306 @@
+﻿@page "/cobro"
+@attribute [Authorize(Roles = Permisos.Cobro)]
+@inject FacturaApiClient ApiClient
+
+<PageTitle>Caja y Facturación - Turno Molar</PageTitle>
+
+<div class="container-fluid p-0">
+
+    <PageHeader Titulo="Módulo de Cobro, Caja y Liquidación a Obras Sociales" Subtitulo="Emisión de comprobantes, liquidación de coseguros, descuentos de obras sociales y pagos recibidos" Icono="bi-receipt" />
+
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Total Facturado" Detalle="Consultas + Insumos" Color="primary" Icono="bi-receipt">@facturas.Sum(f => f.Total).ToString("C0")</StatCard>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Cobrado en Caja" Detalle="Efectivo y Tarjetas" Color="success" Icono="bi-cash-stack">@facturas.Where(f => f.EstadoPago).Sum(f => f.MontoAPagarPaciente).ToString("C0")</StatCard>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="A Liquidar O.S." Detalle="Obras Sociales" Color="info" Icono="bi-shield-check">@facturas.Sum(f => f.DescuentoObraSocial).ToString("C0")</StatCard>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <StatCard Titulo="Pendientes de Cobro" Detalle="Órdenes en espera" Color="@(PendientesCount > 0 ? "warning" : "secondary")" Icono="bi-clock-history">@PendientesCount</StatCard>
+        </div>
+    </div>
+
+    <div class="bg-white p-3 border-top border-bottom">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-theme-primary" @onclick="CargarFacturas" disabled="@isLoading">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar Lista
+            </button>
+            <button class="btn btn-theme-success" @onclick="AbrirDetalleSeleccionado" disabled="@(seleccionado == null)">
+                <i class="bi bi-receipt"></i> Abrir Detalle y Cobrar
+            </button>
+            <button class="btn btn-theme-primary" @onclick="AbrirNueva">
+                <i class="bi bi-plus-lg"></i> Nueva Factura
+            </button>
+            <button class="btn btn-theme-secondary" @onclick="ModificarSeleccionada" disabled="@(seleccionado == null || seleccionado.EstadoPago)">
+                <i class="bi bi-pencil-square"></i> Modificar
+            </button>
+            <button class="btn btn-theme-danger" @onclick="PedirEliminar" disabled="@(seleccionado == null || seleccionado.EstadoPago)">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <div class="table-responsive panel">
+            <table class="table table-hover align-middle mb-0 table-theme">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Factura N°</th>
+                        <th>Fecha Emisión</th>
+                        <th>Paciente</th>
+                        <th>Obra Social</th>
+                        <th>Total Prestación</th>
+                        <th>Desc. Obra Social</th>
+                        <th>A Pagar Paciente</th>
+                        <th>Estado Cobro</th>
+                        <th>Medio de Pago</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="small text-muted mt-2">Cargando comprobantes...</div>
+                            </td>
+                        </tr>
+                    }
+                    else if (facturas.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                No hay facturas o liquidaciones registradas.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var f in facturas)
+                        {
+                            <tr class="@(seleccionado?.Id == f.Id ? "selected-row" : "")"
+                                @onclick="() => seleccionado = f"
+                                @ondblclick="() => AbrirDetalle(f)"
+                                style="cursor: pointer;">
+                                <td><strong>#@f.Id</strong></td>
+                                <td>@f.FechaEmision.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@f.PacienteNombre</td>
+                                <td>@f.ObraSocialNombre</td>
+                                <td>@f.Total.ToString("C2")</td>
+                                <td class="text-success fw-bold"> -@f.DescuentoObraSocial.ToString("C2")</td>
+                                <td><strong>@f.MontoAPagarPaciente.ToString("C2")</strong></td>
+                                <td>
+                                    @if (f.EstadoPago)
+                                    {
+                                        <span class="estado-badge estado-atendido">Pagado</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="estado-badge estado-pendiente">Pendiente</span>
+                                    }
+                                </td>
+                                <td><small class="text-muted">@(f.MetodoPago ?? "-")</small></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- DETALLE (maestro/detalle): ítems de la factura seleccionada -->
+        <div class="panel p-3 mt-3">
+            <h6 class="fw-bold mb-3" style="color: var(--color-primary);">
+                <i class="bi bi-list-ul"></i>
+                @if (seleccionado == null)
+                {
+                    <span>Detalle de la factura</span>
+                }
+                else
+                {
+                    <span>Detalle de la factura #@seleccionado.Id · @seleccionado.PacienteNombre</span>
+                }
+            </h6>
+            @if (seleccionado == null)
+            {
+                <div class="text-muted small">Seleccioná una factura de la lista para ver sus ítems.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 table-theme">
+                        <thead>
+                            <tr>
+                                <th>Concepto / Insumo</th>
+                                <th class="text-end">Cantidad</th>
+                                <th class="text-end">Precio unitario</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Honorarios profesionales@(string.IsNullOrWhiteSpace(seleccionado.Descripcion) ? "" : $" ({seleccionado.Descripcion})")</td>
+                                <td class="text-end">1</td>
+                                <td class="text-end">@seleccionado.Honorarios.ToString("C2")</td>
+                                <td class="text-end">@seleccionado.Honorarios.ToString("C2")</td>
+                            </tr>
+                            @foreach (var item in seleccionado.Items)
+                            {
+                                <tr>
+                                    <td>@item.InsumoNombre</td>
+                                    <td class="text-end">@item.CantidadInsumo</td>
+                                    <td class="text-end">@item.PrecioUnitario.ToString("C2")</td>
+                                    <td class="text-end">@item.Subtotal.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Subtotal</th>
+                                <th class="text-end">@seleccionado.Subtotal.ToString("C2")</th>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end text-success">Descuento obra social</td>
+                                <td class="text-end text-success">-@seleccionado.DescuentoObraSocial.ToString("C2")</td>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="text-end">A pagar por el paciente</th>
+                                <th class="text-end">@seleccionado.MontoAPagarPaciente.ToString("C2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="bg-white p-2 mt-2 border rounded text-muted small">
+            @lblEstado
+        </div>
+    </div>
+</div>
+
+<!-- SUBCOMPONENTE MODAL DE FACTURA -->
+<FacturaDetalleModal Show="showModal"
+                     Factura="modalFactura"
+                     OnClosed="() => showModal = false"
+                     OnPaid="HandleFacturaPagada" />
+
+<FacturaEdicionModal Show="showEdicionModal"
+                     Factura="facturaEdicion"
+                     OnClosed="() => showEdicionModal = false"
+                     OnSaved="HandleFacturaGuardada" />
+
+<ConfirmModal Show="showConfirmModal"
+              Titulo="Confirmar Eliminación"
+              Mensaje="@mensajeConfirmacion"
+              OnResponse="HandleConfirmacionEliminar" />
+
+@code {
+    private List<FacturaDTO> facturas = new();
+    private FacturaDTO? seleccionado;
+    private string lblEstado = "Cargando facturas...";
+    private bool isLoading = false;
+
+    private bool showModal = false;
+    private FacturaDTO? modalFactura;
+
+    private bool showEdicionModal = false;
+    private FacturaDTO? facturaEdicion;
+    private bool showConfirmModal = false;
+    private string mensajeConfirmacion = "";
+
+    private int PendientesCount => facturas.Count(f => !f.EstadoPago);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarFacturas();
+    }
+
+    private async Task CargarFacturas()
+    {
+        isLoading = true;
+        lblEstado = "Cargando facturas desde la API...";
+        try
+        {
+            facturas = await ApiClient.GetAllAsync();
+            lblEstado = $"Total facturas: {facturas.Count}. Pendientes de cobro en caja: {PendientesCount}.";
+
+            if (seleccionado != null)
+            {
+                seleccionado = facturas.FirstOrDefault(f => f.Id == seleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void AbrirDetalle(FacturaDTO f)
+    {
+        modalFactura = f;
+        showModal = true;
+    }
+
+    private void AbrirDetalleSeleccionado()
+    {
+        if (seleccionado != null) AbrirDetalle(seleccionado);
+    }
+
+    private async Task HandleFacturaPagada()
+    {
+        showModal = false;
+        await CargarFacturas();
+    }
+
+    private void AbrirNueva()
+    {
+        facturaEdicion = null;
+        showEdicionModal = true;
+    }
+
+    private void ModificarSeleccionada()
+    {
+        if (seleccionado == null || seleccionado.EstadoPago) return;
+        facturaEdicion = seleccionado;
+        showEdicionModal = true;
+    }
+
+    private async Task HandleFacturaGuardada(FacturaDTO guardada)
+    {
+        showEdicionModal = false;
+        await CargarFacturas();
+        seleccionado = facturas.FirstOrDefault(f => f.Id == guardada.Id);
+        lblEstado = $"Factura #{guardada.Id} guardada. Total {guardada.Total:C2}, a pagar por el paciente {guardada.MontoAPagarPaciente:C2}.";
+    }
+
+    private void PedirEliminar()
+    {
+        if (seleccionado == null || seleccionado.EstadoPago) return;
+        mensajeConfirmacion = $"¿Eliminar la factura #{seleccionado.Id} de {seleccionado.PacienteNombre}?";
+        showConfirmModal = true;
+    }
+
+    private async Task HandleConfirmacionEliminar(bool confirmado)
+    {
+        showConfirmModal = false;
+        if (!confirmado || seleccionado == null) return;
+
+        try
+        {
+            await ApiClient.EliminarAsync(seleccionado.Id);
+            seleccionado = null;
+            await CargarFacturas();
+        }
+        catch (Exception ex)
+        {
+            lblEstado = $"No se pudo eliminar la factura: {ex.Message}";
+        }
+    }
+}
