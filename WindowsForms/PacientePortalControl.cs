@@ -20,7 +20,7 @@ namespace WindowsForms
         private Panel pnlProximoTurnoCard = null!;
         private Label lblProxDoctor = null!;
         private Label lblProxFecha = null!;
-        private Label lblProxUbicacion = null!;
+        private Label lblProxEspecialidad = null!;
         private Label lblProxEstado = null!;
         private Button btnVerTicket = null!;
         private Button btnReservarTurno = null!;
@@ -158,7 +158,7 @@ namespace WindowsForms
             var lblCardTitle = new Label { Text = "PRÓXIMO TURNO ODONTOLÓGICO", ForeColor = Color.FromArgb(200, 225, 255), Font = UITheme.SmallBold, Location = new Point(25, 15), AutoSize = true };
             lblProxDoctor = new Label { Text = "Profesional: Dra. Karina González", ForeColor = Color.White, Font = new Font("Segoe UI", 14F, FontStyle.Bold), Location = new Point(25, 38), AutoSize = true };
             lblProxFecha = new Label { Text = "Fecha y Hora: 20/08/2026 a las 09:30 hs", ForeColor = Color.FromArgb(230, 240, 255), Font = UITheme.RegularBold, Location = new Point(25, 72), AutoSize = true };
-            lblProxUbicacion = new Label { Text = "Ubicación: Consultorio 3 • Piso 1, Sede Rosario", ForeColor = Color.FromArgb(200, 225, 255), Font = UITheme.SmallFont, Location = new Point(25, 96), AutoSize = true };
+            lblProxEspecialidad = new Label { Text = "", ForeColor = Color.FromArgb(200, 225, 255), Font = UITheme.SmallFont, Location = new Point(25, 96), AutoSize = true };
             lblProxEstado = new Label { Text = "ESTADO: CONFIRMADO", ForeColor = Color.FromArgb(52, 211, 153), Font = UITheme.SmallBold, Location = new Point(25, 120), AutoSize = true };
 
             btnVerTicket = new Button { Text = "🧾 Ver Ticket Digital", Location = new Point(530, 60), Size = new Size(160, 42) };
@@ -168,7 +168,7 @@ namespace WindowsForms
             pnlProximoTurnoCard.Controls.Add(lblCardTitle);
             pnlProximoTurnoCard.Controls.Add(lblProxDoctor);
             pnlProximoTurnoCard.Controls.Add(lblProxFecha);
-            pnlProximoTurnoCard.Controls.Add(lblProxUbicacion);
+            pnlProximoTurnoCard.Controls.Add(lblProxEspecialidad);
             pnlProximoTurnoCard.Controls.Add(lblProxEstado);
             pnlProximoTurnoCard.Controls.Add(btnVerTicket);
 
@@ -553,6 +553,7 @@ namespace WindowsForms
                 {
                     lblProxDoctor.Text = $"Profesional: {_proximoTurno.OdontologoNombre}";
                     lblProxFecha.Text = $"Fecha y Hora: {_proximoTurno.Fecha:dd/MM/yyyy} a las {_proximoTurno.HorarioTurno} hs";
+                    lblProxEspecialidad.Text = $"Especialidad: {_proximoTurno.EspecialidadNombre}";
                     lblProxEstado.Text = $"ESTADO: {_proximoTurno.EstadoTurno.ToUpper()}";
                     btnVerTicket.Visible = true;
                 }
@@ -560,6 +561,7 @@ namespace WindowsForms
                 {
                     lblProxDoctor.Text = "No tienes turnos próximos agendados.";
                     lblProxFecha.Text = "Presiona el botón de abajo para solicitar una cita.";
+                    lblProxEspecialidad.Text = "";
                     lblProxEstado.Text = "";
                     btnVerTicket.Visible = false;
                 }
@@ -648,7 +650,6 @@ namespace WindowsForms
             AddDetail("PROFESIONAL:", _proximoTurno.OdontologoNombre);
             AddDetail("ESPECIALIDAD:", _proximoTurno.EspecialidadNombre);
             AddDetail("FECHA Y HORA:", $"{_proximoTurno.Fecha:dd/MM/yyyy} a las {_proximoTurno.HorarioTurno}");
-            AddDetail("UBICACIÓN:", "Consultorio 3 - Piso 1, Sede Rosario");
             AddDetail("ESTADO:", "RESERVA CONFIRMADA (Citado)");
 
             var btnCerrar = new Button { Text = "Imprimir / Aceptar", Location = new Point(130, y + 20), Size = new Size(180, 38) };

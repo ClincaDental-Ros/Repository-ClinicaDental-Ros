@@ -1,5 +1,10 @@
 namespace Domain.Model
 {
+    /// <summary>
+    /// Franja horaria de atención de un odontólogo (día de la semana, hora desde y hasta).
+    /// Está en el modelo de dominio y tiene su tabla, pero la gestión de horarios (CU20 / RM-09)
+    /// quedó fuera del alcance acordado: todavía no tiene servicio, endpoints ni pantallas.
+    /// </summary>
     public class HorarioOdont
     {
         public int Id { get; private set; }
